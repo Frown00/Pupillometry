@@ -1,18 +1,18 @@
 {
-  "name": "electron-react-boilerplate",
-  "description": "Electron application boilerplate based on React, React Router, Webpack, React Fast Refresh for rapid application development",
+  "name": "pupillometry",
+  "description": "App for preprocessing, visualize and analysis of pupil size",
   "scripts": {
     "build": "concurrently \"npm run build:main\" \"npm run build:renderer\"",
     "build:main": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.main.prod.ts",
     "build:renderer": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.renderer.prod.ts",
-    "rebuild": "electron-rebuild --parallel --types prod,dev,optional --module-dir src",
+    "rebuild": "electron-rebuild --parallel --types prod,dev,optional --module-dir",
     "lint": "cross-env NODE_ENV=development eslint . --cache --ext .js,.jsx,.ts,.tsx",
-    "package": "ts-node ./.erb/scripts/clean.js dist && npm run build && electron-builder build --publish never",
+    "package": "ts-node ./.erb/scripts/clean.js dist && npm run build && electron-builder build -w zip -l zip --publish never",
     "postinstall": "ts-node .erb/scripts/check-native-dep.js && electron-builder install-app-deps && cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.renderer.dev.dll.ts && opencollective-postinstall",
     "start": "ts-node ./.erb/scripts/check-port-in-use.js && npm run start:renderer",
     "start:main": "cross-env NODE_ENV=development electron -r ts-node/register/transpile-only ./src/main/main.ts",
     "start:renderer": "cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack serve --config ./.erb/configs/webpack.config.renderer.dev.ts",
-    "test": "jest",
+    "test": "jest ./src/__tests__",
     "prepare": "husky install"
   },
   "lint-staged": {
@@ -30,8 +30,8 @@
     ]
   },
   "build": {
-    "productName": "ElectronReact",
-    "appId": "org.erb.ElectronReact",
+    "productName": "Pupillometry",
+    "appId": "com.github.frown00.Pupillometry",
     "asar": true,
     "asarUnpack": "**\\*.{node,dll}",
     "files": [
@@ -40,44 +40,11 @@
       "package.json"
     ],
     "afterSign": ".erb/scripts/notarize.js",
-    "mac": {
-      "target": {
-        "target": "default",
-        "arch": [
-          "arm64",
-          "x64"
-        ]
-      },
-      "type": "distribution",
-      "hardenedRuntime": true,
-      "entitlements": "assets/entitlements.mac.plist",
-      "entitlementsInherit": "assets/entitlements.mac.plist",
-      "gatekeeperAssess": false
-    },
-    "dmg": {
-      "contents": [
-        {
-          "x": 130,
-          "y": 220
-        },
-        {
-          "x": 410,
-          "y": 220,
-          "type": "link",
-          "path": "/Applications"
-        }
-      ]
-    },
     "win": {
-      "target": [
-        "nsis"
-      ]
+      "target": "zip"
     },
     "linux": {
-      "target": [
-        "AppImage"
-      ],
-      "category": "Development"
+      "category": "Science"
     },
     "directories": {
       "app": "release/app",
@@ -89,47 +56,33 @@
     ],
     "publish": {
       "provider": "github",
-      "owner": "electron-react-boilerplate",
-      "repo": "electron-react-boilerplate"
+      "owner": "Frown00",
+      "repo": "Pupillometry"
     }
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/electron-react-boilerplate/electron-react-boilerplate.git"
+    "url": "git+https://github.com/Frown00/Pupillometry.git"
   },
   "author": {
-    "name": "Electron React Boilerplate Maintainers",
-    "email": "electronreactboilerplate@gmail.com",
-    "url": "https://electron-react-boilerplate.js.org"
+    "name": "Fabian Kuriata",
+    "email": "fabian.kuriata.dev@gmail.com",
+    "url": "https://github.com/Frown00/Pupillometry.git"
   },
-  "contributors": [
-    {
-      "name": "Amila Welihinda",
-      "email": "amilajack@gmail.com",
-      "url": "https://github.com/amilajack"
-    },
-    {
-      "name": "John Tran",
-      "email": "jptran318@gmail.com",
-      "url": "https://github.com/jooohhn"
-    }
-  ],
+  "contributors": [],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/electron-react-boilerplate/electron-react-boilerplate/issues"
+    "url": "https://github.com/Frown00/Pupillometry/issues"
   },
   "keywords": [
-    "electron",
-    "boilerplate",
-    "react",
-    "typescript",
-    "ts",
-    "sass",
-    "webpack",
-    "hot",
-    "reload"
+    "Pupillometry",
+    "Pupil Diameter",
+    "Pupil Size",
+    "analysis",
+    "visualization",
+    "Pupil dilatation"
   ],
-  "homepage": "https://github.com/electron-react-boilerplate/electron-react-boilerplate#readme",
+  "homepage": "https://github.com/Frown00/Pupillometry.git",
   "jest": {
     "testURL": "http://localhost/",
     "testEnvironment": "jsdom",
@@ -184,7 +137,7 @@
     "css-loader": "^6.5.0",
     "css-minimizer-webpack-plugin": "^3.1.1",
     "detect-port": "^1.3.0",
-    "electron": "^15.3.0",
+    "electron": "^13.5.1",
     "electron-builder": "^22.13.1",
     "electron-devtools-installer": "^3.2.0",
     "electron-notarize": "^1.1.1",
@@ -231,6 +184,8 @@
     "webpack-merge": "^5.8.0"
   },
   "dependencies": {
+    "@types/d3": "^7.1.0",
+    "d3": "^7.2.1",
     "electron-debug": "^3.2.0",
     "electron-log": "^4.4.1",
     "electron-updater": "^4.6.1",
@@ -243,9 +198,6 @@
   "devEngines": {
     "node": ">=14.x",
     "npm": ">=7.x"
-  },
-  "collective": {
-    "url": "https://opencollective.com/electron-react-boilerplate-594"
   },
   "browserslist": [],
   "prettier": {

@@ -60,3 +60,12 @@ a:hover {
   align-items: center;
   margin: 20px 0;
 }
+
+.svg svg rect {
+  fill: orange;
+}
+.svg svg text {
+  fill: white;
+  font: 10px sans-serif;
+  text-anchor: end;
+}
