@@ -1,15 +1,19 @@
+/* eslint-disable react/button-has-type */
 /* eslint-disable no-return-assign */
 import { MemoryRouter as Router, Switch, Route } from 'react-router-dom';
 import React from 'react';
 import * as d3 from 'd3';
-import icon from '../../assets/icon.png';
+// import icon from '../../assets/icon.png';
 import './App.css';
+import ElectronWindow from './ElectronWindow';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface IProps {}
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface IState {}
+// const customWindow: CustomWindow = window;
+const electronWindow = ElectronWindow.get();
 
 class Hello extends React.Component<IProps, IState> {
   ref!: SVGSVGElement;
@@ -17,6 +21,10 @@ class Hello extends React.Component<IProps, IState> {
   componentDidMount() {
     // activate
     this.buildGraph([5, 10, 12]);
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    electronWindow.api.ipcRenderer.on('get-data', (data: any) => {
+      console.log(data.length);
+    });
   }
 
   private buildGraph(data: Array<number>) {
@@ -34,7 +42,7 @@ class Hello extends React.Component<IProps, IState> {
       .data(data)
       .enter()
       .append('g')
-      .attr('transform', (d, i) => {
+      .attr('transform', (_d, i) => {
         return `translate(0,${i * barHeight})`;
       });
 
@@ -59,13 +67,18 @@ class Hello extends React.Component<IProps, IState> {
 
   render() {
     return (
-      <div className="svg">
-        <svg
-          className="container"
-          ref={(ref: SVGSVGElement) => (this.ref = ref)}
-          width="100"
-          height="100"
-        />
+      <div>
+        <button onClick={electronWindow.api.ipcRenderer.loadData}>
+          Load Data
+        </button>
+        <div className="svg">
+          <svg
+            className="container"
+            ref={(ref: SVGSVGElement) => (this.ref = ref)}
+            width="100"
+            height="100"
+          />
+        </div>
       </div>
     );
   }

@@ -1,19 +1,19 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-contextBridge.exposeInMainWorld('electron', {
+contextBridge.exposeInMainWorld('api', {
   ipcRenderer: {
-    myPing() {
-      ipcRenderer.send('ipc-example', 'ping');
+    loadData() {
+      ipcRenderer.send('load-pupillary', 'ping');
     },
     on(channel, func) {
-      const validChannels = ['ipc-example'];
+      const validChannels = ['load-pupillary', 'get-data'];
       if (validChannels.includes(channel)) {
         // Deliberately strip event as it includes `sender`
         ipcRenderer.on(channel, (event, ...args) => func(...args));
       }
     },
     once(channel, func) {
-      const validChannels = ['ipc-example'];
+      const validChannels = ['load-pupillary', 'get-data'];
       if (validChannels.includes(channel)) {
         // Deliberately strip event as it includes `sender`
         ipcRenderer.once(channel, (event, ...args) => func(...args));

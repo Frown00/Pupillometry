@@ -11,11 +11,13 @@
 import 'core-js/stable';
 import 'regenerator-runtime/runtime';
 import path from 'path';
-import { app, BrowserWindow, shell, ipcMain } from 'electron';
+import { app, BrowserWindow, shell, ipcMain, dialog } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
+import getPupillary from './pupillary/getPupillary';
+// import readCSV from './readCSV';
 
 export default class AppUpdater {
   constructor() {
@@ -71,6 +73,8 @@ const createWindow = async () => {
     return path.join(RESOURCES_PATH, ...paths);
   };
 
+  // console.log(readCSV('../../../dane/Badania/ROMIT/P4.csv'));
+
   mainWindow = new BrowserWindow({
     show: false,
     width: 1024,
@@ -107,6 +111,25 @@ const createWindow = async () => {
     shell.openExternal(url);
   });
 
+  ipcMain.on('load-pupillary', (e, data) => {
+    console.log(data);
+    try {
+      // eslint-disable-next-line promise/catch-or-return
+      dialog
+        .showOpenDialog(<BrowserWindow>mainWindow, {
+          buttonLabel: 'Select a photo',
+          properties: ['multiSelections', 'createDirectory', 'openFile'],
+        })
+        .then(async (result) => {
+          const pupilData = await getPupillary(result.filePaths[0]);
+          console.log(pupilData.length);
+          e.sender.send('get-data', pupilData);
+          // console.log(pupilData);
+        });
+    } catch (err) {
+      throw new Error();
+    }
+  });
   // Remove this if your app does not use auto updates
   // eslint-disable-next-line
   new AppUpdater();

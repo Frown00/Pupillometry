@@ -2,17 +2,19 @@
 <html>
   <head>
     <meta charset="utf-8" />
+    <!-- Content-Security-Policy no longer required. Will show warning in devtools. Can be ignored -->
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline'">
     <title>Pupillometry</title>
   </head>
   <body>
     <div id="root"></div>
   </body>
   <script>
-    window.electron.ipcRenderer.once('ipc-example', (arg) => {
-      // eslint-disable-next-line no-console
-      console.log(arg);
-    });
+    // window.api.ipcRenderer.once('ipc-example', (arg) => {
+    //   // eslint-disable-next-line no-console
+    //   console.log(arg);
+    // });
 
-    window.electron.ipcRenderer.myPing();
+    // window.api.ipcRenderer.myPing();
   </script>
 </html>
