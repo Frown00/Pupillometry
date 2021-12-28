@@ -2,21 +2,30 @@
  * @NOTE: Prepend a `~` to css file paths that are in your node_modules
  *        See https://github.com/webpack-contrib/sass-loader#imports
  */
+html {
+  box-sizing: border-box;
+}
+*,
+*:before,
+*:after {
+  box-sizing: inherit;
+}
+
 body {
-  position: relative;
-  color: white;
+  /* position: relative; */
+  color: #222;
   height: 100vh;
-  background: linear-gradient(
+  margin: 0;
+  /* background: linear-gradient(
     200.96deg,
     #fedc2a -29.09%,
     #dd5789 51.77%,
     #7a2c9e 129.35%
-  );
+  ); */
   font-family: sans-serif;
-  overflow-y: hidden;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  /* overflow-y: hidden; */
+  /* justify-content: center; */
+  /* align-items: center; */
 }
 
 button {
@@ -38,15 +47,19 @@ button:hover {
   opacity: 1;
 }
 
+ul {
+  padding: 0;
+}
+
 li {
   list-style: none;
 }
 
 a {
-  text-decoration: none;
+  color: white;
+  text-decoration: none !important;
   height: fit-content;
   width: fit-content;
-  margin: 10px;
 }
 
 a:hover {
@@ -68,4 +81,65 @@ a:hover {
   fill: white;
   font: 10px sans-serif;
   text-anchor: end;
+}
+
+#app {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100vw;
+  box-sizing: border-box;
+}
+
+nav {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  /* align-items: center; */
+  min-height: 100vh;
+  background: #353435;
+  color: white;
+  flex-grow: 1;
+  max-width: 150px;
+  min-width: 100px;
+}
+
+main {
+  margin-top: 50px;
+  margin-left: 30px;
+  /* padding: 0; */
+  display: flex;
+  flex-direction: column;
+  flex-grow: 3;
+}
+
+.side-nav-link {
+  color: white;
+  margin: 10px;
+  padding: 10px;
+}
+
+.side-nav-link:hover {
+  color: wheat;
+}
+
+.link-page {
+  color: #222;
+  margin: 20px 30px 0px 0px;
+  padding: 20px;
+  border: 1px solid black;
+}
+
+.link-page:hover {
+  color: black;
+  background: whitesmoke;
+}
+
+.logo {
+  /* margin: 0; */
+  /* padding: 0; */
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  /* border-radius: 50%; */
+  /* border: 5px solid black; */
 }
