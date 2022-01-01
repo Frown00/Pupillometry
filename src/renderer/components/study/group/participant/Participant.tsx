@@ -1,4 +1,4 @@
-import { Link, RouteComponentProps } from 'react-router-dom';
+import { RouteComponentProps } from 'react-router-dom';
 import Chart from '../../../charts/Chart';
 
 interface MatchParams {

@@ -17,6 +17,18 @@ const Loader = ({
   color: string;
 }) => <ReactLoading type={type} color={color} height="20%" width="20%" />;
 
-const DefaultLoader = <Loader type="spin" color="orange" />;
+const DefaultLoader = () => (
+  <div
+    style={{
+      position: 'relative',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      top: '50%',
+    }}
+  >
+    <Loader type="spin" color="orange" />
+  </div>
+);
 
 export default DefaultLoader;
