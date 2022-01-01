@@ -1,8 +1,11 @@
 interface ElectronApi {
   ipcRenderer: {
     loadData: () => void;
+    send: (key: string, value?: any) => void;
     on: (channel: string, func: any) => void;
     once: (channel: string, func: any) => void;
+    removeListener: (channel: string, listener: any) => void;
+    removeAllListeners: (channel: string) => void;
   };
 }
 
@@ -13,16 +16,6 @@ export default class ElectronWindow {
 
   api: ElectronApi;
 
-  // static api = {
-  //   ...window,
-  //   api: {
-  //     ipcRenderer: {
-  //       loadData: null;
-  //       on: (channel: string, func: any) => void;
-  //       once: (channel: string, func: any) => void;
-  //     };
-  //   };
-  // };
   private constructor() {
     this.global = window;
     this.api = (<any>window).api;
