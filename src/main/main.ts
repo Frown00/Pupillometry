@@ -17,7 +17,7 @@ import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 import getPupillary from './pupillary/getPupillary';
-// import readCSV from './readCSV';
+import DB from './filesystem/store';
 
 export default class AppUpdater {
   constructor() {
@@ -28,12 +28,6 @@ export default class AppUpdater {
 }
 
 let mainWindow: BrowserWindow | null = null;
-
-ipcMain.on('ipc-example', async (event, arg) => {
-  const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
-  console.log(msgTemplate(arg));
-  event.reply('ipc-example', msgTemplate('pong'));
-});
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -110,6 +104,13 @@ const createWindow = async () => {
     event.preventDefault();
     shell.openExternal(url);
   });
+  const db = new DB();
+  db.activateIPC();
+
+  ipcMain.on('clearDB', (e, data) => {
+    console.log(e, data);
+    db.clear();
+  });
 
   ipcMain.on('load-pupillary', (e, data) => {
     console.log(data);
@@ -123,7 +124,7 @@ const createWindow = async () => {
         .then(async (result) => {
           const pupilData = await getPupillary(result.filePaths[0]);
           console.log(pupilData.length);
-          e.sender.send('get-data', pupilData);
+          e.sender.send('getData', pupilData);
           // console.log(pupilData);
         });
     } catch (err) {
