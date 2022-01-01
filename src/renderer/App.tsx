@@ -1,7 +1,6 @@
 /* eslint-disable react/button-has-type */
 /* eslint-disable no-return-assign */
 import { MemoryRouter as Router, Switch, Route } from 'react-router-dom';
-// import icon from '../../assets/icon.png';
 import './App.css';
 import StartingPage from './components/StartingPage';
 import Study from './components/study/Study';
