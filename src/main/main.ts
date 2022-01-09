@@ -11,13 +11,13 @@
 import 'core-js/stable';
 import 'regenerator-runtime/runtime';
 import path from 'path';
-import { app, BrowserWindow, shell, ipcMain, dialog } from 'electron';
+import { app, BrowserWindow, shell } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
-import getPupillary from './pupillary/getPupillary';
 import DB from './filesystem/store';
+import processing from './pupillary/process';
 
 export default class AppUpdater {
   constructor() {
@@ -105,32 +105,8 @@ const createWindow = async () => {
     shell.openExternal(url);
   });
   const db = new DB();
-  db.activateIPC();
-
-  ipcMain.on('clearDB', (e, data) => {
-    console.log(e, data);
-    db.clear();
-  });
-
-  ipcMain.on('load-pupillary', (e, data) => {
-    console.log(data);
-    try {
-      // eslint-disable-next-line promise/catch-or-return
-      dialog
-        .showOpenDialog(<BrowserWindow>mainWindow, {
-          buttonLabel: 'Select a photo',
-          properties: ['multiSelections', 'createDirectory', 'openFile'],
-        })
-        .then(async (result) => {
-          const pupilData = await getPupillary(result.filePaths[0]);
-          console.log(pupilData.length);
-          e.sender.send('getData', pupilData);
-          // console.log(pupilData);
-        });
-    } catch (err) {
-      throw new Error();
-    }
-  });
+  db.listenEvents();
+  processing(mainWindow);
   // Remove this if your app does not use auto updates
   // eslint-disable-next-line
   new AppUpdater();

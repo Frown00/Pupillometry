@@ -1,6 +1,6 @@
 interface ElectronApi {
   ipcRenderer: {
-    loadData: () => void;
+    processPupil: (config: any) => void;
     send: (key: string, value?: any) => void;
     on: (channel: string, func: any) => void;
     once: (channel: string, func: any) => void;

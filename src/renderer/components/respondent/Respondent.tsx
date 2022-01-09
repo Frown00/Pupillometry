@@ -1,29 +1,28 @@
 import { RouteComponentProps } from 'react-router-dom';
-import Chart from '../../../charts/Chart';
 
 interface MatchParams {
-  participantId: string;
+  respondentId: string;
 }
 
 type MatchProps = RouteComponentProps<MatchParams>;
 
-export default function Participant(props: MatchProps) {
+export default function Respondent(props: MatchProps) {
   // const { name } = props;
   const { match } = props;
-  const { participantId } = match.params;
-  document.title += ` > ${participantId}`;
+  const { respondentId } = match.params;
+  document.title += ` > ${respondentId}`;
   return (
     <div>
       <select>
         <option value="lime">P2</option>
-        <option selected value={participantId}>
-          {participantId}
+        <option selected value={respondentId}>
+          {respondentId}
         </option>
       </select>
-      <h2>{participantId}</h2>
+      <h2>{respondentId}</h2>
       <div>
         <h2>Overview</h2>
-        <Chart />
+        {/* <Chart /> */}
       </div>
     </div>
   );

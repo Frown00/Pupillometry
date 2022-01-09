@@ -2,13 +2,15 @@
 /* eslint-disable no-return-assign */
 import { MemoryRouter as Router, Switch, Route } from 'react-router-dom';
 import './App.css';
+import { Button, DatePicker } from 'antd';
 import StartingPage from './components/StartingPage';
 import Study from './components/study/Study';
 import Settings from './components/Settings';
 import Nav from './components/Nav';
-import Group from './components/study/group/Group';
-import Participant from './components/study/group/participant/Participant';
+import Group from './components/group/Group';
+import Respondent from './components/respondent/Respondent';
 import CreateForm from './components/CreateForm';
+import Playground from './components/playground/Playground';
 
 export default function App() {
   return (
@@ -23,10 +25,11 @@ export default function App() {
             <Route exact path="/study/:name/:groupName" component={Group} />
             <Route
               exact
-              path="/study/:name/:groupName/:participantId"
-              component={Participant}
+              path="/study/:name/:groupName/:respondentId"
+              component={Respondent}
             />
             <Route path="/settings" component={Settings} />
+            <Route path="/playground" component={Playground} />
           </Switch>
         </main>
       </Router>

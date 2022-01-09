@@ -5,8 +5,8 @@ const objValidChannels = Object.values(validChannels);
 
 contextBridge.exposeInMainWorld('api', {
   ipcRenderer: {
-    loadData() {
-      ipcRenderer.send('load-pupillary', 'ping');
+    processPupil(config) {
+      ipcRenderer.send(validChannels.ProcessPupil, config);
     },
     send(key, value) {
       ipcRenderer.send(key, value);

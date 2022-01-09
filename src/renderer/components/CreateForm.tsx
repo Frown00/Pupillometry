@@ -4,7 +4,6 @@
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 
-import 'bootstrap/dist/css/bootstrap.css';
 import React from 'react';
 import DefaultLoader from './Loader';
 import ElectronWindow from '../ElectronWindow';
@@ -37,8 +36,8 @@ export default class CreateForm extends React.Component<IProps, IState> {
   };
 
   componentDidMount() {
-    ipcRenderer.send(Channel.applyForStudies);
-    ipcRenderer.on(Channel.getStudies, (value: any) => {
+    ipcRenderer.send(Channel.ApplyForStudies);
+    ipcRenderer.on(Channel.GetStudies, (value: any) => {
       if (value === 'Loading') {
         this.setState({ isLoading: true });
       } else {
@@ -55,7 +54,7 @@ export default class CreateForm extends React.Component<IProps, IState> {
   }
 
   componentWillUnmount() {
-    ipcRenderer.removeAllListeners(Channel.getStudies);
+    ipcRenderer.removeAllListeners(Channel.GetStudies);
   }
 
   render() {
@@ -86,7 +85,7 @@ export default class CreateForm extends React.Component<IProps, IState> {
               onSubmit={({ setSubmitting, ...values }) => {
                 console.log('values', setSubmitting, values);
                 setSubmitting(true);
-                ipcRenderer.send(Channel.createStudy, values);
+                ipcRenderer.send(Channel.CreateStudy, values);
                 self.props.history.push(`/study/${values.name}`);
                 // alert('Form is validated! Submitting the form...', values);
                 setSubmitting(false);

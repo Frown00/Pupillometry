@@ -17,11 +17,14 @@ export default function Nav() {
         </div>
       </Link>
       <ul>
+        <Link to="/playground">
+          <li className="side-nav-link">Test</li>
+        </Link>
         <Link to="/about">
           <li className="side-nav-link">About</li>
         </Link>
         <Link to="/settings">
-          <li className="side-nav-link">Settings</li>
+          <li className="side-nav-link">Config</li>
         </Link>
       </ul>
     </nav>

@@ -33,8 +33,8 @@ export default class StartingPage extends React.Component<IProps, IState> {
 
   componentDidMount() {
     // activate
-    ipcRenderer.send(Channel.applyForStudies);
-    ipcRenderer.on(Channel.getStudies, (value: any) => {
+    ipcRenderer.send(Channel.ApplyForStudies);
+    ipcRenderer.on(Channel.GetStudies, (value: any) => {
       if (value === 'Loading') {
         this.setState({ isLoading: true });
       } else {
@@ -46,7 +46,7 @@ export default class StartingPage extends React.Component<IProps, IState> {
   }
 
   componentWillUnmount() {
-    ipcRenderer.removeAllListeners(Channel.getStudies);
+    ipcRenderer.removeAllListeners(Channel.GetStudies);
   }
 
   render() {
@@ -69,7 +69,7 @@ export default class StartingPage extends React.Component<IProps, IState> {
         <button
           type="button"
           onClick={() => {
-            ipcRenderer.send(Channel.clearDB);
+            ipcRenderer.send(Channel.ClearDB);
             window.location.reload();
           }}
         >

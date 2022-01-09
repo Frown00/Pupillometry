@@ -1,0 +1,64 @@
+{
+  "file": {
+    "separator": ",",
+    "timestamp": "Timestamp",
+    "leftPupil": "ET_PupilLeft",
+    "rightPupil": "ET_PupilRight",
+    "segmentId": "SegmentId"
+  },
+  "chart": {
+    "width": 1200,
+    "height": 500,
+    "showEyesPlot": true,
+    "showMeanPlot": false
+  },
+  "processing": {
+    "pupil": {
+      "eye": "both",
+      "mean": true,
+      "baseline": 3.0,
+      "min": 2,
+      "max": 8,
+      "acceptableDifference": 0.5
+    },
+    "extraFilters": {
+      "dilatationSpeed": {
+        "on": true,
+        "thresholdMultiplier": 2
+      },
+      "trendLineDeviation": true,
+      "temporallyIsolatedSamples": {
+        "on": true,
+        "samplesRange": 50,
+        "gap": 75
+      }
+    },
+    "resampling": {
+      "on": true,
+      "rate": 1000
+    },
+    "interpolation": {
+      "on": true,
+      "acceptableGap": 250
+    },
+    "smoothing": {
+      "on": true,
+      "cutoffFrequency": 4
+    },
+    "timeWindow": {
+      "on": true,
+      "windows": [
+        {
+          "name": "Zadanie 1",
+          "start": 0,
+          "end": 30000
+        },
+        {
+          "name": "Zadanie 2",
+          "start": 30000,
+          "end": 60000
+        }
+      ]
+    }
+  }
+}

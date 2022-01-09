@@ -17,7 +17,7 @@ export default function Group(props: MatchProps) {
       <div>
         <h2>Overview</h2>
         <p>Lorem ipsum</p>
-        <h2>All participants</h2>
+        <h2>All respondents</h2>
         <ul>
           <Link to="/study/Study 1/Group 1/P1">
             <li className="link">P1</li>

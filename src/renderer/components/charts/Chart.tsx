@@ -1,26 +1,25 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react/no-unused-state */
 /* eslint-disable react/state-in-constructor */
 /* eslint-disable no-return-assign */
 import React from 'react';
 import * as d3 from 'd3';
-import ElectronWindow from '../../ElectronWindow';
-import { Channel } from '../../../ipc/channels';
+import {
+  IPupillometry,
+  IPupilSamplePreprocessed,
+} from '../../../main/pupillary/constants';
 import DefaultLoader from '../Loader';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface IProps {}
-const { ipcRenderer } = ElectronWindow.get().api;
+interface IProps {
+  config: IConfig;
+  name: string;
+  samples: IPupillometry;
+}
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface IState {
   data: any[];
-  rows: number;
   isLoading: boolean;
-}
-
-interface IEyeTracker {
-  Timestamp: number;
-  ET_PupilLeft: number;
-  ET_PupilRight: number;
 }
 
 const ColorPallette = {
@@ -31,6 +30,9 @@ const ColorPallette = {
     cyanSolid: 'rgba(86, 180, 233, 1)',
     cyan80: 'rgba(86, 180, 233, 0.8)',
     cyan30: 'rgba(86, 180, 233, 0.3)',
+    greenSolid: 'rgba(0,158,115, 1)',
+    green80: 'rgba(0,158,115, 0.8)',
+    green30: 'rgba(0,158,115, 0.3)',
   },
 };
 
@@ -39,41 +41,51 @@ export default class Chart extends React.Component<IProps, IState> {
 
   state = {
     data: [1, 2, 3, 4, 5],
-    rows: 0,
     isLoading: false,
+    name: '',
   };
 
   componentDidMount() {
     // activate
-    ipcRenderer.on(Channel.getData, (pupilData: unknown[]) => {
-      const rows = pupilData.length;
-      this.buildGraph(pupilData);
-      this.setState({ rows });
-    });
+    const { samples } = this.props;
+    // console.log('MOUNT CHART', samples);
+    d3.select(this.ref).selectAll('g').remove();
+    this.buildGraph(samples?.validSamples ?? []);
+  }
+
+  shouldComponentUpdate(nextProps: IProps) {
+    // console.log('SHOULD UPDATE', nextProps);
+    const { samples, name } = this.props;
+    const differentTitle = samples !== nextProps.samples;
+    const differentDone = name !== nextProps.name;
+    return differentTitle || differentDone;
+  }
+
+  componentDidUpdate() {
+    const { samples } = this.props;
+    // console.log('Update CHART', samples);
+    d3.select(this.ref).selectAll('g').remove();
+    this.buildGraph(samples?.validSamples ?? []);
   }
 
   componentWillUnmount() {
-    ipcRenderer.removeAllListeners(Channel.getData);
-    d3.select(this.ref).remove();
+    d3.select(this.ref).selectAll('g').remove();
   }
 
-  private buildGraph(data: any[]) {
-    const dataset = data;
+  private buildGraph(dataset: any[]) {
+    const { config } = this.props;
+    if (dataset.length <= 0) return;
     // #region Accessors
-    const xAccessor = (d: IEyeTracker) => d.Timestamp;
-    const yAccessorLeft = (d: IEyeTracker) => {
-      if (d.ET_PupilLeft > 1.5 && d.ET_PupilLeft < 9) return d.ET_PupilLeft;
-      return -1;
-    };
-    const yAccessorRight = (d: IEyeTracker) => {
-      if (d.ET_PupilRight > 1.5 && d.ET_PupilRight < 9) return d.ET_PupilRight;
-      return -1;
-    };
+    const xAccessor = (d: IPupilSamplePreprocessed) => d.timestamp;
+    const yAccessorLeft = (d: IPupilSamplePreprocessed) => d.leftPupil;
+    const yAccessorRight = (d: IPupilSamplePreprocessed) => d.rightPupil;
+    const yAccessorMean = (d: IPupilSamplePreprocessed) => d?.meanPupil ?? NaN;
+
     // #endregion
     // #region  Dimensions
     const dimensions = {
-      width: 1200,
-      height: 500,
+      width: config.chart.width,
+      height: config.chart.height,
       margin: {
         top: 50,
         bottom: 50,
@@ -105,42 +117,113 @@ export default class Chart extends React.Component<IProps, IState> {
     // #region  Scales
     const xScale = d3
       .scaleLinear()
-      .domain([dataset[0].Timestamp, d3.max(dataset, xAccessor)])
+      .domain([dataset[0].timestamp, dataset[dataset.length - 1].timestamp])
       .rangeRound([0, dimensions.ctrWidth])
       .clamp(true);
 
     const yScale = d3
       .scaleLinear()
-      .domain([1.5, 9])
+      .domain([
+        config.processing.pupil.min,
+        Math.max(
+          d3.max(dataset, yAccessorLeft) ?? config.processing.pupil.min,
+          d3.max(dataset, yAccessorRight) ?? config.processing.pupil.min
+        ),
+      ])
       .rangeRound([dimensions.ctrHeight, 0])
       .nice()
       .clamp(true);
     // #endregion
-    // #region  Draw Circles
-    container
-      .selectAll('.pupil-left')
-      .data(dataset)
-      .join('circle')
-      .classed('pupil-left', true)
-      .attr('cx', (d) => xScale(xAccessor(d)))
-      .attr('cy', (d) => yScale(yAccessorLeft(d)))
-      .attr('r', 1)
-      // .classed('.okabe-solid-orange', true)
-      .attr('fill', ColorPallette.okabe.orange30)
-      .attr('stroke', ColorPallette.okabe.orangeSolid)
-      .attr('data-temp', yAccessorLeft);
 
-    container
-      .selectAll('.pupil-right')
-      .data(dataset)
-      .join('circle')
-      .classed('.pupil-right', true)
-      .attr('cx', (d) => xScale(xAccessor(d)))
-      .attr('cy', (d) => yScale(yAccessorRight(d)))
-      .attr('r', 1)
-      .attr('fill', ColorPallette.okabe.cyan30)
-      .attr('stroke', ColorPallette.okabe.cyanSolid)
-      .attr('data-temp', yAccessorRight);
+    // container
+    //   .append('path')
+    //   .datum(dataset)
+    //   .attr('fill', 'none')
+    //   .attr('stroke', ColorPallette.okabe.orangeSolid)
+    //   .attr('stroke-width', 1.5)
+    //   .attr(
+    //     'd',
+    //     d3
+    //       .line()
+    //       .x((d: any) => xScale(xAccessor(d)))
+    //       .y((d: any) => yScale(yAccessorMean(d)))
+    //     // .defined((d: IPupilSample) => {
+    //     //   return yScale(yAccessorLeft(d)) > 0;
+    //     // })
+    //   );
+    if (config.chart.showMeanPlot) {
+      if (config.processing.interpolation.on) {
+        container
+          .append('path')
+          .datum(dataset)
+          .attr('fill', 'none')
+          .attr('stroke', ColorPallette.okabe.greenSolid)
+          .attr('stroke-width', 1.5)
+          .attr(
+            'd',
+            d3
+              .line()
+              .x((d: any) => xScale(xAccessor(d)))
+              .y((d: any) => yScale(yAccessorMean(d)))
+            // .defined((d: IPupilSample) => {
+            //   return yScale(yAccessorRight(d)) > 0
+            //     ? yScale(yAccessorRight(d))
+            //     : null;
+            // })
+          );
+      } else {
+        container
+          .selectAll('.pupil-mean')
+          .data(dataset)
+          .join('circle')
+          .classed('.pupil-mean', true)
+          .attr('cx', (d) => xScale(xAccessor(d)))
+          .attr('cy', (d) => yScale(yAccessorMean(d)))
+          .attr('visibility', (d) => {
+            if (Number.isNaN(yAccessorMean(d))) return 'hidden';
+            return '';
+          })
+          .attr('r', 1)
+          .attr('fill', ColorPallette.okabe.green30)
+          .attr('stroke', ColorPallette.okabe.greenSolid)
+          .attr('data-temp', yAccessorMean);
+      }
+    }
+
+    // #region  Draw Circles
+    if (config.chart.showEyesPlot) {
+      container
+        .selectAll('.pupil-left')
+        .data(dataset)
+        .join('circle')
+        .classed('pupil-left', true)
+        .attr('visibility', (d: any) => {
+          if (Number.isNaN(yAccessorLeft(d))) return 'hidden';
+          return '';
+        })
+        .attr('cx', (d: any) => xScale(xAccessor(d)))
+        .attr('cy', (d: any) => yScale(yAccessorLeft(d)))
+        .attr('r', 1)
+        .attr('fill', ColorPallette.okabe.orange30)
+        .attr('stroke', ColorPallette.okabe.orangeSolid)
+        .attr('data-temp', yAccessorLeft);
+
+      container
+        .selectAll('.pupil-right')
+        .data(dataset)
+        .join('circle')
+        .classed('.pupil-right', true)
+        .attr('cx', (d) => xScale(xAccessor(d)))
+        .attr('cy', (d) => yScale(yAccessorRight(d)))
+        .attr('visibility', (d) => {
+          if (Number.isNaN(yAccessorRight(d))) return 'hidden';
+          return '';
+        })
+        .attr('r', 1)
+        .attr('fill', ColorPallette.okabe.cyan30)
+        .attr('stroke', ColorPallette.okabe.cyanSolid)
+        .attr('data-temp', yAccessorRight);
+    }
     // #endregion
     // #region  Axe X
     const xAxis = d3
@@ -169,7 +252,7 @@ export default class Chart extends React.Component<IProps, IState> {
       .text('Time [m]');
     // #endregion
     // #region Axe Y
-    const yAxis = d3.axisLeft(yScale);
+    const yAxis = d3.axisLeft(yScale).ticks(5);
     const yAxisGroup = container.append('g').call(yAxis).classed('axis', true);
     yAxisGroup
       .append('text')
@@ -183,18 +266,11 @@ export default class Chart extends React.Component<IProps, IState> {
   }
 
   render() {
-    const { rows, isLoading } = this.state;
+    const { isLoading } = this.state;
+    const { name, samples } = this.props;
+    const { stats } = samples;
     return (
       <div>
-        <button
-          type="button"
-          onClick={() => {
-            // this.setState({ isLoading: true });
-            ElectronWindow.get().api.ipcRenderer.loadData();
-          }}
-        >
-          Reload Data
-        </button>
         {isLoading ? (
           <DefaultLoader />
         ) : (
@@ -207,8 +283,91 @@ export default class Chart extends React.Component<IProps, IState> {
                 height="500"
               />
             </div>
-            <div>
-              <h3>Data count: {rows}</h3>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                width: '30%',
+              }}
+            >
+              <p style={{ display: 'flex' }}>
+                <span className="pupil-label">Respondent:</span> <b>{name}</b>
+              </p>
+              <p style={{ display: 'flex' }}>
+                <span className="pupil-label">Segment:</span>{' '}
+                <b>{samples?.name ?? ''}</b>
+              </p>
+            </div>
+
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                width: '70%',
+              }}
+            >
+              <div>
+                <h3>Metrics</h3>
+                <p style={{ display: 'flex' }}>
+                  <span className="pupil-label">Mean:</span>
+                  {stats.mean}
+                </p>
+                <p style={{ display: 'flex' }}>
+                  <span className="pupil-label">Min:</span> {stats.min}
+                </p>
+                <p style={{ display: 'flex' }}>
+                  <span className="pupil-label">Max:</span> {stats.max}
+                </p>
+                <p style={{ display: 'flex' }}>
+                  <span className="pupil-label">Std:</span> {stats.std}
+                </p>
+              </div>
+              <div>
+                <h3>Pupil Samples</h3>
+                <p style={{ display: 'flex' }}>
+                  <span className="pupil-label">Raw count:</span>{' '}
+                  {stats.rawSamplesCount}
+                </p>
+                <p style={{ display: 'flex' }}>
+                  <span className="pupil-label">Valid count:</span>{' '}
+                  {stats.validSamples}
+                </p>
+                <p style={{ display: 'flex' }}>
+                  <span className="pupil-label">Eye difference: </span>
+                  {stats.meanPupilDifference.toFixed(2)} mm
+                </p>
+                <p style={{ display: 'flex' }}>
+                  <span className="pupil-label">Pupil correlation: </span>
+                  {stats.pupilCorrelation.toFixed(2)}
+                </p>
+              </div>
+              <div>
+                <h3>Missing</h3>
+                <p style={{ display: 'flex' }}>
+                  <span className="pupil-label">General:</span>{' '}
+                  {(
+                    (stats.missing.general / stats.rawSamplesCount) *
+                    100
+                  ).toFixed(2)}
+                  %
+                </p>
+                <p style={{ display: 'flex' }}>
+                  <span className="pupil-label">Right:</span>{' '}
+                  {(
+                    (stats.missing.rightPupil / stats.rawSamplesCount) *
+                    100
+                  ).toFixed(2)}
+                  %
+                </p>
+                <p style={{ display: 'flex' }}>
+                  <span className="pupil-label">Left: </span>{' '}
+                  {(
+                    (stats.missing.leftPupil / stats.rawSamplesCount) *
+                    100
+                  ).toFixed(2)}
+                  %
+                </p>
+              </div>
             </div>
           </>
         )}

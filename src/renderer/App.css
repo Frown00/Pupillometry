@@ -143,3 +143,12 @@ main {
   /* border-radius: 50%; */
   /* border: 5px solid black; */
 }
+
+.link {
+  color: black;
+}
+
+.pupil-label {
+  width: 120px;
+  /* flex-grow: 1; */
+}
