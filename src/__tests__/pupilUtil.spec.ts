@@ -1,3 +1,4 @@
+import { IPupilSamplePreprocessed } from '../main/pupillary/constants';
 import * as util from '../main/pupillary/util';
 
 describe('Calc mean', () => {
@@ -49,6 +50,196 @@ describe('Calc mean', () => {
       const diff = -4;
       const mean = util.calcMean(leftPupil, rightPupil, diff);
       expect(mean).toBe(5);
+    });
+  });
+});
+
+describe('Find Samples', () => {
+  describe('Previous', () => {
+    test('All values are numbers', () => {
+      const samples: IPupilSamplePreprocessed[] = [
+        {
+          timestamp: 1,
+          leftPupil: 2.5,
+          rightPupil: 3.5,
+          meanPupil: 3,
+          segmentId: '',
+        },
+        {
+          timestamp: 2,
+          leftPupil: 3,
+          rightPupil: 2,
+          meanPupil: 3.5,
+          segmentId: '',
+        },
+        {
+          timestamp: 3,
+          leftPupil: 4,
+          rightPupil: 6,
+          meanPupil: 3.5,
+          segmentId: '',
+        },
+        {
+          timestamp: 4,
+          leftPupil: 2,
+          rightPupil: 3,
+          meanPupil: 3.5,
+          segmentId: '',
+        },
+        {
+          timestamp: 5,
+          leftPupil: 2.5,
+          rightPupil: 4.3,
+          meanPupil: 3.5,
+          segmentId: '',
+        },
+      ];
+      const index = 3;
+      const n = 2;
+      const previous = util.findPreviousSamples(samples, index, n, 'left');
+      expect(previous.length).toBe(2);
+      expect(previous[0]).toEqual(samples[index - 1]);
+      expect(previous[1]).toEqual(samples[index - 2]);
+    });
+
+    test('One previous number is NaN', () => {
+      const samples: IPupilSamplePreprocessed[] = [
+        {
+          timestamp: 1,
+          leftPupil: 2.5,
+          rightPupil: 3.5,
+          meanPupil: 3,
+          segmentId: '',
+        },
+        {
+          timestamp: 2,
+          leftPupil: 3,
+          rightPupil: 2,
+          meanPupil: 3.5,
+          segmentId: '',
+        },
+        {
+          timestamp: 3,
+          leftPupil: 4,
+          rightPupil: NaN,
+          meanPupil: NaN,
+          segmentId: '',
+        },
+        {
+          timestamp: 4,
+          leftPupil: 2,
+          rightPupil: 3,
+          meanPupil: 3.5,
+          segmentId: '',
+        },
+        {
+          timestamp: 5,
+          leftPupil: 2.5,
+          rightPupil: 4.3,
+          meanPupil: 3.5,
+          segmentId: '',
+        },
+      ];
+      const index = 3;
+      const n = 2;
+      const previous = util.findPreviousSamples(samples, index, n, 'right');
+      expect(previous.length).toBe(2);
+      expect(previous[0]).toEqual(samples[index - 2]);
+      expect(previous[1]).toEqual(samples[index - 3]);
+    });
+  });
+
+  describe('Next', () => {
+    test('All values are numbers', () => {
+      const samples: IPupilSamplePreprocessed[] = [
+        {
+          timestamp: 1,
+          leftPupil: 2.5,
+          rightPupil: 3.5,
+          meanPupil: 3,
+          segmentId: '',
+        },
+        {
+          timestamp: 2,
+          leftPupil: 3,
+          rightPupil: 2,
+          meanPupil: 3.5,
+          segmentId: '',
+        },
+        {
+          timestamp: 3,
+          leftPupil: 4,
+          rightPupil: 6,
+          meanPupil: 3.5,
+          segmentId: '',
+        },
+        {
+          timestamp: 4,
+          leftPupil: 2,
+          rightPupil: 3,
+          meanPupil: 3.5,
+          segmentId: '',
+        },
+        {
+          timestamp: 5,
+          leftPupil: 2.5,
+          rightPupil: 4.3,
+          meanPupil: 3.5,
+          segmentId: '',
+        },
+      ];
+      const index = 1;
+      const n = 2;
+      const previous = util.findNextSamples(samples, index, n, 'left');
+      expect(previous.length).toBe(2);
+      expect(previous[0]).toEqual(samples[index + 1]);
+      expect(previous[1]).toEqual(samples[index + 2]);
+    });
+
+    test('One previous number is NaN', () => {
+      const samples: IPupilSamplePreprocessed[] = [
+        {
+          timestamp: 1,
+          leftPupil: 2.5,
+          rightPupil: 3.5,
+          meanPupil: 3,
+          segmentId: '',
+        },
+        {
+          timestamp: 2,
+          leftPupil: 3,
+          rightPupil: 2,
+          meanPupil: 3.5,
+          segmentId: '',
+        },
+        {
+          timestamp: 3,
+          leftPupil: 4,
+          rightPupil: NaN,
+          meanPupil: NaN,
+          segmentId: '',
+        },
+        {
+          timestamp: 4,
+          leftPupil: 2,
+          rightPupil: 3,
+          meanPupil: 3.5,
+          segmentId: '',
+        },
+        {
+          timestamp: 5,
+          leftPupil: 2.5,
+          rightPupil: 4.3,
+          meanPupil: 3.5,
+          segmentId: '',
+        },
+      ];
+      const index = 1;
+      const n = 2;
+      const previous = util.findNextSamples(samples, index, n, 'right');
+      expect(previous.length).toBe(2);
+      expect(previous[0]).toEqual(samples[index + 2]);
+      expect(previous[1]).toEqual(samples[index + 3]);
     });
   });
 });
