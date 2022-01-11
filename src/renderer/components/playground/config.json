@@ -4,22 +4,22 @@
     "timestamp": "Timestamp",
     "leftPupil": "ET_PupilLeft",
     "rightPupil": "ET_PupilRight",
-    "segmentId": "SegmentId"
+    "segmentId": "Scene active"
   },
   "chart": {
     "width": 1200,
     "height": 500,
     "showEyesPlot": true,
-    "showMeanPlot": false
+    "showMeanPlot": true
   },
   "processing": {
     "pupil": {
       "eye": "both",
       "mean": true,
       "baseline": 3.0,
-      "min": 2,
-      "max": 8,
-      "acceptableDifference": 0.5
+      "min": 1.5,
+      "max": 9,
+      "acceptableDifference": 0.9
     },
     "extraFilters": {
       "dilatationSpeed": {
@@ -28,7 +28,7 @@
       },
       "trendLineDeviation": {
         "on": true,
-        "maxJump": 1
+        "maxJump": 0.6
       },
       "temporallyIsolatedSamples": {
         "on": true,

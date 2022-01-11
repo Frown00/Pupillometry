@@ -20,6 +20,17 @@ export function inRange(sample: number, min: number, max: number) {
   return true;
 }
 
+export function isAcceptableDifference(
+  left: number,
+  right: number,
+  limit: number
+) {
+  if (Number.isNaN(left) || Number.isNaN(right)) return true;
+  const diff = Math.abs(left - right);
+  if (diff > limit) return false;
+  return true;
+}
+
 export function isDilatationSpeedInThreshold(
   sampleSpeed: number | undefined,
   threshold: number

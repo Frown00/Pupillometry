@@ -127,6 +127,12 @@ export default class Preprocessing {
     const processingData = segmentFromFile.raw;
     const segmentName = segmentFromFile.name;
     const preprocessed = [];
+    const {
+      processing: { pupil },
+    } = this.config;
+    const outliers = {
+      acceptableDifference: 0,
+    };
     for (let i = 0; i < processingData.length; i += 1) {
       if (i === processingData.length) break;
       const rowRaw = processingData[i];
@@ -143,8 +149,21 @@ export default class Preprocessing {
       if (this.isMissing(row, 'right')) {
         row.rightPupil = NaN;
       }
+      if (
+        !outlier.isAcceptableDifference(
+          row.leftPupil,
+          row.rightPupil,
+          pupil.acceptableDifference
+        )
+      ) {
+        outliers.acceptableDifference += 1;
+        row.leftPupil = NaN;
+        row.rightPupil = NaN;
+      }
+
       preprocessed.push(row);
     }
+    console.log('AD:', outliers);
     const segment: IPupillometry = {
       name: segmentName,
       stats,
