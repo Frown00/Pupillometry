@@ -172,6 +172,7 @@ export default class Preprocessing {
     // Dilatation Speed Outlier Filter
     const { processing } = this.config;
     const { dilatationSpeed } = processing.extraFilters;
+    if (!dilatationSpeed.on) return;
     const dilatationSeries = dSpeed.setDilatationSpeed(segment.validSamples);
     const threshold = {
       left: dSpeed.calcThreshold(
