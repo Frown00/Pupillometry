@@ -1,5 +1,6 @@
 import { median } from 'simple-statistics';
 import { IPupilSamplePreprocessed } from '../constants';
+import * as util from '../util';
 
 interface ISample {
   timestamp: number;
@@ -27,30 +28,28 @@ export function calcDilatationSpeed(
 }
 
 export function calcSampleSpeed(
-  row: IPupilSamplePreprocessed,
-  preRow: IPupilSamplePreprocessed,
-  sucRow: IPupilSamplePreprocessed,
+  preprocessed: IPupilSamplePreprocessed[],
+  index: number,
   eye: 'left' | 'right'
 ) {
+  const n = 1;
+  const preRow = util.findPreviousSamples(preprocessed, index, n, eye)[0];
+  const row = preprocessed[index];
+  const sucRow = util.findNextSamples(preprocessed, index, n, eye)[0];
   const preSample = {
-    timestamp: preRow.timestamp,
-    value: eye === 'left' ? preRow.leftPupil : preRow.rightPupil,
+    timestamp: preRow?.timestamp,
+    value: eye === 'left' ? preRow?.leftPupil : preRow?.rightPupil,
   };
   const sample = {
     timestamp: row.timestamp,
     value: eye === 'left' ? row.leftPupil : row.rightPupil,
   };
   const sucSample = {
-    timestamp: sucRow.timestamp,
-    value: eye === 'left' ? sucRow.leftPupil : sucRow.rightPupil,
+    timestamp: sucRow?.timestamp,
+    value: eye === 'left' ? sucRow?.leftPupil : sucRow?.rightPupil,
   };
   if (Number.isNaN(sample.value)) return NaN;
-
-  row.dilatationSpeed = {};
-  const dilatation = calcDilatationSpeed(sample, preSample, sucSample);
-  if (eye === 'left') row.dilatationSpeed.left = dilatation;
-  if (eye === 'right') row.dilatationSpeed.right = dilatation;
-  return dilatation;
+  return calcDilatationSpeed(sample, preSample, sucSample);
 }
 
 export function setDilatationSpeed(preprocessed: IPupilSamplePreprocessed[]) {
@@ -59,11 +58,9 @@ export function setDilatationSpeed(preprocessed: IPupilSamplePreprocessed[]) {
     right: [],
   };
   for (let i = 1; i < preprocessed.length - 1; i += 1) {
-    const preRow = preprocessed[i - 1];
     const row = preprocessed[i];
-    const sucRow = preprocessed[i + 1];
-    const dLeft = calcSampleSpeed(row, preRow, sucRow, 'left');
-    const dRight = calcSampleSpeed(row, preRow, sucRow, 'right');
+    const dLeft = calcSampleSpeed(preprocessed, i, 'left');
+    const dRight = calcSampleSpeed(preprocessed, i, 'right');
     row.dilatationSpeed = {};
     if (!Number.isNaN(dLeft)) {
       row.dilatationSpeed.left = dLeft;
