@@ -24,17 +24,19 @@ interface IConfig {
       acceptableDifference: number; // mm
     };
     extraFilters: {
-      // TODO
       dilatationSpeed: {
         on: boolean;
         thresholdMultiplier: number;
       };
       // TODO
-      trendLineDeviation: boolean;
+      trendLineDeviation: {
+        on: boolean;
+        maxJump: number;
+      };
       // TODO
       temporallyIsolatedSamples: {
         on: boolean;
-        samplesRange: number; // time within samples are valid numbers
+        range: number; // time within samples are valid numbers
         gap: number; // gap from both sides
       };
     };

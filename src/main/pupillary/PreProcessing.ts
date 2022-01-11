@@ -13,8 +13,6 @@ import * as util from './util';
 export default class Preprocessing {
   private raw: IPupilSampleRaw[];
 
-  private processing: IPupilSamplePreprocessed[];
-
   private config: IConfig;
 
   private segmentsRaw: { raw: IPupilSampleRaw[]; name: string }[];
@@ -24,7 +22,6 @@ export default class Preprocessing {
   constructor(rawData: IPupilSampleRaw[], config: IConfig) {
     this.raw = rawData;
     this.config = config;
-    this.processing = [];
     this.segmentsRaw = [];
     this.segments = [];
   }
@@ -55,6 +52,8 @@ export default class Preprocessing {
       };
       const parsedSegment = this.parseSegment(segmentFromFile, stats);
       this.dilatationSpeedFilter(parsedSegment);
+      this.temporallyIsolatedSamples(parsedSegment);
+      this.trendLineDeviation(parsedSegment);
       this.calcStats(parsedSegment);
       this.segments.push(parsedSegment);
     }
@@ -184,6 +183,11 @@ export default class Preprocessing {
         dilatationSeries.right
       ),
     };
+    const outliners = {
+      left: 0,
+      right: 0,
+      both: 0,
+    };
     segment.stats.dilatationSpeed.left = dilatationSeries.left;
     segment.stats.dilatationSpeed.right = dilatationSeries.right;
     console.log('THRESHOLD', threshold);
@@ -195,6 +199,7 @@ export default class Preprocessing {
       );
       if (!leftLowThanThreshold) {
         row.leftPupil = NaN;
+        outliners.left += 1;
       }
       const rightLowThanThreshold = outlier.isDilatationSpeedInThreshold(
         row.dilatationSpeed?.right,
@@ -202,8 +207,102 @@ export default class Preprocessing {
       );
       if (!rightLowThanThreshold) {
         row.rightPupil = NaN;
+        outliners.right += 1;
+      }
+      if (row.rightPupil && row.leftPupil) {
+        outliners.both += 1;
       }
     }
+    console.log('DS Outliners: ', outliners);
+  }
+
+  private temporallyIsolatedSamples(segment: IPupillometry) {
+    const { processing } = this.config;
+    const { temporallyIsolatedSamples } = processing.extraFilters;
+    if (!temporallyIsolatedSamples.on) return;
+    let isolatedLeft = [];
+    let isolatedRight = [];
+    const { gap, range } = temporallyIsolatedSamples;
+    const samples = segment.validSamples;
+    const outliers = {
+      left: 0,
+      right: 0,
+    };
+    for (let i = 0; i < samples.length; i += 1) {
+      const row = samples[i];
+      const previousLeft =
+        util.findPreviousSamples(samples, i, 1, 'left')[0] || row;
+      const previousRight =
+        util.findPreviousSamples(samples, i, 1, 'right')[0] || row;
+      const timeDiffLeft = row.timestamp - previousLeft.timestamp;
+      const timeDiffRight = row.timestamp - previousRight.timestamp;
+
+      // Left Pupil
+      if (timeDiffLeft > gap) {
+        isolatedLeft.push(row);
+      } else if (isolatedLeft.length > 2) {
+        const start = isolatedLeft[0].timestamp;
+        const end = isolatedLeft[isolatedLeft.length - 1].timestamp;
+        const diff = end - start;
+        if (diff <= range) {
+          outliers.left += isolatedLeft.length;
+          for (let r = 0; r < isolatedLeft.length; r += 1) {
+            isolatedLeft[r].leftPupil = NaN;
+          }
+        }
+        isolatedLeft = [];
+      }
+      // Right pupil
+      if (timeDiffRight > gap) {
+        isolatedRight.push(row);
+      } else if (isolatedRight.length > 2) {
+        const start = isolatedRight[0].timestamp;
+        const end = isolatedRight[isolatedRight.length - 1].timestamp;
+        const diff = end - start;
+        if (diff <= range) {
+          outliers.right += isolatedRight.length;
+          for (let r = 0; r < isolatedRight.length; r += 1) {
+            isolatedRight[r].rightPupil = NaN;
+          }
+        }
+        isolatedRight = [];
+      }
+    }
+    console.log('TIS Outliers: ', outliers);
+  }
+
+  private trendLineDeviation(segment: IPupillometry) {
+    const { processing } = this.config;
+    const { trendLineDeviation } = processing.extraFilters;
+    if (!trendLineDeviation.on) return;
+    const { maxJump } = trendLineDeviation;
+    const samples = segment.validSamples;
+    const outliers = {
+      left: 0,
+      right: 0,
+    };
+    for (let i = 0; i < samples.length; i += 1) {
+      const row = samples[i];
+      const previousLeft =
+        util.findPreviousSamples(samples, i, 1, 'left')[0] || row;
+      const previousRight =
+        util.findPreviousSamples(samples, i, 1, 'right')[0] || row;
+      const valueDiffLeft = Math.abs(previousLeft.leftPupil - row.leftPupil);
+      const valueDiffRight = Math.abs(
+        previousRight.rightPupil - row.rightPupil
+      );
+
+      // Left Pupil
+      if (valueDiffLeft > maxJump) {
+        row.leftPupil = NaN;
+        outliers.left += 1;
+      }
+      if (valueDiffRight > maxJump) {
+        row.rightPupil = NaN;
+        outliers.right += 1;
+      }
+    }
+    console.log('TLD Outliers: ', outliers);
   }
 
   private splitIntoTimeWindows() {

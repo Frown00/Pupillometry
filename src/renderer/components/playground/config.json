@@ -26,10 +26,13 @@
         "on": true,
         "thresholdMultiplier": 2
       },
-      "trendLineDeviation": true,
+      "trendLineDeviation": {
+        "on": true,
+        "maxJump": 1
+      },
       "temporallyIsolatedSamples": {
         "on": true,
-        "samplesRange": 50,
+        "range": 50,
         "gap": 75
       }
     },
