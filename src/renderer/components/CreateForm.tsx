@@ -13,7 +13,7 @@ let ValidSchema: any = null;
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface IProps {
-  history: any;
+  history?: any;
 }
 
 interface IStudy {
@@ -36,7 +36,7 @@ export default class CreateForm extends React.Component<IProps, IState> {
   };
 
   componentDidMount() {
-    ipcRenderer.send(Channel.ApplyForStudies);
+    ipcRenderer.send(Channel.RequestStudies);
     ipcRenderer.on(Channel.GetStudies, (value: any) => {
       if (value === 'Loading') {
         this.setState({ isLoading: true });

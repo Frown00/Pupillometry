@@ -16,7 +16,7 @@ import Preprocessing from './PreProcessing';
  * @param {char} separator - character to seperate columns
  * @returns {Promise<neatCSV.Row[]>}
  */
-async function processPupilSamples(filePath: string, config: IConfig) {
+export async function processPupilSamples(filePath: string, config: IConfig) {
   const { file } = config;
   const name = path.basename(filePath, '.csv');
   // const startingColumnMetadata = '#Data';

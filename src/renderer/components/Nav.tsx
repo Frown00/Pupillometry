@@ -17,7 +17,7 @@ export default function Nav() {
         </div>
       </Link>
       <ul>
-        <Link to="/playground">
+        <Link to="/test">
           <li className="side-nav-link">Test</li>
         </Link>
         <Link to="/about">

@@ -1,4 +1,10 @@
+/* eslint-disable react/state-in-constructor */
+import { Button } from 'antd';
+import React from 'react';
 import { Link, RouteComponentProps } from 'react-router-dom';
+import ElectronWindow from '../../ElectronWindow';
+import { Channel } from '../../../ipc/channels';
+import GlobalState from '../GlobalState';
 
 interface MatchParams {
   name: string;
@@ -6,27 +12,74 @@ interface MatchParams {
 
 type MatchProps = RouteComponentProps<MatchParams>;
 
-export default function Study(props: MatchProps) {
-  const { match } = props;
-  const studyName = match.params.name;
-  document.title += ` > ${studyName}`;
-  return (
-    <div>
-      <h2>{studyName}</h2>
+interface IState {
+  isLoading: boolean;
+  study: any;
+}
+const { ipcRenderer } = ElectronWindow.get().api;
+export default class Study extends React.Component<MatchProps, IState> {
+  state: Readonly<IState> = {
+    isLoading: true,
+    study: null,
+  };
+
+  componentDidMount() {
+    // activate
+    const { match } = this.props;
+    document.title += ` > ${match.params.name}`;
+    ipcRenderer.send(Channel.Request, {
+      responseChannel: Channel.GetStudy,
+      form: { study: match.params.name },
+    });
+    ipcRenderer.on(Channel.GetStudy, (study: any) => {
+      if (study === 'loading') {
+        this.setState({ isLoading: true });
+      } else {
+        console.log(study);
+        this.setState({ isLoading: false, study });
+        // GlobalState.studies = studies;
+      }
+    });
+  }
+
+  componentWillUnmount() {
+    ipcRenderer.removeAllListeners(Channel.GetStudy);
+  }
+
+  render() {
+    const { match } = this.props;
+    const { isLoading, study } = this.state;
+    const studyName = match.params.name;
+    if (!GlobalState.currentStudy)
+      GlobalState.currentStudy = {
+        name: studyName,
+        groups: study?.groups,
+      };
+    GlobalState.currentStudy.name = studyName;
+    GlobalState.currentStudy.groups = study?.groups;
+
+    const allGroups = study?.groups?.map((g: any) => (
+      <Link to={`/study/${studyName}/${g.name}`}>
+        <li key={g.name} className="link-page">
+          {g.name}
+        </li>
+      </Link>
+    ));
+    return (
       <div>
-        <button type="button" onClick={() => console.log('Create new group')}>
-          Create New Group
-        </button>
-        <h2>All groups</h2>
-        <ul>
-          <Link to="/study/Study 1/Group 1">
-            <li className="link-page">Group 1</li>
+        <h2>{studyName}</h2>
+        <div>
+          <Link to="/form/newGroup">
+            <Button type="primary">New Group</Button>
           </Link>
-          <Link to="/study/Study 2/Group 2">
-            <li className="link-page">Group 2</li>
-          </Link>
-        </ul>
+
+          <Button type="default" style={{ marginLeft: '10px' }}>
+            Export
+          </Button>
+          <h2>All groups</h2>
+          <ul>{allGroups}</ul>
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
 }

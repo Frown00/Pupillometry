@@ -77,10 +77,12 @@ export default class Chart extends React.Component<IProps, IState> {
     if (dataset.length <= 0) return;
     // #region Accessors
     const xAccessor = (d: IPupilSamplePreprocessed) => d.timestamp;
-    const yAccessorLeft = (d: IPupilSamplePreprocessed) => d.leftPupil;
-    const yAccessorRight = (d: IPupilSamplePreprocessed) => d.rightPupil;
+    const yAccessorLeft = (d: IPupilSamplePreprocessed) => d?.leftPupil ?? NaN;
+    const yAccessorRight = (d: IPupilSamplePreprocessed) =>
+      d?.rightPupil ?? NaN;
     const yAccessorMean = (d: IPupilSamplePreprocessed) => d?.meanPupil ?? NaN;
 
+    const time = '%M:%S'; // TODO config
     // #endregion
     // #region  Dimensions
     const dimensions = {
@@ -231,7 +233,7 @@ export default class Chart extends React.Component<IProps, IState> {
       // .ticks(5)
       // .tickFormat((d) => new Date(parseInt(d.toString(), 10)).toString())
       .tickFormat(
-        d3.timeFormat('%M:%S') as unknown as (
+        d3.timeFormat(time) as unknown as (
           dv: number | { valueOf(): number },
           i: number
         ) => string

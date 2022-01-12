@@ -3,7 +3,7 @@ import { Button } from 'antd';
 import { IRespondentSamples } from '../../../main/pupillary/constants';
 import ElectronWindow from '../../ElectronWindow';
 import Chart from '../charts/Chart';
-import * as configJSON from './config.json';
+import * as configJSON from '../../../main/pupillary/config.json';
 import { Channel } from '../../../ipc/channels';
 
 const DEFAULT_CONFIG = configJSON as IConfig;
@@ -17,7 +17,7 @@ interface IState {
 }
 const { ipcRenderer } = ElectronWindow.get().api;
 
-export default class Playground extends React.Component<IProps, IState> {
+export default class Test extends React.Component<IProps, IState> {
   constructor(props: IProps) {
     super(props);
     this.state = {

@@ -1,10 +1,13 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 /* eslint-disable react/no-unused-state */
 /* eslint-disable react/state-in-constructor */
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { Button } from 'antd';
 import { Channel } from '../../ipc/channels';
 import ElectronWindow from '../ElectronWindow';
 import DefaultLoader from './Loader';
+import GlobalState from './GlobalState';
 
 const pjson = require('../../../package.json');
 
@@ -33,13 +36,16 @@ export default class StartingPage extends React.Component<IProps, IState> {
 
   componentDidMount() {
     // activate
-    ipcRenderer.send(Channel.ApplyForStudies);
-    ipcRenderer.on(Channel.GetStudies, (value: any) => {
-      if (value === 'Loading') {
+    ipcRenderer.send(Channel.Request, {
+      responseChannel: Channel.GetStudies,
+    });
+    ipcRenderer.on(Channel.GetStudies, (studies: any) => {
+      if (studies === 'loading') {
         this.setState({ isLoading: true });
       } else {
         setTimeout(() => {
-          this.setState({ isLoading: false, studies: value });
+          this.setState({ isLoading: false, studies });
+          GlobalState.studies = studies;
         }, 500);
       }
     });
@@ -54,7 +60,9 @@ export default class StartingPage extends React.Component<IProps, IState> {
     const { isLoading, studies } = this.state;
     const allStudies = studies.map((s: IStudy) => (
       <Link to={`/study/${s.name}`}>
-        <li className="link-page">{s.name}</li>
+        <li key={s.name} className="link-page">
+          {s.name}
+        </li>
       </Link>
     ));
     return isLoading ? (
@@ -62,24 +70,25 @@ export default class StartingPage extends React.Component<IProps, IState> {
     ) : (
       <div>
         <Link to="/form/newStudy">
-          <button type="button">New Study</button>
+          <Button type="primary">New Study</Button>
         </Link>
         <br />
         <br />
-        <button
-          type="button"
+        <Button
           onClick={() => {
             ipcRenderer.send(Channel.ClearDB);
             window.location.reload();
           }}
         >
-          Remove all
-        </button>
+          Remove All
+        </Button>
         <div>
           <h2>Recent</h2>
           <ul>
             <Link to="/study/Study 1">
-              <li className="link-page">Study 1</li>
+              <li key="example" className="link-page">
+                Study 1
+              </li>
             </Link>
           </ul>
         </div>
@@ -87,6 +96,7 @@ export default class StartingPage extends React.Component<IProps, IState> {
         <br />
         <div>
           <h2>All studies</h2>
+          {/* <TestForm /> */}
           <ul>{allStudies}</ul>
         </div>
       </div>
