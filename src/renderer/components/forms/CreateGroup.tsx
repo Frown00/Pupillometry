@@ -1,12 +1,14 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import { Form, Button, Switch } from 'antd';
-import { config } from 'process';
+import { useState } from 'react';
+import { IResponseCreateGroup } from '../../../ipc/types';
 import TextItem from './items/TextItem';
 import SelectItem from './items/SelectItem';
 import ElectronWindow from '../../ElectronWindow';
-import { Channel } from '../../../ipc/channels';
+import { Channel, State } from '../../../ipc/channels';
 import GlobalState from '../GlobalState';
 import FileSelectItem from './items/FileSelectItem';
+import DefaultLoader from '../Loader';
 
 const formItemLayout = {
   labelCol: { span: 6 },
@@ -16,6 +18,7 @@ const formItemLayout = {
 const { ipcRenderer } = ElectronWindow.get().api;
 
 const CreateGroup = (props: any) => {
+  const [getState, setState] = useState({ isLoading: false, progress: 0 });
   const onFinish = (values: any) => {
     console.log('PROPS', props);
     values.study = GlobalState.currentStudy?.name;
@@ -30,25 +33,28 @@ const CreateGroup = (props: any) => {
       responseChannel: Channel.CreateGroup,
       form: values,
     });
-    ipcRenderer.on(Channel.CreateGroup, (response: any) => {
-      console.log(response);
-      if (response === 'OK') {
-        console.log('PUSH');
+    ipcRenderer.on(Channel.CreateGroup, (message: IResponseCreateGroup) => {
+      if (message.state === State.Loading) {
+        const progress = Math.round(message.progress * 100);
+        setState({ isLoading: true, progress });
+      } else if (message.state === State.Done) {
+        setState({ isLoading: false, progress: 100 });
+        GlobalState.currentGroup = message.response;
         props.history.push(`/study/${values.study}/${values.name}`);
-      }
+      } else throw new Error('Something went wrong');
     });
   };
-  const { studies } = GlobalState;
 
   console.log('Create Group', props);
-  return (
+  const { isLoading, progress } = getState;
+  const form = (
     <Form
       name="validate_other"
       {...formItemLayout}
       onFinish={onFinish}
       initialValues={{
         config: 'default-config',
-        isDependent: 'Dependent',
+        isDependant: 'Dependant',
       }}
     >
       <Form.Item wrapperCol={{ span: 12, offset: 6 }}>
@@ -56,7 +62,7 @@ const CreateGroup = (props: any) => {
       </Form.Item>
       <TextItem name="name" label="Name" required reservedValues={[]} />
       <Form.Item
-        name="isDependent"
+        name="isDependant"
         label="Category"
         valuePropName="checked"
         rules={[{ required: true, message: 'Group must to have category!' }]}
@@ -72,6 +78,7 @@ const CreateGroup = (props: any) => {
       </Form.Item>
     </Form>
   );
+  return <>{isLoading ? <DefaultLoader progress={progress} /> : form};</>;
 };
 
 export default CreateGroup;

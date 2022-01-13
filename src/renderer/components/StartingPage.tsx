@@ -4,24 +4,44 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from 'antd';
-import { Channel } from '../../ipc/channels';
+import { removeElement } from '../../util';
+import { Channel, State } from '../../ipc/channels';
 import ElectronWindow from '../ElectronWindow';
 import DefaultLoader from './Loader';
 import GlobalState from './GlobalState';
+import { IResponseGetStudyAnnotations } from '../../ipc/types';
+import StudyTable from './tables/StudyTable';
 
 const pjson = require('../../../package.json');
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface IProps {}
 
-interface IStudy {
+export interface IStudyRecord {
+  key: string;
   name: string;
+  groups: number;
+  respondents: number;
+}
+
+function createRecords(annotations: IStudyAnnotation[]) {
+  const records = [];
+  for (let i = 0; i < annotations.length; i += 1) {
+    const r: IStudyRecord = {
+      key: i.toString(),
+      groups: 0,
+      name: annotations[i].name,
+      respondents: 0,
+    };
+    records.push(r);
+  }
+  return records;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface IState {
   isLoading: boolean;
-  studies: Array<IStudy>;
+  studyRecords: IStudyRecord[];
   recent: IStudy | null;
 }
 const { ipcRenderer } = ElectronWindow.get().api;
@@ -30,39 +50,57 @@ export default class StartingPage extends React.Component<IProps, IState> {
   // ref!: SVGSVGElement;
   state: Readonly<IState> = {
     isLoading: true,
-    studies: [],
+    studyRecords: [],
     recent: null,
   };
+
+  constructor(props: IProps) {
+    super(props);
+    this.handleOnDelete = this.handleOnDelete.bind(this);
+  }
 
   componentDidMount() {
     // activate
     ipcRenderer.send(Channel.Request, {
-      responseChannel: Channel.GetStudies,
+      responseChannel: Channel.GetStudyAnnotations,
     });
-    ipcRenderer.on(Channel.GetStudies, (studies: any) => {
-      if (studies === 'loading') {
-        this.setState({ isLoading: true });
-      } else {
-        setTimeout(() => {
-          this.setState({ isLoading: false, studies });
-          GlobalState.studies = studies;
-        }, 500);
+    ipcRenderer.on(
+      Channel.GetStudyAnnotations,
+      (message: IResponseGetStudyAnnotations) => {
+        if (message.state === State.Loading) {
+          this.setState({ isLoading: true });
+        } else if (message.state === State.Done) {
+          setTimeout(() => {
+            console.log(message.response);
+            this.setState({
+              isLoading: false,
+              studyRecords: createRecords(message.response),
+            });
+            GlobalState.studyAnnotations = message.response;
+          }, 500);
+        }
       }
-    });
+    );
   }
 
   componentWillUnmount() {
-    ipcRenderer.removeAllListeners(Channel.GetStudies);
+    ipcRenderer.removeAllListeners(Channel.GetStudyAnnotations);
+  }
+
+  handleOnDelete(record: IStudyRecord) {
+    console.log(record);
+    const { studyRecords } = this.state;
+    const removed = removeElement(studyRecords, 'name', record.name);
+    ipcRenderer.send(Channel.DeleteStudy, { name: removed.name });
+    this.setState({ studyRecords });
   }
 
   render() {
     document.title = pjson.build.productName;
-    const { isLoading, studies } = this.state;
-    const allStudies = studies.map((s: IStudy) => (
-      <Link to={`/study/${s.name}`}>
-        <li key={s.name} className="link-page">
-          {s.name}
-        </li>
+    const { isLoading, studyRecords } = this.state;
+    const allStudies = studyRecords?.map((s: IStudyRecord) => (
+      <Link key={s.key} to={`/study/${s.name}`}>
+        <li className="link-page">{s.name}</li>
       </Link>
     ));
     return isLoading ? (
@@ -96,8 +134,11 @@ export default class StartingPage extends React.Component<IProps, IState> {
         <br />
         <div>
           <h2>All studies</h2>
-          {/* <TestForm /> */}
-          <ul>{allStudies}</ul>
+          <StudyTable
+            handleOnDelete={this.handleOnDelete}
+            records={studyRecords}
+          />
+          {/* <ul>{allStudies}</ul> */}
         </div>
       </div>
     );

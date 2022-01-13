@@ -18,8 +18,8 @@ export default function Group(props: MatchProps) {
   );
   GlobalState.currentGroup = group;
   console.log('GROUPS', group);
-  const dependent = group?.isDependent ? 'Dependent' : 'Independent';
-  const respondents = group?.respondents?.map((r: any) => (
+  const dependent = group?.isDependant ? 'Dependent' : 'Independent';
+  const respondents = group?.respondents?.map((r: IRespondentSamples) => (
     <Link
       to={`/study/${GlobalState.currentStudy?.name}/${group.name}/${r.name}`}
     >

@@ -65,3 +65,53 @@ interface IConfig {
     };
   };
 }
+
+interface IPupilSamplePreprocessed {
+  timestamp: number;
+  leftPupil: number;
+  rightPupil: number;
+  meanPupil: number;
+  segmentId: string;
+  dilatationSpeed?: {
+    left?: number;
+    right?: number;
+  };
+}
+
+interface IPupilSampleRaw {
+  Timestamp: string;
+  LeftPupil: string;
+  RightPupil: string;
+  SegmentId: string;
+}
+
+interface IPupillometryStats {
+  dilatationSpeed: {
+    left: number[];
+    right: number[];
+  };
+  rawSamplesCount: number;
+  validSamples: number;
+  missing: {
+    general: number;
+    leftPupil: number;
+    rightPupil: number;
+  };
+  mean: number;
+  meanPupilDifference: number;
+  pupilCorrelation: number;
+  min: number;
+  max: number;
+  std: number;
+}
+
+interface IPupillometry {
+  validSamples: IPupilSamplePreprocessed[];
+  stats: IPupillometryStats;
+  name: string;
+}
+
+interface IRespondentSamples {
+  name: string;
+  segments: IPupillometry[];
+}

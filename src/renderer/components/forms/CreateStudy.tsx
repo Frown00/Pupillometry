@@ -1,9 +1,10 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import { Form, Button } from 'antd';
+import { IResponseCreateStudy } from '../../../ipc/types';
 import TextItem from './items/TextItem';
 import SelectItem from './items/SelectItem';
 import ElectronWindow from '../../ElectronWindow';
-import { Channel } from '../../../ipc/channels';
+import { Channel, State } from '../../../ipc/channels';
 import GlobalState from '../GlobalState';
 
 const formItemLayout = {
@@ -21,12 +22,15 @@ const CreateStudy = (props: any) => {
       responseChannel: Channel.CreateStudy,
       form: values,
     });
-    ipcRenderer.on(Channel.CreateStudy, (message: string) => {
-      if (message === 'OK') props.history.push(`/study/${values.name}`);
-      else throw new Error('Something went wrong');
+    ipcRenderer.on(Channel.CreateStudy, (message: IResponseCreateStudy) => {
+      if (message.state === State.Loading) {
+        //
+      } else if (message.state === State.Done) {
+        props.history.push(`/study/${values.name}`);
+      } else throw new Error('Something went wrong');
     });
   };
-  const { studies } = GlobalState;
+  const { studyAnnotations } = GlobalState;
 
   console.log('Create Study', props);
   return (
@@ -46,7 +50,7 @@ const CreateStudy = (props: any) => {
           name="name"
           label="Name"
           required
-          reservedValues={studies.map((s) => s.name)}
+          reservedValues={studyAnnotations.map((s) => s.name)}
         />
         <SelectItem name="config" label="Config" required />
         {/* {(console.log('VALUE'), value.studies)} */}

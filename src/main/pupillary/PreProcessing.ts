@@ -1,11 +1,5 @@
 /* eslint-disable class-methods-use-this */
 import { sampleCorrelation, standardDeviation } from 'simple-statistics';
-import {
-  IPupilSamplePreprocessed,
-  IPupilSampleRaw,
-  IPupillometryStats,
-  IPupillometry,
-} from './constants';
 import * as outlier from './filter/outlier';
 import * as dSpeed from './filter/dilatationSpeed';
 import * as util from './util';

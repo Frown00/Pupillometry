@@ -1,7 +1,9 @@
 /* eslint-disable no-await-in-loop */
 import Store from 'electron-store';
 import { ipcMain } from 'electron';
-import { Channel } from '../../ipc/channels';
+import { removeElement } from '../../util';
+import { IMessage } from '../../ipc/types';
+import { Channel, State } from '../../ipc/channels';
 import { processPupilSamples } from '../pupillary/process';
 import * as configJSON from '../pupillary/config.json';
 
@@ -9,61 +11,18 @@ const DEFAULT_CONFIG = configJSON as IConfig;
 
 Store.initRenderer();
 
+enum StoreKey {
+  StudyAnnotations = 'studyAnnotations',
+  Studies = 'studies',
+  Recent = 'recent',
+}
+
 class DB {
-  private store: Store<any>;
+  private store: Store<IStore>;
 
   constructor() {
     // still same store
-    this.store = new Store({
-      schema: {
-        studiesSimple: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              name: {
-                type: 'string',
-              },
-            },
-          },
-          default: [],
-        },
-        studies: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              name: {
-                type: 'string',
-              },
-              groups: {
-                type: 'array',
-                properties: {
-                  name: {
-                    type: 'string',
-                  },
-                  isDependent: {
-                    type: 'boolean',
-                  },
-                  respondents: {
-                    type: 'array',
-                  },
-                },
-              },
-            },
-          },
-          default: [],
-        },
-        recent: {
-          type: 'object',
-          properties: {
-            name: {
-              type: 'string',
-            },
-          },
-        },
-      },
-    });
+    this.store = new Store<IStore>();
   }
 
   listenEvents(): void {
@@ -80,6 +39,16 @@ class DB {
       }
     );
 
+    ipcMain.on(Channel.DeleteStudy, (event: any, data: { name: string }) => {
+      console.log('DELETE', data);
+      const studies = this.store.get(StoreKey.Studies);
+      const annotations = this.store.get(StoreKey.StudyAnnotations);
+      removeElement(studies, 'name', data.name);
+      removeElement(annotations, 'name', data.name);
+      this.store.set(StoreKey.Studies, studies);
+      this.store.set(StoreKey.StudyAnnotations, annotations);
+    });
+
     ipcMain.on(
       Channel.Request,
       async (
@@ -88,39 +57,50 @@ class DB {
       ) => {
         console.log('DATA', data);
         const { responseChannel, form } = data;
-        event.sender.send(responseChannel, 'loading');
-        let response = null;
+        const message: IMessage = {
+          state: State.Loading,
+          response: null,
+          progress: 0,
+        };
+        event.sender.send(responseChannel, message);
         switch (responseChannel) {
-          case Channel.GetStudies:
-            response = this.store.get('studiesSimple');
+          case Channel.GetStudyAnnotations:
+            message.response = this.store.get(StoreKey.StudyAnnotations) ?? [];
+            message.progress = 1;
+            message.state = State.Done;
             break;
           case Channel.GetStudy:
             {
-              const studies = this.store.get('studies');
+              const studies = this.store.get(StoreKey.Studies);
               const study = studies.find((s: any) => s.name === form.study);
-              response = study;
+              message.response = study;
+              message.state = State.Done;
+              message.progress = 1;
             }
             break;
           case Channel.CreateStudy:
             {
-              const studiesSimple = this.store.get('studiesSimple');
-              const studies = this.store.get('studies');
-              studiesSimple.push({ name: form.name });
+              const annotations =
+                this.store.get(StoreKey.StudyAnnotations) ?? [];
+              const studies = this.store.get(StoreKey.Studies) ?? [];
+              annotations.push({ name: form.name });
               studies.push(form);
-              this.store.set('studiesSimple', studiesSimple);
-              this.store.set('studies', studies);
-              response = 'OK';
+              this.store.set(StoreKey.StudyAnnotations, annotations);
+              this.store.set(StoreKey.Studies, studies);
+              message.state = State.Done;
+              message.progress = 1;
+              message.response = State.Done;
             }
             break;
           case Channel.CreateGroup:
             {
-              const studies = this.store.get('studies');
-              const study = studies.find((s: any) => s.name === form.study);
-              // console.log('FORM', form);
+              const studies = this.store.get(StoreKey.Studies);
+              const study = studies.find((s: IStudy) => s.name === form.study);
+              if (!study) throw new Error('Study does not exist');
               if (!study.groups) study.groups = [];
 
               const { files } = form;
-              const respondents = [];
+              const respondents: IRespondentSamples[] = [];
               for (let i = 0; i < files.length; i += 1) {
                 console.log(files[i].name);
                 console.log(files[i].path);
@@ -129,35 +109,28 @@ class DB {
                   DEFAULT_CONFIG
                 );
                 respondents.push(res);
-                // console.log(res.name, res.segments.length);
+                message.progress = (i + 1) / files.length;
+                event.sender.send(responseChannel, message);
               }
-              study.groups.push({
+              const group = {
                 name: form.name,
-                isDependent: form.isDependent,
+                isDependant: form.isDependant,
                 respondents,
-              });
+              };
+              study.groups.push(group);
               // studies.push(data);
-              this.store.set('studies', studies);
-              response = 'OK';
+              this.store.set(StoreKey.Studies, studies);
+              message.state = State.Done;
+              message.progress = 1;
+              message.response = group;
             }
             break;
           default:
             throw new Error('Wrong channel has been passed');
         }
-        event.sender.send(responseChannel, response);
+        event.sender.send(responseChannel, message);
       }
     );
-
-    // ipcMain.on(Channel.CreateStudy, (event: any, data: { name: string }) => {
-    //   console.log(event, data);
-    //   const studies = this.store.get('studies');
-    //   console.log(studies);
-    //   studies.push(data);
-    //   console.log(studies);
-    //   return this.store.set('studies', studies);
-    // });
-
-    // ipcMain.on(Channel.)
 
     // TODO remove in production
     ipcMain.on(Channel.ClearDB, (e, data) => {

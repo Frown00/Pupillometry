@@ -6,7 +6,7 @@ module.exports = {
   Request: 'request',
   RequestStudies: 'request-studies',
   GetStudy: 'get-study',
-  GetStudies: 'get-studies',
+  GetStudyAnnotations: 'get-study-annotations',
   CreateStudy: 'create-study',
   DeleteStudy: 'delete-study',
   CreateGroup: 'create-group',

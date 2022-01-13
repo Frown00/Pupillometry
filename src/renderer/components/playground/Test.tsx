@@ -1,6 +1,5 @@
 import React from 'react';
 import { Button } from 'antd';
-import { IRespondentSamples } from '../../../main/pupillary/constants';
 import ElectronWindow from '../../ElectronWindow';
 import Chart from '../charts/Chart';
 import * as configJSON from '../../../main/pupillary/config.json';

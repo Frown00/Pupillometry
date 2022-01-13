@@ -6,11 +6,16 @@ export enum Channel {
   Request = 'request',
   RequestStudies = 'request-studies',
   GetStudy = 'get-study',
-  GetStudies = 'get-studies',
+  GetStudyAnnotations = 'get-study-annotations',
   CreateStudy = 'create-study',
   DeleteStudy = 'delete-study',
   CreateGroup = 'create-group',
   DeleteGroup = 'delete-group',
   GetValidPupilSamples = 'get-valid-pupil-samples',
   ClearDB = 'clear-db',
+}
+
+export enum State {
+  Loading = 'loading',
+  Done = 'done',
 }

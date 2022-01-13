@@ -20,7 +20,7 @@ const AddRespondent = (props: any) => {
     ipcRenderer.send(Channel.CreateStudy, values);
     props.history.push(`/study/${values.name}`);
   };
-  const { studies } = GlobalState;
+  const { studyAnnotations } = GlobalState;
 
   console.log('Add Respondent', props);
   return (

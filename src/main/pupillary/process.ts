@@ -3,11 +3,7 @@ import neatCSV from 'neat-csv';
 import path from 'path';
 import { Channel } from '../../ipc/channels';
 import loadData from '../filesystem/loader';
-import {
-  IRespondentSamples,
-  IPupilSampleRaw,
-  PupilStandardHeaders,
-} from './constants';
+import { PupilStandardHeaders } from './constants';
 import Preprocessing from './PreProcessing';
 
 /**

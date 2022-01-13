@@ -1,5 +1,3 @@
-import { IPupilSamplePreprocessed } from './constants';
-
 /* eslint-disable import/prefer-default-export */
 export function calcMean(left: number, right: number, diff: number) {
   if (left && right) return (left + right) / 2;
