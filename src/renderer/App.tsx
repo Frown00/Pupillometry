@@ -13,6 +13,7 @@ import CreateStudy from './components/forms/CreateStudy';
 import CreateGroup from './components/forms/CreateGroup';
 import AddRespondent from './components/forms/AddRespondent';
 import StudyNav from './components/StudyNav';
+import About from './components/About';
 
 export default function App() {
   return (
@@ -46,6 +47,7 @@ export default function App() {
             />
             <Route path="/settings" component={Settings} />
             <Route path="/test" component={Test} />
+            <Route path="/about" component={About} />
           </Switch>
         </main>
       </Router>

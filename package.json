@@ -1,5 +1,6 @@
 {
   "name": "pupillometry",
+  "version": "0.1.0",
   "description": "App for preprocessing, visualize and analysis of pupil size",
   "scripts": {
     "build": "concurrently \"npm run build:main\" \"npm run build:renderer\"",
@@ -195,6 +196,7 @@
     "electron-log": "^4.4.1",
     "electron-store": "^8.0.1",
     "electron-updater": "^4.6.1",
+    "exceljs": "^4.3.0",
     "formik": "^2.2.9",
     "history": "4.x.x",
     "neat-csv": "^6.0.1",

@@ -49,7 +49,7 @@ export default function StudyNav(props: RouteComponentProps) {
               <li className="side-nav-link">Test</li>
             </Link>
             <Link to="/about">
-              <li className="side-nav-link">Study</li>
+              <li className="side-nav-link">About</li>
             </Link>
             <Link to="/settings">
               <li className="side-nav-link">Config</li>
