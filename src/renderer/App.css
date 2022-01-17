@@ -104,6 +104,9 @@ nav.start {
   min-width: 100px;
   z-index: 999;
 }
+.axis-grid line {
+  stroke: #def;
+}
 
 nav.study {
   position: fixed;

@@ -44,13 +44,11 @@ export default class Chart extends React.Component<IProps, IState> {
   componentDidMount() {
     // activate
     const { samples } = this.props;
-    // console.log('MOUNT CHART', samples);
     d3.select(this.ref).selectAll('g').remove();
     this.buildGraph(samples?.validSamples ?? []);
   }
 
   shouldComponentUpdate(nextProps: IProps) {
-    // console.log('SHOULD UPDATE', nextProps);
     const { samples, name } = this.props;
     const differentTitle = samples !== nextProps.samples;
     const differentDone = name !== nextProps.name;
@@ -59,7 +57,6 @@ export default class Chart extends React.Component<IProps, IState> {
 
   componentDidUpdate() {
     const { samples } = this.props;
-    // console.log('Update CHART', samples);
     d3.select(this.ref).selectAll('g').remove();
     this.buildGraph(samples?.validSamples ?? []);
   }
@@ -79,6 +76,7 @@ export default class Chart extends React.Component<IProps, IState> {
     const yAccessorMean = (d: IPupilSamplePreprocessed) => d?.meanPupil ?? NaN;
 
     const time = '%M:%S'; // TODO config
+    const formatMillisecond = d3.timeFormat('.%L');
     // #endregion
     // #region  Dimensions
     const dimensions = {
@@ -122,7 +120,10 @@ export default class Chart extends React.Component<IProps, IState> {
     const yScale = d3
       .scaleLinear()
       .domain([
-        config.processing.pupil.min,
+        Math.min(
+          d3.min(dataset, yAccessorLeft) ?? config.processing.pupil.max,
+          d3.min(dataset, yAccessorRight) ?? config.processing.pupil.max
+        ),
         Math.max(
           d3.max(dataset, yAccessorLeft) ?? config.processing.pupil.min,
           d3.max(dataset, yAccessorRight) ?? config.processing.pupil.min
@@ -163,6 +164,7 @@ export default class Chart extends React.Component<IProps, IState> {
               .line()
               .x((d: any) => xScale(xAccessor(d)))
               .y((d: any) => yScale(yAccessorMean(d)))
+              .curve(d3.curveBundle.beta(1))
             // .defined((d: IPupilSample) => {
             //   return yScale(yAccessorRight(d)) > 0
             //     ? yScale(yAccessorRight(d))
@@ -228,8 +230,10 @@ export default class Chart extends React.Component<IProps, IState> {
       .axisBottom(xScale)
       // .ticks(5)
       // .tickFormat((d) => new Date(parseInt(d.toString(), 10)).toString())
+      .tickSize(-dimensions.ctrHeight)
+      .ticks(10)
       .tickFormat(
-        d3.timeFormat(time) as unknown as (
+        d3.timeFormat('%s.%L') as unknown as (
           dv: number | { valueOf(): number },
           i: number
         ) => string
@@ -242,6 +246,13 @@ export default class Chart extends React.Component<IProps, IState> {
       .style('transform', `translateY(${dimensions.ctrHeight}px)`)
       .classed('axis', true);
 
+    // grid line
+    container
+      .append('g')
+      .attr('class', 'x axis-grid')
+      .attr('transform', `translate(0,${dimensions.ctrHeight})`)
+      .call(xAxis);
+
     xAxisGroup
       .append('text')
       .attr('x', dimensions.ctrWidth / 2)
@@ -250,7 +261,7 @@ export default class Chart extends React.Component<IProps, IState> {
       .text('Time [m]');
     // #endregion
     // #region Axe Y
-    const yAxis = d3.axisLeft(yScale).ticks(5);
+    const yAxis = d3.axisLeft(yScale).tickSize(-dimensions.ctrWidth).ticks(10);
     const yAxisGroup = container.append('g').call(yAxis).classed('axis', true);
     yAxisGroup
       .append('text')
@@ -260,6 +271,8 @@ export default class Chart extends React.Component<IProps, IState> {
       .html('Pupil size [mm]')
       .style('transform', 'rotate(270deg)')
       .style('text-anchor', 'middle');
+    // grid line
+    container.append('g').attr('class', 'y axis-grid').call(yAxis);
     // #endregion
   }
 
@@ -332,11 +345,11 @@ export default class Chart extends React.Component<IProps, IState> {
                 </p>
                 <p style={{ display: 'flex' }}>
                   <span className="pupil-label">Eye difference: </span>
-                  {stats.meanPupilDifference.toFixed(2)} mm
+                  {stats.meanPupilDifference?.toFixed(2)} mm
                 </p>
                 <p style={{ display: 'flex' }}>
                   <span className="pupil-label">Pupil correlation: </span>
-                  {stats.pupilCorrelation.toFixed(2)}
+                  {stats.pupilCorrelation?.toFixed(2)}
                 </p>
               </div>
               <div>
@@ -346,7 +359,7 @@ export default class Chart extends React.Component<IProps, IState> {
                   {(
                     (stats.missing.general / stats.rawSamplesCount) *
                     100
-                  ).toFixed(2)}
+                  )?.toFixed(2)}
                   %
                 </p>
                 <p style={{ display: 'flex' }}>
@@ -354,7 +367,7 @@ export default class Chart extends React.Component<IProps, IState> {
                   {(
                     (stats.missing.rightPupil / stats.rawSamplesCount) *
                     100
-                  ).toFixed(2)}
+                  )?.toFixed(2)}
                   %
                 </p>
                 <p style={{ display: 'flex' }}>
@@ -362,7 +375,7 @@ export default class Chart extends React.Component<IProps, IState> {
                   {(
                     (stats.missing.leftPupil / stats.rawSamplesCount) *
                     100
-                  ).toFixed(2)}
+                  )?.toFixed(2)}
                   %
                 </p>
               </div>
