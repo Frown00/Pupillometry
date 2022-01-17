@@ -269,7 +269,7 @@ export default class Preprocessing {
       // Left Pupil
       if (timeDiffLeft > gap) {
         isolatedLeft.push(row);
-      } else if (isolatedLeft.length > 2) {
+      } else if (isolatedLeft.length >= 2) {
         const start = isolatedLeft[0].timestamp;
         const end = isolatedLeft[isolatedLeft.length - 1].timestamp;
         const diff = end - start;
@@ -284,7 +284,7 @@ export default class Preprocessing {
       // Right pupil
       if (timeDiffRight > gap) {
         isolatedRight.push(row);
-      } else if (isolatedRight.length > 2) {
+      } else if (isolatedRight.length >= 2) {
         const start = isolatedRight[0].timestamp;
         const end = isolatedRight[isolatedRight.length - 1].timestamp;
         const diff = end - start;
