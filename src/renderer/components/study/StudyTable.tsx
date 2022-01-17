@@ -36,23 +36,10 @@ export default class StudyTable extends React.Component<IProps, IState> {
     });
   };
 
-  clearFilters = () => {
-    this.setState({ filteredInfo: null });
-  };
-
   clearAll = () => {
     this.setState({
       filteredInfo: null,
       sortedInfo: null,
-    });
-  };
-
-  setAgeSort = () => {
-    this.setState({
-      sortedInfo: {
-        order: 'descend',
-        columnKey: 'age',
-      },
     });
   };
 
@@ -66,12 +53,6 @@ export default class StudyTable extends React.Component<IProps, IState> {
         title: 'Name',
         dataIndex: 'name',
         key: 'name',
-        filters: [
-          { text: 'Joe', value: 'Joe' },
-          { text: 'Jim', value: 'Jim' },
-        ],
-        filteredValue: filteredInfo.name || null,
-        onFilter: (value: any, record: IRecord) => record.name.includes(value),
         sorter: (a: IRecord, b: IRecord) => {
           if (a.name < b.name) return -1;
           if (a.name > b.name) return 1;
@@ -79,7 +60,7 @@ export default class StudyTable extends React.Component<IProps, IState> {
         },
         sortOrder: sortedInfo.columnKey === 'name' && sortedInfo.order,
         ellipsis: true,
-        render: (text: IRecord, record: IRecord, index: number) => (
+        render: (text: IRecord) => (
           <Link to={`/study/${text}`}>
             <div className="link">{text}</div>
           </Link>
@@ -113,8 +94,7 @@ export default class StudyTable extends React.Component<IProps, IState> {
     return (
       <>
         <Space style={{ marginBottom: 16 }}>
-          <Button onClick={this.clearFilters}>Clear filters</Button>
-          <Button onClick={this.clearAll}>Clear filters and sorters</Button>
+          <Button onClick={this.clearAll}>Clear sorters</Button>
         </Space>
         <Table
           columns={columns}
