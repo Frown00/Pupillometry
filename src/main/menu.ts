@@ -155,23 +155,25 @@ export default class MenuBuilder {
       label: 'Help',
       submenu: [
         {
-          label: 'Learn More',
+          label: 'Repository',
           click() {
-            shell.openExternal('https://electronjs.org');
+            shell.openExternal('https://github.com/Frown00/Pupillometry');
           },
         },
         {
-          label: 'Documentation',
+          label: 'Releases',
           click() {
             shell.openExternal(
-              'https://github.com/electron/electron/tree/main/docs#readme'
+              'https://github.com/Frown00/Pupillometry/releases'
             );
           },
         },
         {
           label: 'Search Issues',
           click() {
-            shell.openExternal('https://github.com/electron/electron/issues');
+            shell.openExternal(
+              'https://github.com/Frown00/Pupillometry/issues'
+            );
           },
         },
       ],
@@ -250,23 +252,25 @@ export default class MenuBuilder {
         label: 'Help',
         submenu: [
           {
-            label: 'Learn More',
+            label: 'Repository',
             click() {
-              shell.openExternal('https://electronjs.org');
+              shell.openExternal('https://github.com/Frown00/Pupillometry');
             },
           },
           {
-            label: 'Documentation',
+            label: 'Releases',
             click() {
               shell.openExternal(
-                'https://github.com/electron/electron/tree/main/docs#readme'
+                'https://github.com/Frown00/Pupillometry/releases'
               );
             },
           },
           {
             label: 'Search Issues',
             click() {
-              shell.openExternal('https://github.com/electron/electron/issues');
+              shell.openExternal(
+                'https://github.com/Frown00/Pupillometry/issues'
+              );
             },
           },
         ],
