@@ -38,8 +38,8 @@ const CreateGroup = (props: any) => {
         const progress = Math.round(message.progress * 100);
         setState({ isLoading: true, progress });
       } else if (message.state === State.Done) {
+        GlobalState.currentStudy?.groups.push(message.response);
         setState({ isLoading: false, progress: 100 });
-        GlobalState.currentGroup = message.response;
         props.history.push(`/study/${values.study}/${values.name}`);
       } else throw new Error('Something went wrong');
     });
@@ -47,6 +47,7 @@ const CreateGroup = (props: any) => {
 
   console.log('Create Group', props);
   const { isLoading, progress } = getState;
+  const groups = GlobalState.currentStudy?.groups;
   const form = (
     <Form
       name="validate_other"
@@ -60,7 +61,12 @@ const CreateGroup = (props: any) => {
       <Form.Item wrapperCol={{ span: 12, offset: 6 }}>
         <h1>Create Group</h1>
       </Form.Item>
-      <TextItem name="name" label="Name" required reservedValues={[]} />
+      <TextItem
+        name="name"
+        label="Name"
+        required
+        reservedValues={groups?.map((g) => g.name) ?? []}
+      />
       <Form.Item
         name="isDependant"
         label="Category"
