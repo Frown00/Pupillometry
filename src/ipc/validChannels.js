@@ -11,6 +11,9 @@ module.exports = {
   DeleteStudy: 'delete-study',
   CreateGroup: 'create-group',
   DeleteGroup: 'delete-group',
+  AddRespondent: 'add-respondent',
+  DeleteRespondent: 'delete-respondent',
   GetValidPupilSamples: 'get-valid-pupil-samples',
   ClearDB: 'clear-db',
+  ExportMetrics: 'export-metrics',
 };

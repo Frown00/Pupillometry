@@ -11,7 +11,10 @@ export enum Channel {
   DeleteStudy = 'delete-study',
   CreateGroup = 'create-group',
   DeleteGroup = 'delete-group',
+  AddRespondent = 'add-respondent',
+  DeleteRespondent = 'delete-respondent',
   GetValidPupilSamples = 'get-valid-pupil-samples',
+  ExportMetrics = 'export-metrics',
   ClearDB = 'clear-db',
 }
 

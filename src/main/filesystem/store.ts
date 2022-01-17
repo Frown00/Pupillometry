@@ -1,11 +1,14 @@
+/* eslint-disable no-restricted-syntax */
 /* eslint-disable no-await-in-loop */
 import Store from 'electron-store';
-import { ipcMain } from 'electron';
+import { BrowserWindow, dialog, ipcMain, shell } from 'electron';
 import { removeElement } from '../../util';
 import { IMessage } from '../../ipc/types';
 import { Channel, State } from '../../ipc/channels';
 import { processPupilSamples } from '../pupillary/process';
+
 import * as configJSON from '../pupillary/config.json';
+import saveMetrics from './saveMetrics';
 
 const DEFAULT_CONFIG = configJSON as IConfig;
 
@@ -20,34 +23,79 @@ enum StoreKey {
 class DB {
   private store: Store<IStore>;
 
-  constructor() {
+  private mainWindow: BrowserWindow;
+
+  constructor(mainWindow: BrowserWindow) {
     // still same store
     this.store = new Store<IStore>();
+    this.mainWindow = mainWindow;
+  }
+
+  private getStudy(name: string) {
+    return this.store.get(StoreKey.Studies).find((s) => s.name === name);
   }
 
   listenEvents(): void {
-    ipcMain.handle(Channel.GetStoreValue, (event: any, key) => {
-      console.log(key);
-      return this.store.get(key);
-    });
+    ipcMain.handle(
+      Channel.GetStoreValue,
+      (event: Electron.IpcMainInvokeEvent, key) => {
+        return this.store.get(key);
+      }
+    );
 
     ipcMain.on(
       Channel.SetStoreValue,
-      (event: any, data: { key: string; value: any }) => {
-        console.log(data);
+      (
+        event: Electron.IpcMainInvokeEvent,
+        data: { key: string; value: any }
+      ) => {
         return this.store.set(data.key, data.value);
       }
     );
 
-    ipcMain.on(Channel.DeleteStudy, (event: any, data: { name: string }) => {
-      console.log('DELETE', data);
-      const studies = this.store.get(StoreKey.Studies);
-      const annotations = this.store.get(StoreKey.StudyAnnotations);
-      removeElement(studies, 'name', data.name);
-      removeElement(annotations, 'name', data.name);
-      this.store.set(StoreKey.Studies, studies);
-      this.store.set(StoreKey.StudyAnnotations, annotations);
-    });
+    ipcMain.on(
+      Channel.DeleteStudy,
+      (event: Electron.IpcMainInvokeEvent, data: { name: string }) => {
+        const studies = this.store.get(StoreKey.Studies);
+        const annotations = this.store.get(StoreKey.StudyAnnotations);
+        removeElement(studies, 'name', data.name);
+        removeElement(annotations, 'name', data.name);
+        this.store.set(StoreKey.Studies, studies);
+        this.store.set(StoreKey.StudyAnnotations, annotations);
+      }
+    );
+
+    ipcMain.on(
+      Channel.DeleteGroup,
+      (
+        event: Electron.IpcMainInvokeEvent,
+        data: { studyName: string; groupName: string }
+      ) => {
+        const { studyName, groupName } = data;
+        const studies = this.store.get(StoreKey.Studies);
+        const study = studies.find((s) => s.name === studyName);
+        if (!study) return;
+        removeElement(study.groups, 'name', groupName);
+        this.store.set(StoreKey.Studies, studies);
+      }
+    );
+
+    ipcMain.on(
+      Channel.DeleteRespondent,
+      (
+        event: Electron.IpcMainInvokeEvent,
+        data: { studyName: string; groupName: string; respondentName: string }
+      ) => {
+        const { studyName, groupName, respondentName } = data;
+        const studies = this.store.get(StoreKey.Studies);
+        const study = studies.find((s) => s.name === studyName);
+        if (!study) return;
+        const group = study.groups.find((g) => g.name === groupName);
+        if (!group) return;
+        removeElement(group.respondents, 'name', respondentName);
+        this.store.set(StoreKey.Studies, studies);
+      }
+    );
 
     ipcMain.on(
       Channel.Request,
@@ -55,7 +103,6 @@ class DB {
         event: Electron.IpcMainEvent,
         data: { responseChannel: Channel; form: any }
       ) => {
-        console.log('DATA', data);
         const { responseChannel, form } = data;
         const message: IMessage = {
           state: State.Loading,
@@ -72,7 +119,7 @@ class DB {
           case Channel.GetStudy:
             {
               const studies = this.store.get(StoreKey.Studies);
-              const study = studies.find((s: any) => s.name === form.study);
+              const study = studies.find((s: IStudy) => s.name === form.study);
               message.response = study;
               message.state = State.Done;
               message.progress = 1;
@@ -101,15 +148,16 @@ class DB {
 
               const { files } = form;
               const respondents: IRespondentSamples[] = [];
-              for (let i = 0; i < files.length; i += 1) {
-                console.log(files[i].name);
-                console.log(files[i].path);
+              let i = 0;
+              for (const file of files) {
+                i += 1;
                 const res = await processPupilSamples(
-                  files[i].path,
+                  file.path,
                   DEFAULT_CONFIG
                 );
                 respondents.push(res);
-                message.progress = (i + 1) / files.length;
+                message.progress = i / files.length;
+                message.state = State.Loading;
                 event.sender.send(responseChannel, message);
               }
               const group = {
@@ -118,7 +166,6 @@ class DB {
                 respondents,
               };
               study.groups.push(group);
-              // studies.push(data);
               this.store.set(StoreKey.Studies, studies);
               message.state = State.Done;
               message.progress = 1;
@@ -132,7 +179,34 @@ class DB {
       }
     );
 
-    // TODO remove in production
+    ipcMain.on(
+      Channel.ExportMetrics,
+      (e: Electron.IpcMainInvokeEvent, message: { name: string }) => {
+        console.log('Export metrics', message.name);
+
+        try {
+          // eslint-disable-next-line promise/catch-or-return
+          dialog
+            .showOpenDialog(this.mainWindow, {
+              title: 'Select location to save pupillometry metrics',
+              buttonLabel: 'Select',
+              properties: ['openDirectory'],
+            })
+            .then(async (result: Electron.OpenDialogReturnValue) => {
+              const directoryPath = result.filePaths[0];
+              const study = this.getStudy(message.name);
+              const dir = await saveMetrics(directoryPath, study);
+              if (dir) {
+                shell.openPath(dir);
+              }
+              return result;
+            });
+        } catch (err) {
+          throw new Error();
+        }
+      }
+    );
+
     ipcMain.on(Channel.ClearDB, (e, data) => {
       console.log(e, data);
       this.store.clear();
