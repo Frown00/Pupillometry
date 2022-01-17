@@ -1,11 +1,11 @@
-import { BrowserWindow, dialog, ipcMain } from 'electron';
+/* eslint-disable promise/no-nesting */
+import { BrowserWindow, dialog, ipcMain, shell } from 'electron';
 import neatCSV from 'neat-csv';
 import path from 'path';
 import { Channel } from '../../ipc/channels';
 import loadData from '../filesystem/loader';
 import { PupilStandardHeaders } from './constants';
 import Preprocessing from './PreProcessing';
-
 /**
  *
  * @param {string} filePath - system file path
@@ -28,7 +28,8 @@ export async function processPupilSamples(filePath: string, config: IConfig) {
       if (header === file.timestamp) return PupilStandardHeaders.TIMESTAMP;
       if (header === file.leftPupil) return PupilStandardHeaders.LEFT_PUPIL;
       if (header === file.rightPupil) return PupilStandardHeaders.RIGHT_PUPIL;
-      if (header === file.segmentId) return PupilStandardHeaders.SEGMENT_ID;
+      if (header === file.segmentActive)
+        return PupilStandardHeaders.SEGMENT_ACTIVE;
       return null;
     },
   });
@@ -42,31 +43,34 @@ export async function processPupilSamples(filePath: string, config: IConfig) {
 }
 
 export default function listenEvents(mainWindow: BrowserWindow) {
-  ipcMain.on(Channel.ProcessPupil, (e: any, config: IConfig) => {
-    try {
-      // eslint-disable-next-line promise/catch-or-return
-      dialog
-        .showOpenDialog(mainWindow, {
-          buttonLabel: 'Select a pupillometry file',
-          properties: ['multiSelections', 'createDirectory', 'openFile'],
-        })
-        .then(async (result: any) => {
-          const respondent: IRespondentSamples = await processPupilSamples(
-            result.filePaths[0],
-            config
-          );
-          console.log(
-            'Proccessed:',
-            respondent.segments.reduce(
-              (prev, curr) => prev + curr.stats.rawSamplesCount,
-              0
-            )
-          );
-          e.sender.send(Channel.GetValidPupilSamples, respondent);
-          return result;
-        });
-    } catch (err) {
-      throw new Error();
+  ipcMain.on(
+    Channel.ProcessPupil,
+    (e: Electron.IpcMainEvent, config: IConfig) => {
+      try {
+        // eslint-disable-next-line promise/catch-or-return
+        dialog
+          .showOpenDialog(mainWindow, {
+            buttonLabel: 'Select a pupillometry file',
+            properties: ['multiSelections', 'createDirectory', 'openFile'],
+          })
+          .then(async (result: any) => {
+            const respondent: IRespondentSamples = await processPupilSamples(
+              result.filePaths[0],
+              config
+            );
+            console.log(
+              'Proccessed:',
+              respondent.segments.reduce(
+                (prev, curr) => prev + curr.stats.rawSamplesCount,
+                0
+              )
+            );
+            e.sender.send(Channel.GetValidPupilSamples, respondent);
+            return result;
+          });
+      } catch (err) {
+        throw new Error();
+      }
     }
-  });
+  );
 }

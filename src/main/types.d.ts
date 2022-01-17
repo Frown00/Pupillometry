@@ -4,7 +4,7 @@ interface IConfig {
     timestamp: string;
     leftPupil: string;
     rightPupil: string;
-    segmentId: string;
+    segmentActive: string;
   };
   chart: {
     width: number;
@@ -55,6 +55,7 @@ interface IConfig {
       on: boolean;
       cutoffFrequency: number; // Hz
     };
+    segmentDivision: true;
     timeWindow: {
       on: boolean;
       windows: {
@@ -71,7 +72,7 @@ interface IPupilSamplePreprocessed {
   leftPupil: number;
   rightPupil: number;
   meanPupil: number;
-  segmentId: string;
+  segmentActive: string;
   dilatationSpeed?: {
     left?: number;
     right?: number;
@@ -82,7 +83,7 @@ interface IPupilSampleRaw {
   Timestamp: string;
   LeftPupil: string;
   RightPupil: string;
-  SegmentId: string;
+  SegmentActive: string;
 }
 
 interface IPupillometryStats {

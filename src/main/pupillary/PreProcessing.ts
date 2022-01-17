@@ -4,12 +4,17 @@ import * as outlier from './filter/outlier';
 import * as dSpeed from './filter/dilatationSpeed';
 import * as util from './util';
 
+interface ISegmentRaw {
+  raw: IPupilSampleRaw[];
+  name: string;
+}
+
 export default class Preprocessing {
   private raw: IPupilSampleRaw[];
 
   private config: IConfig;
 
-  private segmentsRaw: { raw: IPupilSampleRaw[]; name: string }[];
+  private segmentsRaw: ISegmentRaw[];
 
   private segments: IPupillometry[];
 
@@ -24,10 +29,14 @@ export default class Preprocessing {
     // split into segments
     const { processing } = this.config;
     if (processing.timeWindow?.on) this.splitIntoTimeWindows();
+    else if (processing?.segmentDivision) this.splitIntoSegments();
     else this.segmentsRaw = [{ raw: this.raw, name: 'Entire Study' }];
     //
     for (let s = 0; s < this.segmentsRaw.length; s += 1) {
       const segmentFromFile = this.segmentsRaw[s];
+      // console.log(
+      //   `\n\nSEGMENT: ${segmentFromFile.name}\nLENGTH: ${segmentFromFile.raw.length}`
+      // );
       const stats: IPupillometryStats = {
         rawSamplesCount: this.raw.length,
         validSamples: 0,
@@ -108,8 +117,10 @@ export default class Preprocessing {
     }
     segment.stats.mean = meanSum / segment.stats.validSamples;
     segment.stats.meanPupilDifference = diffSum / segment.stats.validSamples;
-    segment.stats.std = standardDeviation(means);
-    segment.stats.pupilCorrelation = sampleCorrelation(lefts, rights);
+    segment.stats.std = means.length ? standardDeviation(means) : -1;
+    if (lefts.length > 1 && rights.length > 1)
+      segment.stats.pupilCorrelation = sampleCorrelation(lefts, rights);
+    else segment.stats.pupilCorrelation = 1;
     // sergment.stats.variance = variance(means);
   }
 
@@ -134,7 +145,7 @@ export default class Preprocessing {
         leftPupil: Number(rowRaw.LeftPupil),
         rightPupil: Number(rowRaw.RightPupil),
         timestamp: Number(rowRaw.Timestamp),
-        segmentId: rowRaw.SegmentId,
+        segmentActive: rowRaw.SegmentActive,
         meanPupil: 0,
       };
       if (this.isMissing(row, 'left')) {
@@ -210,6 +221,10 @@ export default class Preprocessing {
         row.dilatationSpeed?.left,
         threshold.left
       );
+      if (row.dilatationSpeed === {}) {
+        row.leftPupil = NaN;
+        row.rightPupil = NaN;
+      }
       if (!leftLowThanThreshold) {
         row.leftPupil = NaN;
         outliners.left += 1;
@@ -225,6 +240,7 @@ export default class Preprocessing {
       if (row.rightPupil && row.leftPupil) {
         outliners.both += 1;
       }
+      delete row.dilatationSpeed;
     }
     console.log('DS Outliners: ', outliners);
   }
@@ -331,5 +347,45 @@ export default class Preprocessing {
       }
       this.segmentsRaw.push({ raw: data, name: fragment.name });
     }
+  }
+
+  private splitIntoSegments() {
+    let currentSegment: ISegmentRaw = {
+      raw: [],
+      name: '',
+    };
+    let startTimestamp = '';
+    for (let i = 0; i < this.raw.length; i += 1) {
+      const row = this.raw[i];
+      const segmentActive = row.SegmentActive.trim();
+      if (segmentActive) {
+        // Starting
+        if (currentSegment.name === '') {
+          currentSegment.name = segmentActive;
+          startTimestamp = row.Timestamp;
+        }
+        // Push data to segment
+        if (currentSegment.name === segmentActive) {
+          currentSegment.name = segmentActive;
+          row.Timestamp = (
+            parseInt(row.Timestamp, 10) - parseInt(startTimestamp, 10)
+          ).toString();
+          currentSegment.raw.push(row);
+        } else {
+          // Ending segment
+          if (currentSegment.raw.length > 0)
+            this.segmentsRaw.push(currentSegment);
+          // start new and push
+          currentSegment = { raw: [], name: '' };
+          currentSegment.name = segmentActive;
+          startTimestamp = row.Timestamp;
+          row.Timestamp = (
+            parseInt(row.Timestamp, 10) - parseInt(startTimestamp, 10)
+          ).toString();
+          currentSegment.raw.push(row);
+        }
+      }
+    }
+    // console.log(this.segmentsRaw);
   }
 }

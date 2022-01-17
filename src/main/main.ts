@@ -104,8 +104,9 @@ const createWindow = async () => {
     event.preventDefault();
     shell.openExternal(url);
   });
-  const db = new DB();
+  const db = new DB(mainWindow);
   db.listenEvents();
+  console.log('PATH', app.getPath('userData'));
   processing(mainWindow);
   // Remove this if your app does not use auto updates
   // eslint-disable-next-line
