@@ -3,7 +3,14 @@ import { State } from './channels';
 interface IMessage {
   state: State;
   progress: number;
-  response: IStudyAnnotation[] | IStudy | IGroup | null | undefined | string;
+  response:
+    | IStudyAnnotation[]
+    | IStudy
+    | IGroup
+    | IRespondentSamples
+    | null
+    | undefined
+    | string;
 }
 
 interface IResponseGetStudyAnnotations extends IMessage {
@@ -20,4 +27,8 @@ interface IResponseCreateStudy extends IMessage {
 
 interface IResponseCreateGroup extends IMessage {
   response: IGroup;
+}
+
+interface IResponseAddRespondent extends IMessage {
+  response: IRespondentSamples;
 }

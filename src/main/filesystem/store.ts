@@ -172,6 +172,34 @@ class DB {
               message.response = group;
             }
             break;
+          case Channel.AddRespondent:
+            {
+              const studies = this.store.get(StoreKey.Studies);
+              const study = studies.find((s: IStudy) => s.name === form.study);
+              if (!study) throw new Error('Study does not exist');
+              if (!study.groups) study.groups = [];
+              const group = study.groups.find((g) => g.name === form.groupName);
+              if (!group) return;
+              const { files } = form;
+              let i = 0;
+              for (const file of files) {
+                i += 1;
+                const res = await processPupilSamples(
+                  file.path,
+                  DEFAULT_CONFIG
+                );
+                group.respondents.push(res);
+                message.response = res;
+                message.progress = i / files.length;
+                message.state = State.Loading;
+                event.sender.send(responseChannel, message);
+              }
+
+              this.store.set(StoreKey.Studies, studies);
+              message.state = State.Done;
+              message.progress = 1;
+            }
+            break;
           default:
             throw new Error('Wrong channel has been passed');
         }
