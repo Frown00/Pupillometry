@@ -1,4 +1,3 @@
-import { IPupilSamplePreprocessed } from '../main/pupillary/constants';
 import * as util from '../main/pupillary/util';
 
 describe('Calc mean', () => {
@@ -63,35 +62,35 @@ describe('Find Samples', () => {
           leftPupil: 2.5,
           rightPupil: 3.5,
           meanPupil: 3,
-          segmentId: '',
+          segmentActive: '',
         },
         {
           timestamp: 2,
           leftPupil: 3,
           rightPupil: 2,
           meanPupil: 3.5,
-          segmentId: '',
+          segmentActive: '',
         },
         {
           timestamp: 3,
           leftPupil: 4,
           rightPupil: 6,
           meanPupil: 3.5,
-          segmentId: '',
+          segmentActive: '',
         },
         {
           timestamp: 4,
           leftPupil: 2,
           rightPupil: 3,
           meanPupil: 3.5,
-          segmentId: '',
+          segmentActive: '',
         },
         {
           timestamp: 5,
           leftPupil: 2.5,
           rightPupil: 4.3,
           meanPupil: 3.5,
-          segmentId: '',
+          segmentActive: '',
         },
       ];
       const index = 3;
@@ -109,35 +108,35 @@ describe('Find Samples', () => {
           leftPupil: 2.5,
           rightPupil: 3.5,
           meanPupil: 3,
-          segmentId: '',
+          segmentActive: '',
         },
         {
           timestamp: 2,
           leftPupil: 3,
           rightPupil: 2,
           meanPupil: 3.5,
-          segmentId: '',
+          segmentActive: '',
         },
         {
           timestamp: 3,
           leftPupil: 4,
           rightPupil: NaN,
           meanPupil: NaN,
-          segmentId: '',
+          segmentActive: '',
         },
         {
           timestamp: 4,
           leftPupil: 2,
           rightPupil: 3,
           meanPupil: 3.5,
-          segmentId: '',
+          segmentActive: '',
         },
         {
           timestamp: 5,
           leftPupil: 2.5,
           rightPupil: 4.3,
           meanPupil: 3.5,
-          segmentId: '',
+          segmentActive: '',
         },
       ];
       const index = 3;
@@ -157,35 +156,35 @@ describe('Find Samples', () => {
           leftPupil: 2.5,
           rightPupil: 3.5,
           meanPupil: 3,
-          segmentId: '',
+          segmentActive: '',
         },
         {
           timestamp: 2,
           leftPupil: 3,
           rightPupil: 2,
           meanPupil: 3.5,
-          segmentId: '',
+          segmentActive: '',
         },
         {
           timestamp: 3,
           leftPupil: 4,
           rightPupil: 6,
           meanPupil: 3.5,
-          segmentId: '',
+          segmentActive: '',
         },
         {
           timestamp: 4,
           leftPupil: 2,
           rightPupil: 3,
           meanPupil: 3.5,
-          segmentId: '',
+          segmentActive: '',
         },
         {
           timestamp: 5,
           leftPupil: 2.5,
           rightPupil: 4.3,
           meanPupil: 3.5,
-          segmentId: '',
+          segmentActive: '',
         },
       ];
       const index = 1;
@@ -203,35 +202,35 @@ describe('Find Samples', () => {
           leftPupil: 2.5,
           rightPupil: 3.5,
           meanPupil: 3,
-          segmentId: '',
+          segmentActive: '',
         },
         {
           timestamp: 2,
           leftPupil: 3,
           rightPupil: 2,
           meanPupil: 3.5,
-          segmentId: '',
+          segmentActive: '',
         },
         {
           timestamp: 3,
           leftPupil: 4,
           rightPupil: NaN,
           meanPupil: NaN,
-          segmentId: '',
+          segmentActive: '',
         },
         {
           timestamp: 4,
           leftPupil: 2,
           rightPupil: 3,
           meanPupil: 3.5,
-          segmentId: '',
+          segmentActive: '',
         },
         {
           timestamp: 5,
           leftPupil: 2.5,
           rightPupil: 4.3,
           meanPupil: 3.5,
-          segmentId: '',
+          segmentActive: '',
         },
       ];
       const index = 1;

@@ -1,5 +1,4 @@
 import { median } from 'simple-statistics';
-import { IPupilSamplePreprocessed } from '../constants';
 import * as util from '../util';
 
 interface ISample {
@@ -80,11 +79,12 @@ function calcMAD(dilatationSpeeds: number[], medianSeriesSpeed: number) {
     const speed = dilatationSpeeds[i];
     series.push(Math.abs(speed - medianSeriesSpeed));
   }
-  return median(series);
+  return series.length > 0 ? median(series) : medianSeriesSpeed;
 }
 
 export function calcThreshold(n: number, dilatationSpeeds: number[]) {
-  const medianSeriesSpeed = median(dilatationSpeeds);
+  const medianSeriesSpeed =
+    dilatationSpeeds.length > 0 ? median(dilatationSpeeds) : 0;
   const MAD = calcMAD(dilatationSpeeds, medianSeriesSpeed);
   return medianSeriesSpeed + n * MAD;
 }
