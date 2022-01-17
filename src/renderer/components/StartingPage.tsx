@@ -10,7 +10,7 @@ import ElectronWindow from '../ElectronWindow';
 import DefaultLoader from './Loader';
 import GlobalState from './GlobalState';
 import { IResponseGetStudyAnnotations } from '../../ipc/types';
-import StudyTable from './tables/StudyTable';
+import StudyTable from './study/StudyTable';
 
 const pjson = require('../../../package.json');
 
@@ -70,14 +70,11 @@ export default class StartingPage extends React.Component<IProps, IState> {
         if (message.state === State.Loading) {
           this.setState({ isLoading: true });
         } else if (message.state === State.Done) {
-          setTimeout(() => {
-            console.log(message.response);
-            this.setState({
-              isLoading: false,
-              studyRecords: createRecords(message.response),
-            });
-            GlobalState.studyAnnotations = message.response;
-          }, 500);
+          this.setState({
+            isLoading: false,
+            studyRecords: createRecords(message.response),
+          });
+          GlobalState.studyAnnotations = message.response;
         }
       }
     );
@@ -88,7 +85,6 @@ export default class StartingPage extends React.Component<IProps, IState> {
   }
 
   handleOnDelete(record: IStudyRecord) {
-    console.log(record);
     const { studyRecords } = this.state;
     const removed = removeElement(studyRecords, 'name', record.name);
     ipcRenderer.send(Channel.DeleteStudy, { name: removed.name });
@@ -98,11 +94,6 @@ export default class StartingPage extends React.Component<IProps, IState> {
   render() {
     document.title = pjson.build.productName;
     const { isLoading, studyRecords } = this.state;
-    const allStudies = studyRecords?.map((s: IStudyRecord) => (
-      <Link key={s.key} to={`/study/${s.name}`}>
-        <li className="link-page">{s.name}</li>
-      </Link>
-    ));
     return isLoading ? (
       <DefaultLoader />
     ) : (
