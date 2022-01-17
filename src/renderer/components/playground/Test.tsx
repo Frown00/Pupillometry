@@ -4,6 +4,7 @@ import ElectronWindow from '../../ElectronWindow';
 import Chart from '../charts/Chart';
 import * as configJSON from '../../../main/pupillary/config.json';
 import { Channel } from '../../../ipc/channels';
+import SlidingTabs from '../respondent/SlidingTabs';
 
 const DEFAULT_CONFIG = configJSON as IConfig;
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -36,10 +37,8 @@ export default class Test extends React.Component<IProps, IState> {
     ipcRenderer.on(
       Channel.GetValidPupilSamples,
       (respondent: IRespondentSamples) => {
-        // console.log('Get data', pupilData);
         const { update } = this.state;
         const u = update + 1;
-        console.log(respondent);
         this.setState({
           respondent,
           update: u,
@@ -88,7 +87,15 @@ export default class Test extends React.Component<IProps, IState> {
           </Button>
           <Button onClick={this.toggleConfig}>Config</Button>
         </div>
-        {isConfig ? <div>Config</div> : <ul>{charts}</ul>}
+        {isConfig ? (
+          <div>Config</div>
+        ) : (
+          <SlidingTabs
+            respondentName={respondent?.name ?? ''}
+            segments={respondent?.segments ?? []}
+            config={DEFAULT_CONFIG}
+          />
+        )}
       </div>
     );
   }
