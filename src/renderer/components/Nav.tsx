@@ -3,7 +3,7 @@ import Logo from '../../../assets/icons/256x256.png';
 
 export default function Nav() {
   return (
-    <nav>
+    <nav className="start">
       <Link to="/">
         <div
           style={{

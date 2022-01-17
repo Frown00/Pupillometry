@@ -12,25 +12,38 @@ import Test from './components/playground/Test';
 import CreateStudy from './components/forms/CreateStudy';
 import CreateGroup from './components/forms/CreateGroup';
 import AddRespondent from './components/forms/AddRespondent';
+import StudyNav from './components/StudyNav';
 
 export default function App() {
   return (
     <div id="app">
       <Router>
-        <Nav />
+        <Switch>
+          <Route exact path="/" component={Nav} />
+          <Route exact path="/test" component={Nav} />
+          <Route exact path="/settings" component={Nav} />
+          <Route exact path="/about" component={Nav} />
+          <Route path="/study" component={StudyNav} />
+          <Route exact path="/form/newStudy" component={Nav} />
+          <Route path="/form" component={StudyNav} />
+        </Switch>
         <main>
           <Switch>
             <Route exact path="/" component={StartingPage} />
             <Route exact path="/study/:name" component={Study} />
             <Route exact path="/form/newStudy" component={CreateStudy} />
             <Route exact path="/study/:name/:groupName" component={Group} />
-            <Route exact path="/form/newGroup" component={CreateGroup} />
+            <Route exact path="/form/:name/newGroup" component={CreateGroup} />
             <Route
               exact
               path="/study/:name/:groupName/:respondentId"
               component={Respondent}
             />
-            <Route exact path="/form/addRespondent" component={AddRespondent} />
+            <Route
+              exact
+              path="/form/:name/:groupName/addRespondent"
+              component={AddRespondent}
+            />
             <Route path="/settings" component={Settings} />
             <Route path="/test" component={Test} />
           </Switch>

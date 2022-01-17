@@ -90,7 +90,7 @@ a:hover {
   box-sizing: border-box;
 }
 
-nav {
+nav.start {
   position: fixed;
   top: 0;
   display: flex;
@@ -102,12 +102,28 @@ nav {
   color: white;
   flex-grow: 1;
   min-width: 100px;
+  z-index: 999;
+}
+
+nav.study {
+  position: fixed;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  /* justify-content: space-between; */
+  /* align-items: center; */
+  min-height: 100vh;
+  background: #353435;
+  color: white;
+  flex-grow: 1;
+  min-width: 100px;
+  z-index: 999;
 }
 
 main {
   margin-top: 50px;
   margin-left: 150px;
-  /* padding: 0; */
+  margin-right: 100px;
   display: flex;
   flex-direction: column;
   flex-grow: 1;
