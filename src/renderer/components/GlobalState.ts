@@ -1,11 +1,11 @@
 interface IGlobalState {
-  studyAnnotations: IStudyAnnotation[];
+  studies: IStudy[];
   currentStudy: IStudy | undefined;
   currentGroup: IGroup | undefined;
 }
 
 const GlobalState: IGlobalState = {
-  studyAnnotations: [],
+  studies: [],
   currentStudy: undefined,
   currentGroup: undefined,
 };

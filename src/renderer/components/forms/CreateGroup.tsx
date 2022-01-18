@@ -27,11 +27,16 @@ const CreateGroup = (props: any) => {
       const { path, name } = values.files[i].originFileObj;
       files.push({ path, name });
     }
-    values.files = files;
+    const form: IRequestForm = {
+      studyName: values.study,
+      groupName: values.name,
+      isDependant: values.isDependant,
+      files,
+    };
     console.log('Received values of form: ', values);
     ipcRenderer.send(Channel.Request, {
       responseChannel: Channel.CreateGroup,
-      form: values,
+      form,
     });
     ipcRenderer.on(Channel.CreateGroup, (message: IResponseCreateGroup) => {
       if (message.state === State.Loading) {

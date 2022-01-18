@@ -57,9 +57,10 @@ export default class Study extends React.Component<MatchProps, IState> {
     // activate
     const { match } = this.props;
     document.title = `Pupillometry > ${match.params.name}`;
+    const form: IRequestForm = { studyName: match.params.name };
     ipcRenderer.send(Channel.Request, {
       responseChannel: Channel.GetStudy,
-      form: { study: match.params.name },
+      form,
     });
     ipcRenderer.on(Channel.GetStudy, (message: IResponseGetStudy) => {
       if (message.state === State.Loading) {
@@ -70,7 +71,6 @@ export default class Study extends React.Component<MatchProps, IState> {
           study: message.response,
           groupRecords: createRecords(message.response?.groups ?? []),
         });
-        // GlobalState.studies = studies;
       }
     });
   }
@@ -84,10 +84,11 @@ export default class Study extends React.Component<MatchProps, IState> {
     const studyName = match.params.name;
     const { groupRecords } = this.state;
     const removed = removeElement(groupRecords, 'name', record.name);
-    ipcRenderer.send(Channel.DeleteGroup, {
+    const deleteForm: IDeleteGroup = {
       groupName: removed.name,
       studyName,
-    });
+    };
+    ipcRenderer.send(Channel.DeleteGroup, deleteForm);
     this.setState({ groupRecords });
   }
 

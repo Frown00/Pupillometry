@@ -51,7 +51,6 @@ export default class Preprocessing {
         min: Infinity,
         max: -Infinity,
         std: 0,
-        dilatationSpeed: { left: [], right: [] },
       };
       const parsedSegment = this.parseSegment(segmentFromFile, stats);
       this.dilatationSpeedFilter(parsedSegment);
@@ -173,6 +172,7 @@ export default class Preprocessing {
       name: segmentName,
       stats,
       validSamples: preprocessed,
+      isValid: true, // TODO
     };
     return segment;
   }
@@ -212,8 +212,8 @@ export default class Preprocessing {
       right: 0,
       both: 0,
     };
-    segment.stats.dilatationSpeed.left = dilatationSeries.left;
-    segment.stats.dilatationSpeed.right = dilatationSeries.right;
+    // segment.stats.dilatationSpeed.left = dilatationSeries.left;
+    // segment.stats.dilatationSpeed.right = dilatationSeries.right;
     console.log('THRESHOLD', threshold);
     for (let i = 0; i < segment.validSamples.length; i += 1) {
       const row = segment.validSamples[i];

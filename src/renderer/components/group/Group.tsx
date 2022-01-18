@@ -82,11 +82,12 @@ export default class Group extends React.Component<MatchProps, IState> {
     const { groupName } = match.params;
     const { respondentRecords } = this.state;
     const removed = removeElement(respondentRecords, 'name', record.name);
-    ipcRenderer.send(Channel.DeleteRespondent, {
+    const deleteRespondent: IDeleteRespondent = {
       groupName,
       studyName,
       respondentName: removed.name,
-    });
+    };
+    ipcRenderer.send(Channel.DeleteRespondent, deleteRespondent);
     this.setState({ respondentRecords });
   }
 

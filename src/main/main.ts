@@ -104,7 +104,7 @@ const createWindow = async () => {
     event.preventDefault();
     shell.openExternal(url);
   });
-  const db = new DB(mainWindow);
+  const db = new DB(mainWindow, getAssetPath());
   db.listenEvents();
   console.log('PATH', app.getPath('userData'));
   processing(mainWindow);

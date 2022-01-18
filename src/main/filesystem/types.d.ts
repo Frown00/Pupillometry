@@ -9,12 +9,32 @@ interface IStudy {
   groups: IGroup[];
 }
 
-interface IStudyAnnotation {
-  name: string;
+interface IStore {
+  recent: string;
+  studies: IStudy[];
+  configs: IConfig[];
+  defaultConfig: string;
 }
 
-interface IStore {
-  studyAnnotations: IStudyAnnotation[];
-  studies: IStudy[];
-  recent: string;
+interface IRequestForm {
+  studyName?: string;
+  groupName?: string;
+  respondentName?: string;
+  files?: { path: string }[];
+  isDependant?: boolean;
+}
+
+interface IDeleteStudy {
+  studyName: string;
+}
+
+interface IDeleteGroup {
+  studyName: string;
+  groupName: string;
+}
+
+interface IDeleteRespondent {
+  studyName: string;
+  groupName: string;
+  respondentName: string;
 }

@@ -2,6 +2,7 @@
 /* eslint-disable no-await-in-loop */
 import Store from 'electron-store';
 import { BrowserWindow, dialog, ipcMain, shell } from 'electron';
+import fs from 'fs';
 import { removeElement } from '../../util';
 import { IMessage } from '../../ipc/types';
 import { Channel, State } from '../../ipc/channels';
@@ -15,7 +16,6 @@ const DEFAULT_CONFIG = configJSON as IConfig;
 Store.initRenderer();
 
 enum StoreKey {
-  StudyAnnotations = 'studyAnnotations',
   Studies = 'studies',
   Recent = 'recent',
 }
@@ -25,10 +25,13 @@ class DB {
 
   private mainWindow: BrowserWindow;
 
-  constructor(mainWindow: BrowserWindow) {
+  private assetsPath: string;
+
+  constructor(mainWindow: BrowserWindow, assetsPath: string) {
     // still same store
     this.store = new Store<IStore>();
     this.mainWindow = mainWindow;
+    this.assetsPath = assetsPath;
   }
 
   private getStudy(name: string) {
@@ -55,22 +58,16 @@ class DB {
 
     ipcMain.on(
       Channel.DeleteStudy,
-      (event: Electron.IpcMainInvokeEvent, data: { name: string }) => {
+      (event: Electron.IpcMainInvokeEvent, data: IDeleteStudy) => {
         const studies = this.store.get(StoreKey.Studies);
-        const annotations = this.store.get(StoreKey.StudyAnnotations);
-        removeElement(studies, 'name', data.name);
-        removeElement(annotations, 'name', data.name);
+        removeElement(studies, 'name', data.studyName);
         this.store.set(StoreKey.Studies, studies);
-        this.store.set(StoreKey.StudyAnnotations, annotations);
       }
     );
 
     ipcMain.on(
       Channel.DeleteGroup,
-      (
-        event: Electron.IpcMainInvokeEvent,
-        data: { studyName: string; groupName: string }
-      ) => {
+      (event: Electron.IpcMainInvokeEvent, data: IDeleteGroup) => {
         const { studyName, groupName } = data;
         const studies = this.store.get(StoreKey.Studies);
         const study = studies.find((s) => s.name === studyName);
@@ -82,10 +79,7 @@ class DB {
 
     ipcMain.on(
       Channel.DeleteRespondent,
-      (
-        event: Electron.IpcMainInvokeEvent,
-        data: { studyName: string; groupName: string; respondentName: string }
-      ) => {
+      (event: Electron.IpcMainInvokeEvent, data: IDeleteRespondent) => {
         const { studyName, groupName, respondentName } = data;
         const studies = this.store.get(StoreKey.Studies);
         const study = studies.find((s) => s.name === studyName);
@@ -101,7 +95,7 @@ class DB {
       Channel.Request,
       async (
         event: Electron.IpcMainEvent,
-        data: { responseChannel: Channel; form: any }
+        data: { responseChannel: Channel; form: IRequestForm }
       ) => {
         const { responseChannel, form } = data;
         const message: IMessage = {
@@ -110,16 +104,20 @@ class DB {
           progress: 0,
         };
         event.sender.send(responseChannel, message);
+        console.log('CHANNEL', responseChannel);
         switch (responseChannel) {
-          case Channel.GetStudyAnnotations:
-            message.response = this.store.get(StoreKey.StudyAnnotations) ?? [];
+          case Channel.GetStudies:
+            message.response = this.store.get(StoreKey.Studies) ?? [];
             message.progress = 1;
             message.state = State.Done;
             break;
           case Channel.GetStudy:
             {
               const studies = this.store.get(StoreKey.Studies);
-              const study = studies.find((s: IStudy) => s.name === form.study);
+              const study = studies.find(
+                (s: IStudy) => s.name === form.studyName
+              );
+
               message.response = study;
               message.state = State.Done;
               message.progress = 1;
@@ -127,13 +125,19 @@ class DB {
             break;
           case Channel.CreateStudy:
             {
-              const annotations =
-                this.store.get(StoreKey.StudyAnnotations) ?? [];
               const studies = this.store.get(StoreKey.Studies) ?? [];
-              annotations.push({ name: form.name });
-              studies.push(form);
-              this.store.set(StoreKey.StudyAnnotations, annotations);
+              if (!form.studyName) return;
+              studies.push({ name: form.studyName, groups: [] });
               this.store.set(StoreKey.Studies, studies);
+              const dataFolder = `${this.assetsPath}/data`;
+              const studyFolder = `${this.assetsPath}/data/${form.studyName}`;
+
+              if (!fs.existsSync(dataFolder)) {
+                fs.mkdirSync(dataFolder);
+              }
+              if (!fs.existsSync(studyFolder)) {
+                fs.mkdirSync(studyFolder);
+              }
               message.state = State.Done;
               message.progress = 1;
               message.response = State.Done;
@@ -142,12 +146,20 @@ class DB {
           case Channel.CreateGroup:
             {
               const studies = this.store.get(StoreKey.Studies);
-              const study = studies.find((s: IStudy) => s.name === form.study);
+              const study = studies.find(
+                (s: IStudy) => s.name === form.studyName
+              );
               if (!study) throw new Error('Study does not exist');
               if (!study.groups) study.groups = [];
-
+              if (!form.groupName) return;
+              if (!form.isDependant) return;
               const { files } = form;
+              if (!files) return;
               const respondents: IRespondentSamples[] = [];
+              const groupFolder = `${this.assetsPath}/data/${study.name}/${form.groupName}`;
+              if (!fs.existsSync(groupFolder)) {
+                fs.mkdirSync(groupFolder);
+              }
               let i = 0;
               for (const file of files) {
                 i += 1;
@@ -155,13 +167,23 @@ class DB {
                   file.path,
                   DEFAULT_CONFIG
                 );
+                const dataPath = `${groupFolder}/${res.name}`;
+                fs.writeFile(dataPath, JSON.stringify(res), (err) => {
+                  if (err) return console.log(err);
+                  return 0;
+                });
+                res.dataPath = dataPath;
+                res.segments.map((s) => {
+                  s.validSamples = [];
+                  return s;
+                });
                 respondents.push(res);
                 message.progress = i / files.length;
                 message.state = State.Loading;
                 event.sender.send(responseChannel, message);
               }
               const group = {
-                name: form.name,
+                name: form.groupName,
                 isDependant: form.isDependant,
                 respondents,
               };
@@ -175,12 +197,15 @@ class DB {
           case Channel.AddRespondent:
             {
               const studies = this.store.get(StoreKey.Studies);
-              const study = studies.find((s: IStudy) => s.name === form.study);
+              const study = studies.find(
+                (s: IStudy) => s.name === form.studyName
+              );
               if (!study) throw new Error('Study does not exist');
               if (!study.groups) study.groups = [];
               const group = study.groups.find((g) => g.name === form.groupName);
               if (!group) return;
               const { files } = form;
+              if (!files) return;
               let i = 0;
               for (const file of files) {
                 i += 1;
@@ -198,6 +223,20 @@ class DB {
               this.store.set(StoreKey.Studies, studies);
               message.state = State.Done;
               message.progress = 1;
+            }
+            break;
+          case Channel.GetRespondentPupilData:
+            {
+              const { studyName, groupName, respondentName } = form;
+              const filePath = `${this.assetsPath}/data/${studyName}/${groupName}/${respondentName}`;
+              if (!fs.existsSync(filePath)) {
+                message.state = State.Done;
+                return;
+              }
+              const d = fs.readFileSync(filePath, 'utf8');
+              message.response = JSON.parse(d);
+              message.progress = 1;
+              message.state = State.Done;
             }
             break;
           default:

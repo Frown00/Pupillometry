@@ -1,4 +1,5 @@
 {
+  "name": "DEFAULT_CONFIG",
   "file": {
     "separator": ",",
     "timestamp": "Timestamp",

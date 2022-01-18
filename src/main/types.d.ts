@@ -1,4 +1,5 @@
 interface IConfig {
+  name: string;
   file: {
     separator: string;
     timestamp: string;
@@ -20,7 +21,6 @@ interface IConfig {
       baseline: number; // mm
       min: number; // mm
       max: number; // mm
-      // TODO
       acceptableDifference: number; // mm
     };
     extraFilters: {
@@ -28,12 +28,10 @@ interface IConfig {
         on: boolean;
         thresholdMultiplier: number;
       };
-      // TODO
       trendLineDeviation: {
         on: boolean;
         maxJump: number;
       };
-      // TODO
       temporallyIsolatedSamples: {
         on: boolean;
         range: number; // time within samples are valid numbers
@@ -55,7 +53,7 @@ interface IConfig {
       on: boolean;
       cutoffFrequency: number; // Hz
     };
-    segmentDivision: true;
+    segmentDivision: boolean;
     timeWindow: {
       on: boolean;
       windows: {
@@ -87,10 +85,6 @@ interface IPupilSampleRaw {
 }
 
 interface IPupillometryStats {
-  dilatationSpeed: {
-    left: number[];
-    right: number[];
-  };
   rawSamplesCount: number;
   validSamples: number;
   missing: {
@@ -110,9 +104,12 @@ interface IPupillometry {
   validSamples: IPupilSamplePreprocessed[];
   stats: IPupillometryStats;
   name: string;
+  isValid: boolean;
 }
 
 interface IRespondentSamples {
   name: string;
   segments: IPupillometry[];
+  config: string;
+  dataPath?: string;
 }

@@ -9,8 +9,8 @@ import { Channel, State } from '../../ipc/channels';
 import ElectronWindow from '../ElectronWindow';
 import DefaultLoader from './Loader';
 import GlobalState from './GlobalState';
-import { IResponseGetStudyAnnotations } from '../../ipc/types';
 import StudyTable from './study/StudyTable';
+import { IResponseGetStudies } from '../../ipc/types';
 
 const pjson = require('../../../package.json');
 
@@ -24,14 +24,18 @@ export interface IStudyRecord {
   respondents: number;
 }
 
-function createRecords(annotations: IStudyAnnotation[]) {
+function createRecords(studies: IStudy[]) {
   const records = [];
-  for (let i = 0; i < annotations.length; i += 1) {
+  for (let i = 0; i < studies.length; i += 1) {
+    const study = studies[i];
     const r: IStudyRecord = {
       key: i.toString(),
-      groups: 0,
-      name: annotations[i].name,
-      respondents: 0,
+      groups: study.groups.length,
+      name: studies[i].name,
+      respondents: study.groups.reduce(
+        (prev, curr) => prev + curr.respondents.length,
+        0
+      ),
     };
     records.push(r);
   }
@@ -61,33 +65,32 @@ export default class StartingPage extends React.Component<IProps, IState> {
 
   componentDidMount() {
     // activate
+    console.log(Channel.Request, Channel.GetStudies);
     ipcRenderer.send(Channel.Request, {
-      responseChannel: Channel.GetStudyAnnotations,
+      responseChannel: Channel.GetStudies,
     });
-    ipcRenderer.on(
-      Channel.GetStudyAnnotations,
-      (message: IResponseGetStudyAnnotations) => {
-        if (message.state === State.Loading) {
-          this.setState({ isLoading: true });
-        } else if (message.state === State.Done) {
-          this.setState({
-            isLoading: false,
-            studyRecords: createRecords(message.response),
-          });
-          GlobalState.studyAnnotations = message.response;
-        }
+    ipcRenderer.on(Channel.GetStudies, (message: IResponseGetStudies) => {
+      if (message.state === State.Loading) {
+        this.setState({ isLoading: true });
+      } else if (message.state === State.Done) {
+        this.setState({
+          isLoading: false,
+          studyRecords: createRecords(message.response),
+        });
+        GlobalState.studies = message.response;
       }
-    );
+    });
   }
 
   componentWillUnmount() {
-    ipcRenderer.removeAllListeners(Channel.GetStudyAnnotations);
+    ipcRenderer.removeAllListeners(Channel.GetStudies);
   }
 
   handleOnDelete(record: IStudyRecord) {
     const { studyRecords } = this.state;
     const removed = removeElement(studyRecords, 'name', record.name);
-    ipcRenderer.send(Channel.DeleteStudy, { name: removed.name });
+    const deleteForm: IDeleteStudy = { studyName: removed.name };
+    ipcRenderer.send(Channel.DeleteStudy, deleteForm);
     this.setState({ studyRecords });
   }
 

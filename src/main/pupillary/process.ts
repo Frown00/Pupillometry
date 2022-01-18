@@ -39,6 +39,8 @@ export async function processPupilSamples(filePath: string, config: IConfig) {
   return {
     name,
     segments,
+    config: config.name,
+    dataPath: '',
   };
 }
 

@@ -4,7 +4,7 @@ interface IMessage {
   state: State;
   progress: number;
   response:
-    | IStudyAnnotation[]
+    | IStudy[]
     | IStudy
     | IGroup
     | IRespondentSamples
@@ -13,8 +13,8 @@ interface IMessage {
     | string;
 }
 
-interface IResponseGetStudyAnnotations extends IMessage {
-  response: IStudyAnnotation[];
+interface IResponseGetStudies extends IMessage {
+  response: IStudy[];
 }
 
 interface IResponseGetStudy extends IMessage {
@@ -30,5 +30,9 @@ interface IResponseCreateGroup extends IMessage {
 }
 
 interface IResponseAddRespondent extends IMessage {
+  response: IRespondentSamples;
+}
+
+interface IResponseRespondentPupilData extends IMessage {
   response: IRespondentSamples;
 }

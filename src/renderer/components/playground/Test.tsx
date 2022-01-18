@@ -26,6 +26,7 @@ export default class Test extends React.Component<IProps, IState> {
       respondent: {
         name: '',
         segments: [],
+        config: DEFAULT_CONFIG.name,
       },
       update: 0,
     };
@@ -62,12 +63,6 @@ export default class Test extends React.Component<IProps, IState> {
 
   render() {
     const { isConfig, config, respondent } = this.state;
-    const { segments } = respondent;
-    const charts = segments.map((segment) => (
-      <li key={segment.name}>
-        <Chart config={config} samples={segment} name={respondent.name} />
-      </li>
-    ));
     return (
       <div>
         <h2>Test your samples</h2>

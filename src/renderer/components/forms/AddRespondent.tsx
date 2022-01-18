@@ -29,10 +29,14 @@ const AddRespondent = (props: any) => {
       const { path, name } = values.files[i].originFileObj;
       files.push({ path, name });
     }
-    values.files = files;
+    const form: IRequestForm = {
+      studyName: values.study,
+      groupName: values.groupName,
+      files,
+    };
     ipcRenderer.send(Channel.Request, {
       responseChannel: Channel.AddRespondent,
-      form: values,
+      form,
     });
     ipcRenderer.on(Channel.AddRespondent, (message: IResponseAddRespondent) => {
       if (message.state === State.Loading) {

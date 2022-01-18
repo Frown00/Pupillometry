@@ -18,11 +18,15 @@ const CreateStudy = (props: any) => {
   const onFinish = (values: any) => {
     console.log('Received values of form: ', values);
     console.log('PROPS', props);
+    const form: IRequestForm = {
+      studyName: values.name,
+    };
     ipcRenderer.send(Channel.Request, {
       responseChannel: Channel.CreateStudy,
-      form: values,
+      form,
     });
     ipcRenderer.on(Channel.CreateStudy, (message: IResponseCreateStudy) => {
+      console.log('RENDERER', message);
       if (message.state === State.Loading) {
         //
       } else if (message.state === State.Done) {
@@ -30,7 +34,7 @@ const CreateStudy = (props: any) => {
       } else throw new Error('Something went wrong');
     });
   };
-  const { studyAnnotations } = GlobalState;
+  const { studies } = GlobalState;
 
   console.log('Create Study', props);
   return (
@@ -50,7 +54,7 @@ const CreateStudy = (props: any) => {
           name="name"
           label="Name"
           required
-          reservedValues={studyAnnotations.map((s) => s.name)}
+          reservedValues={studies.map((s) => s.name)}
         />
         <SelectItem name="config" label="Config" required />
         {/* {(console.log('VALUE'), value.studies)} */}

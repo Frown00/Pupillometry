@@ -11,9 +11,7 @@ contextBridge.exposeInMainWorld('api', {
     send(key, value) {
       ipcRenderer.send(key, value);
     },
-    // createProject(props: { name: string }) {
-    //   ipcRenderer.send(validChannels.createStudy, props);
-    // },
+
     on(channel, func) {
       if (objValidChannels.includes(channel)) {
         // Deliberately strip event as it includes `sender`

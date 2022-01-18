@@ -37,7 +37,7 @@ export default function App() {
             <Route exact path="/form/:name/newGroup" component={CreateGroup} />
             <Route
               exact
-              path="/study/:name/:groupName/:respondentId"
+              path="/study/:name/:groupName/:respondentName"
               component={Respondent}
             />
             <Route
