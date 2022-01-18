@@ -134,6 +134,56 @@ export default class Chart extends React.Component<IProps, IState> {
       .clamp(true);
     // #endregion
 
+    // #region  Axe X
+    const xAxis = d3
+      .axisBottom(xScale)
+      // .ticks(5)
+      // .tickFormat((d) => new Date(parseInt(d.toString(), 10)).toString())
+      .tickSize(-dimensions.ctrHeight)
+      .ticks(10)
+      .tickFormat(
+        d3.timeFormat('%s.%L') as unknown as (
+          dv: number | { valueOf(): number },
+          i: number
+        ) => string
+      );
+    // .tickValues([0.4, 0.5, 0.8])
+
+    const xAxisGroup = container
+      .append('g')
+      .call(xAxis)
+      .style('transform', `translateY(${dimensions.ctrHeight}px)`)
+      .classed('axis', true);
+
+    // grid line
+    container
+      .append('g')
+      .call(xAxis)
+      .attr('class', 'x axis-grid')
+      .attr('transform', `translate(0,${dimensions.ctrHeight})`);
+
+    xAxisGroup
+      .append('text')
+      .attr('x', dimensions.ctrWidth / 2)
+      .attr('y', dimensions.margin.bottom - 10)
+      .attr('fill', 'black')
+      .text('Time [m]');
+    // #endregion
+    // #region Axe Y
+    const yAxis = d3.axisLeft(yScale).tickSize(-dimensions.ctrWidth).ticks(10);
+    const yAxisGroup = container.append('g').call(yAxis).classed('axis', true);
+    yAxisGroup
+      .append('text')
+      .attr('x', -dimensions.ctrHeight / 2)
+      .attr('y', -dimensions.margin.left + 15)
+      .attr('fill', 'black')
+      .html('Pupil size [mm]')
+      .style('transform', 'rotate(270deg)')
+      .style('text-anchor', 'middle');
+    // grid line
+    container.append('g').attr('class', 'y axis-grid').call(yAxis);
+    // #endregion
+
     // container
     //   .append('path')
     //   .datum(dataset)
@@ -224,55 +274,6 @@ export default class Chart extends React.Component<IProps, IState> {
         .attr('stroke', ColorPallette.okabe.cyanSolid)
         .attr('data-temp', yAccessorRight);
     }
-    // #endregion
-    // #region  Axe X
-    const xAxis = d3
-      .axisBottom(xScale)
-      // .ticks(5)
-      // .tickFormat((d) => new Date(parseInt(d.toString(), 10)).toString())
-      .tickSize(-dimensions.ctrHeight)
-      .ticks(10)
-      .tickFormat(
-        d3.timeFormat('%s.%L') as unknown as (
-          dv: number | { valueOf(): number },
-          i: number
-        ) => string
-      );
-    // .tickValues([0.4, 0.5, 0.8])
-
-    const xAxisGroup = container
-      .append('g')
-      .call(xAxis)
-      .style('transform', `translateY(${dimensions.ctrHeight}px)`)
-      .classed('axis', true);
-
-    // grid line
-    container
-      .append('g')
-      .attr('class', 'x axis-grid')
-      .attr('transform', `translate(0,${dimensions.ctrHeight})`)
-      .call(xAxis);
-
-    xAxisGroup
-      .append('text')
-      .attr('x', dimensions.ctrWidth / 2)
-      .attr('y', dimensions.margin.bottom - 10)
-      .attr('fill', 'black')
-      .text('Time [m]');
-    // #endregion
-    // #region Axe Y
-    const yAxis = d3.axisLeft(yScale).tickSize(-dimensions.ctrWidth).ticks(10);
-    const yAxisGroup = container.append('g').call(yAxis).classed('axis', true);
-    yAxisGroup
-      .append('text')
-      .attr('x', -dimensions.ctrHeight / 2)
-      .attr('y', -dimensions.margin.left + 15)
-      .attr('fill', 'black')
-      .html('Pupil size [mm]')
-      .style('transform', 'rotate(270deg)')
-      .style('text-anchor', 'middle');
-    // grid line
-    container.append('g').attr('class', 'y axis-grid').call(yAxis);
     // #endregion
   }
 
