@@ -144,17 +144,28 @@ export default async function saveMetrics(
           std,
           missing,
           rawSamplesCount,
+          left,
+          right,
         } = stats;
 
-        row[1 + s * taskColumns] = 'Valid';
+        row[1 + s * taskColumns] = segment?.isValid ?? 'NO DATA';
         row[2 + s * taskColumns] = parseFloat(
           pupilCorrelation?.toFixed(2) ?? -1
         );
         // left
+        // both
+        row[3 + leftMove] = parseFloat(left.min?.toFixed(precision) ?? -1);
+        row[4 + leftMove] = parseFloat(left.max?.toFixed(precision) ?? -1);
+        row[5 + leftMove] = parseFloat(left.mean?.toFixed(precision) ?? -1);
+        row[6 + leftMove] = parseFloat(left.std?.toFixed(precision) ?? 1);
         row[7 + leftMove] = parseFloat(
           ((missing.leftPupil / rawSamplesCount) * 100).toFixed(2)
         );
         // right
+        row[3 + righMove] = parseFloat(right.min?.toFixed(precision) ?? -1);
+        row[4 + righMove] = parseFloat(right.max?.toFixed(precision) ?? -1);
+        row[5 + righMove] = parseFloat(right.mean?.toFixed(precision) ?? -1);
+        row[6 + righMove] = parseFloat(right.std?.toFixed(precision) ?? 1);
         row[7 + righMove] = parseFloat(
           ((missing.rightPupil / rawSamplesCount) * 100).toFixed(2)
         );

@@ -1,5 +1,11 @@
 /* eslint-disable class-methods-use-this */
-import { sampleCorrelation, standardDeviation } from 'simple-statistics';
+import {
+  max,
+  mean,
+  min,
+  sampleCorrelation,
+  standardDeviation,
+} from 'simple-statistics';
 import * as outlier from './filter/outlier';
 import * as dSpeed from './filter/dilatationSpeed';
 import * as util from './util';
@@ -51,12 +57,25 @@ export default class Preprocessing {
         min: Infinity,
         max: -Infinity,
         std: 0,
+        left: {
+          min: 0,
+          max: Infinity,
+          mean: -Infinity,
+          std: 0,
+        },
+        right: {
+          min: 0,
+          max: Infinity,
+          mean: -Infinity,
+          std: 0,
+        },
       };
       const parsedSegment = this.parseSegment(segmentFromFile, stats);
       this.dilatationSpeedFilter(parsedSegment);
       this.temporallyIsolatedSamples(parsedSegment);
       this.trendLineDeviation(parsedSegment);
       this.calcStats(parsedSegment);
+      this.checkIsValid(parsedSegment);
       this.segments.push(parsedSegment);
     }
     return this.segments;
@@ -117,10 +136,56 @@ export default class Preprocessing {
     segment.stats.mean = meanSum / segment.stats.validSamples;
     segment.stats.meanPupilDifference = diffSum / segment.stats.validSamples;
     segment.stats.std = means.length ? standardDeviation(means) : -1;
-    if (lefts.length > 1 && rights.length > 1)
-      segment.stats.pupilCorrelation = sampleCorrelation(lefts, rights);
-    else segment.stats.pupilCorrelation = 1;
+    segment.stats.left = {
+      min: lefts.length ? min(lefts) : -1,
+      max: lefts.length ? max(lefts) : -1,
+      mean: lefts.length ? mean(lefts) : -1,
+      std: lefts.length ? standardDeviation(lefts) : -1,
+    };
+
+    segment.stats.right = {
+      min: rights.length ? min(rights) : -1,
+      max: rights.length ? max(rights) : -1,
+      mean: rights.length ? mean(rights) : -1,
+      std: rights.length ? standardDeviation(rights) : -1,
+    };
+
+    if (lefts.length > 1 && rights.length > 1) {
+      if (lefts.length > rights.length)
+        segment.stats.pupilCorrelation = sampleCorrelation(lefts, rights);
+      else segment.stats.pupilCorrelation = sampleCorrelation(rights, lefts);
+    } else segment.stats.pupilCorrelation = 1;
     // sergment.stats.variance = variance(means);
+  }
+
+  private checkIsValid(segment: IPupillometry) {
+    const vc = this.config.processing.validityConditions;
+    segment.isValid = true;
+    if (!vc) {
+      return;
+    }
+    const { stats } = segment;
+    const { missing, pupilCorrelation, rawSamplesCount } = stats;
+    const missingPercent = {
+      general: (missing.general / rawSamplesCount) * 100,
+      left: (missing.leftPupil / rawSamplesCount) * 100,
+      right: (missing.rightPupil / rawSamplesCount) * 100,
+    };
+    if (vc.missing?.general && missingPercent.general > vc.missing.general) {
+      segment.isValid = false;
+      return;
+    }
+    if (vc.missing?.left && missingPercent.left > vc.missing.left) {
+      segment.isValid = false;
+      return;
+    }
+    if (vc.missing?.right && missingPercent.right > vc.missing.right) {
+      segment.isValid = false;
+      return;
+    }
+    if (vc.correlation && pupilCorrelation < vc.correlation) {
+      segment.isValid = false;
+    }
   }
 
   private parseSegment(
@@ -358,7 +423,9 @@ export default class Preprocessing {
     for (let i = 0; i < this.raw.length; i += 1) {
       const row = this.raw[i];
       const segmentActive = row.SegmentActive.trim();
-      if (segmentActive) {
+      // Remove transitions
+      const splitted = segmentActive.split(';');
+      if (segmentActive && splitted.length === 1) {
         // Starting
         if (currentSegment.name === '') {
           currentSegment.name = segmentActive;
