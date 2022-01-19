@@ -71,14 +71,22 @@ export default class Respondent extends React.Component<MatchProps, IState> {
 
   render() {
     const { match, history } = this.props;
-    console.log('MATCH', match);
     const { name, groupName, respondentName } = match.params;
     document.title = `Pupillometry > ${name} > ${groupName} > ${respondentName}`;
     const respondentNames = GlobalState.currentGroup?.respondents.map(
       (r) => r.name
     );
     const { respondent, isLoading } = this.state;
+    const map = Object.entries(GlobalState.configs);
+    let config = DEFAULT_CONFIG;
+    if (respondent?.config) {
+      const arr = map.filter((obj) => obj[1].name === respondent.config)[0];
+      config = GlobalState.configs[arr[0]];
+    }
 
+    // const config = respondent?.config
+    //   ? GlobalState.configs[respondent.config]
+    //   : DEFAULT_CONFIG;
     return (
       <>
         {isLoading ? (
@@ -95,10 +103,11 @@ export default class Respondent extends React.Component<MatchProps, IState> {
             </div>
             <div>
               <h2>Overview</h2>
+              <p>Config: {config.name}</p>
               <SlidingTabs
                 respondentName={respondent?.name ?? ''}
                 segments={respondent?.segments ?? []}
-                config={DEFAULT_CONFIG}
+                config={config}
               />
             </div>
           </div>

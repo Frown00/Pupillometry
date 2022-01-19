@@ -9,10 +9,14 @@ interface IStudy {
   groups: IGroup[];
 }
 
+interface IConfigMap {
+  [config: string]: IConfig;
+}
+
 interface IStore {
   recent: string;
   studies: IStudy[];
-  configs: IConfig[];
+  configs: IConfigMap;
   defaultConfig: string;
 }
 
@@ -22,6 +26,7 @@ interface IRequestForm {
   respondentName?: string;
   files?: { path: string }[];
   isDependant?: boolean;
+  config?: IConfig;
 }
 
 interface IDeleteStudy {

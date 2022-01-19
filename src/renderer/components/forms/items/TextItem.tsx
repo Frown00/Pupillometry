@@ -6,17 +6,20 @@ interface IProps {
   label: string;
   required?: boolean;
   reservedValues: string[];
+  placeholder?: string;
+  min?: number;
 }
 
 const TextItem = (props: IProps) => {
-  const { name, label, required } = props;
+  const { name, label, required, placeholder, min } = props;
+
   return (
     <Form.Item
       name={name}
       label={label}
       rules={[
         { required, message: 'Name is required!' },
-        { min: 3, message: 'Required more than 3 characters!' },
+        { min: min ?? 2, message: 'Required more than 2 characters!' },
         { max: 200, message: 'Required less than 200 characters!' },
         ({ getFieldValue }) => ({
           validator(_, value) {
@@ -29,7 +32,7 @@ const TextItem = (props: IProps) => {
         }),
       ]}
     >
-      <Input />
+      <Input placeholder={placeholder} />
     </Form.Item>
   );
 };

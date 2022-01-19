@@ -10,7 +10,7 @@ import ElectronWindow from '../ElectronWindow';
 import DefaultLoader from './Loader';
 import GlobalState from './GlobalState';
 import StudyTable from './study/StudyTable';
-import { IResponseGetStudies } from '../../ipc/types';
+import { IResponseGetConfigs, IResponseGetStudies } from '../../ipc/types';
 
 const pjson = require('../../../package.json');
 
@@ -80,10 +80,25 @@ export default class StartingPage extends React.Component<IProps, IState> {
         GlobalState.studies = message.response;
       }
     });
+    ipcRenderer.send(Channel.Request, {
+      responseChannel: Channel.GetConfigs,
+    });
+    ipcRenderer.on(Channel.GetConfigs, (message: IResponseGetConfigs) => {
+      if (message.state === State.Loading) {
+        this.setState({ isLoading: true });
+      } else if (message.state === State.Done) {
+        console.log(message.response);
+        this.setState({
+          isLoading: false,
+        });
+        GlobalState.configs = message.response;
+      }
+    });
   }
 
   componentWillUnmount() {
     ipcRenderer.removeAllListeners(Channel.GetStudies);
+    ipcRenderer.removeAllListeners(Channel.GetConfigs);
   }
 
   handleOnDelete(record: IStudyRecord) {

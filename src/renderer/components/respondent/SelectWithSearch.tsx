@@ -21,7 +21,11 @@ interface IProps {
 
 const SelectWithSearch = (props: IProps) => {
   const { names, history, params } = props;
-  const options = names.map((n) => <Option value={n}>{n}</Option>);
+  const options = names.map((n) => (
+    <Option key={n} value={n}>
+      {n}
+    </Option>
+  ));
   return (
     <Select
       style={{ minWidth: '100px' }}

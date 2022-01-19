@@ -1,5 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 export enum Channel {
+  GetConfigs = 'get-configs',
+  CreateConfig = 'create-config',
   ProcessPupil = 'process-pupil-samples',
   GetStoreValue = 'get-store-value',
   SetStoreValue = 'set-store-value',

@@ -8,6 +8,7 @@ interface IMessage {
     | IStudy
     | IGroup
     | IRespondentSamples
+    | IConfigMap
     | null
     | undefined
     | string;
@@ -35,4 +36,8 @@ interface IResponseAddRespondent extends IMessage {
 
 interface IResponseRespondentPupilData extends IMessage {
   response: IRespondentSamples;
+}
+
+interface IResponseGetConfigs extends IMessage {
+  response: IConfigMap;
 }

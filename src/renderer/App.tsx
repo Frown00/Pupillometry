@@ -4,7 +4,7 @@ import { MemoryRouter as Router, Switch, Route } from 'react-router-dom';
 import './App.css';
 import StartingPage from './components/StartingPage';
 import Study from './components/study/Study';
-import Settings from './components/Settings';
+import Config from './components/Config';
 import Nav from './components/Nav';
 import Group from './components/group/Group';
 import Respondent from './components/respondent/Respondent';
@@ -22,7 +22,7 @@ export default function App() {
         <Switch>
           <Route exact path="/" component={Nav} />
           <Route exact path="/test" component={Nav} />
-          <Route exact path="/settings" component={Nav} />
+          <Route exact path="/config" component={Nav} />
           <Route exact path="/about" component={Nav} />
           <Route path="/study" component={StudyNav} />
           <Route exact path="/form/newStudy" component={Nav} />
@@ -45,7 +45,7 @@ export default function App() {
               path="/form/:name/:groupName/addRespondent"
               component={AddRespondent}
             />
-            <Route path="/settings" component={Settings} />
+            <Route path="/config" component={Config} />
             <Route path="/test" component={Test} />
             <Route path="/about" component={About} />
           </Switch>

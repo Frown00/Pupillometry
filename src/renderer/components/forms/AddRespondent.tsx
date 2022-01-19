@@ -33,6 +33,7 @@ const AddRespondent = (props: any) => {
       studyName: values.study,
       groupName: values.groupName,
       files,
+      config: values.config,
     };
     ipcRenderer.send(Channel.Request, {
       responseChannel: Channel.AddRespondent,
@@ -52,6 +53,7 @@ const AddRespondent = (props: any) => {
         setState({ isLoading: false, progress: 100 });
         const { name, groupName } = props.match.params;
         console.log('DONE', name, groupName);
+        ipcRenderer.removeAllListeners(Channel.AddRespondent);
         props.history.push(`/study/${name}/${groupName}`);
       } else throw new Error('Something went wrong');
     });
@@ -63,13 +65,18 @@ const AddRespondent = (props: any) => {
       {...formItemLayout}
       onFinish={onFinish}
       initialValues={{
-        config: 'default-config',
+        config: 'default',
       }}
     >
       <Form.Item wrapperCol={{ span: 12, offset: 6 }}>
         <h1>Add Respondent</h1>
       </Form.Item>
-      <SelectItem name="config" label="Config" required />
+      <SelectItem
+        name="config"
+        label="Config"
+        required
+        values={Object.keys(GlobalState.configs)}
+      />
       <FileSelectItem />
       <Form.Item wrapperCol={{ span: 12, offset: 6 }}>
         <Button type="primary" htmlType="submit">

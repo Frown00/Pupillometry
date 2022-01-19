@@ -23,7 +23,7 @@ export default function Nav() {
         <Link to="/about">
           <li className="side-nav-link">About</li>
         </Link>
-        <Link to="/settings">
+        <Link to="/config">
           <li className="side-nav-link">Config</li>
         </Link>
       </ul>

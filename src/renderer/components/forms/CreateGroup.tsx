@@ -32,6 +32,7 @@ const CreateGroup = (props: any) => {
       groupName: values.name,
       isDependant: values.isDependant,
       files,
+      config: GlobalState.configs[values.config],
     };
     console.log('Received values of form: ', values);
     ipcRenderer.send(Channel.Request, {
@@ -59,7 +60,7 @@ const CreateGroup = (props: any) => {
       {...formItemLayout}
       onFinish={onFinish}
       initialValues={{
-        config: 'default-config',
+        config: 'default',
         isDependant: 'Dependant',
       }}
     >
@@ -80,7 +81,12 @@ const CreateGroup = (props: any) => {
       >
         <Switch checkedChildren="Dependent" unCheckedChildren="Independent" />
       </Form.Item>
-      <SelectItem name="config" label="Config" required />
+      <SelectItem
+        name="config"
+        label="Config"
+        required
+        values={Object.keys(GlobalState.configs)}
+      />
       <FileSelectItem />
       <Form.Item wrapperCol={{ span: 12, offset: 6 }}>
         <Button type="primary" htmlType="submit">

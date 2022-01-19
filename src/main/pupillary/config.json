@@ -11,7 +11,11 @@
     "width": 1200,
     "height": 500,
     "showEyesPlot": true,
-    "showMeanPlot": true
+    "showMeanPlot": true,
+    "curve": {
+      "type": "basis",
+      "parameter": 0
+    }
   },
   "processing": {
     "pupil": {
@@ -64,6 +68,14 @@
           "end": 60000
         }
       ]
+    },
+    "validityConditions": {
+      "missing": {
+        "general": 30,
+        "left": 100,
+        "right": 100
+      },
+      "correlation": 0
     }
   }
 }

@@ -20,6 +20,7 @@ const CreateStudy = (props: any) => {
     console.log('PROPS', props);
     const form: IRequestForm = {
       studyName: values.name,
+      config: GlobalState.configs[values.config],
     };
     ipcRenderer.send(Channel.Request, {
       responseChannel: Channel.CreateStudy,
@@ -34,9 +35,9 @@ const CreateStudy = (props: any) => {
       } else throw new Error('Something went wrong');
     });
   };
-  const { studies } = GlobalState;
+  const { studies, configs } = GlobalState;
 
-  console.log('Create Study', props);
+  console.log('Create Study CCCC', configs);
   return (
     <>
       <Form
@@ -44,7 +45,7 @@ const CreateStudy = (props: any) => {
         {...formItemLayout}
         onFinish={onFinish}
         initialValues={{
-          config: 'default-config',
+          config: 'default',
         }}
       >
         <Form.Item wrapperCol={{ span: 12, offset: 6 }}>
@@ -56,7 +57,12 @@ const CreateStudy = (props: any) => {
           required
           reservedValues={studies.map((s) => s.name)}
         />
-        <SelectItem name="config" label="Config" required />
+        <SelectItem
+          name="config"
+          label="Config"
+          required
+          values={Object.keys(GlobalState.configs)}
+        />
         {/* {(console.log('VALUE'), value.studies)} */}
         <Form.Item wrapperCol={{ span: 12, offset: 6 }}>
           <Button type="primary" htmlType="submit">

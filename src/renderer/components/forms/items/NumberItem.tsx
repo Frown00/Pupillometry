@@ -1,12 +1,19 @@
+/* eslint-disable react/require-default-props */
 import { Form, InputNumber } from 'antd';
 
-const NumberItem = () => {
+interface IProps {
+  min: number;
+  max: number;
+  step?: number;
+  label: string;
+  name: string;
+  required?: boolean;
+}
+
+const NumberItem = ({ name, label, min, max, step, required }: IProps) => {
   return (
-    <Form.Item label="InputNumber">
-      <Form.Item name="input-number" noStyle>
-        <InputNumber min={0.1} max={10} step={0.1} />
-      </Form.Item>
-      <span className="ant-form-text"> machines</span>
+    <Form.Item label={label} name={name} required={required}>
+      <InputNumber min={min} max={max} step={step ?? 1} />
     </Form.Item>
   );
 };

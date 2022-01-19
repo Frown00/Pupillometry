@@ -18,6 +18,7 @@ Store.initRenderer();
 enum StoreKey {
   Studies = 'studies',
   Recent = 'recent',
+  Configs = 'configs',
 }
 
 class DB {
@@ -62,6 +63,8 @@ class DB {
         const studies = this.store.get(StoreKey.Studies);
         removeElement(studies, 'name', data.studyName);
         this.store.set(StoreKey.Studies, studies);
+        const dir = `${this.assetsPath}/data/${data.studyName}`;
+        fs.rmdirSync(dir, { recursive: true });
       }
     );
 
@@ -74,6 +77,8 @@ class DB {
         if (!study) return;
         removeElement(study.groups, 'name', groupName);
         this.store.set(StoreKey.Studies, studies);
+        const dir = `${this.assetsPath}/data/${studyName}/${groupName}`;
+        fs.rmdirSync(dir, { recursive: true });
       }
     );
 
@@ -88,6 +93,13 @@ class DB {
         if (!group) return;
         removeElement(group.respondents, 'name', respondentName);
         this.store.set(StoreKey.Studies, studies);
+        const filePath = `${this.assetsPath}/data/${studyName}/${groupName}/${respondentName}`;
+        fs.unlink(filePath, (err) => {
+          if (err) {
+            // console.error(err);
+          }
+          // file removed
+        });
       }
     );
 
@@ -153,9 +165,13 @@ class DB {
               if (!study.groups) study.groups = [];
               if (!form.groupName) return;
               if (!form.isDependant) return;
+              if (!form.config) return;
               const { files } = form;
               if (!files) return;
               const respondents: IRespondentSamples[] = [];
+              const allConfigs = this.store.get(StoreKey.Configs);
+              console.log(allConfigs);
+              const config = allConfigs?.[form.config.name] ?? DEFAULT_CONFIG;
               const groupFolder = `${this.assetsPath}/data/${study.name}/${form.groupName}`;
               if (!fs.existsSync(groupFolder)) {
                 fs.mkdirSync(groupFolder);
@@ -163,10 +179,7 @@ class DB {
               let i = 0;
               for (const file of files) {
                 i += 1;
-                const res = await processPupilSamples(
-                  file.path,
-                  DEFAULT_CONFIG
-                );
+                const res = await processPupilSamples(file.path, config);
                 const dataPath = `${groupFolder}/${res.name}`;
                 fs.writeFile(dataPath, JSON.stringify(res), (err) => {
                   if (err) return console.log(err);
@@ -206,13 +219,13 @@ class DB {
               if (!group) return;
               const { files } = form;
               if (!files) return;
+              if (!form.config) return;
+              const allConfigs = this.store.get(StoreKey.Configs);
+              const config = allConfigs?.[form.config.name] ?? DEFAULT_CONFIG;
               let i = 0;
               for (const file of files) {
                 i += 1;
-                const res = await processPupilSamples(
-                  file.path,
-                  DEFAULT_CONFIG
-                );
+                const res = await processPupilSamples(file.path, config);
                 group.respondents.push(res);
                 message.response = res;
                 message.progress = i / files.length;
@@ -237,6 +250,26 @@ class DB {
               message.response = JSON.parse(d);
               message.progress = 1;
               message.state = State.Done;
+            }
+            break;
+          case Channel.GetConfigs:
+            {
+              const configs = this.store.get(StoreKey.Configs) ?? {};
+              configs.default = DEFAULT_CONFIG;
+              message.state = State.Done;
+              message.progress = 1;
+              message.response = configs;
+            }
+            break;
+          case Channel.CreateConfig:
+            {
+              const configs = this.store.get(StoreKey.Configs) ?? {};
+              if (!form.config) return;
+              configs[form.config.name] = form.config;
+              this.store.set(StoreKey.Configs, configs);
+              message.state = State.Done;
+              message.progress = 1;
+              message.response = State.Done;
             }
             break;
           default:
@@ -277,6 +310,8 @@ class DB {
     ipcMain.on(Channel.ClearDB, (e, data) => {
       console.log(e, data);
       this.store.clear();
+      const dir = `${this.assetsPath}/data`;
+      fs.rmdirSync(dir, { recursive: true });
     });
   }
 }

@@ -1,10 +1,10 @@
 import React from 'react';
 import { Button } from 'antd';
 import ElectronWindow from '../../ElectronWindow';
-import Chart from '../charts/Chart';
 import * as configJSON from '../../../main/pupillary/config.json';
 import { Channel } from '../../../ipc/channels';
 import SlidingTabs from '../respondent/SlidingTabs';
+import TestConfig from './TestConfig';
 
 const DEFAULT_CONFIG = configJSON as IConfig;
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -63,6 +63,8 @@ export default class Test extends React.Component<IProps, IState> {
 
   render() {
     const { isConfig, config, respondent } = this.state;
+    document.title = `Pupillometry > Test`;
+
     return (
       <div>
         <h2>Test your samples</h2>
@@ -71,6 +73,7 @@ export default class Test extends React.Component<IProps, IState> {
             display: 'flex',
             justifyContent: 'space-between',
             width: '600px',
+            marginBottom: '20px',
           }}
         >
           <Button
@@ -83,12 +86,12 @@ export default class Test extends React.Component<IProps, IState> {
           <Button onClick={this.toggleConfig}>Config</Button>
         </div>
         {isConfig ? (
-          <div>Config</div>
+          <TestConfig onChange={this.setConfig} />
         ) : (
           <SlidingTabs
             respondentName={respondent?.name ?? ''}
             segments={respondent?.segments ?? []}
-            config={DEFAULT_CONFIG}
+            config={config}
           />
         )}
       </div>

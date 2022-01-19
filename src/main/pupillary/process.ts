@@ -1,5 +1,5 @@
 /* eslint-disable promise/no-nesting */
-import { BrowserWindow, dialog, ipcMain, shell } from 'electron';
+import { BrowserWindow, dialog, ipcMain } from 'electron';
 import neatCSV from 'neat-csv';
 import path from 'path';
 import { Channel } from '../../ipc/channels';
