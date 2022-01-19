@@ -7,10 +7,17 @@ interface IProps {
   name: string;
   label: string;
   required?: boolean;
+  values: string[];
+  onChange?: (e: any) => void;
 }
 
 const SelectItem = (props: IProps) => {
-  const { name, label, required } = props;
+  const { name, label, values, required, onChange } = props;
+  const options = values.map((v) => (
+    <Option key={v} value={v}>
+      {v}
+    </Option>
+  ));
   return (
     <Form.Item
       name={name}
@@ -18,10 +25,8 @@ const SelectItem = (props: IProps) => {
       hasFeedback
       rules={[{ required, message: 'Select something!' }]}
     >
-      <Select placeholder="Please select a config">
-        <Option value="default-config">Default</Option>
-        <Option value="config-1">Config 1</Option>
-        <Option value="config-2">Config 2</Option>
+      <Select placeholder="Please select a config" onChange={onChange}>
+        {options}
       </Select>
     </Form.Item>
   );

@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import { Form, Button, Switch } from 'antd';
+import { Form, Button, Switch, Progress } from 'antd';
 import { useState } from 'react';
 import { IResponseCreateGroup } from '../../../ipc/types';
 import TextItem from './items/TextItem';
@@ -8,7 +8,7 @@ import ElectronWindow from '../../ElectronWindow';
 import { Channel, State } from '../../../ipc/channels';
 import GlobalState from '../GlobalState';
 import FileSelectItem from './items/FileSelectItem';
-import DefaultLoader from '../Loader';
+import DefaultLoader, { ProgressLoader } from '../Loader';
 
 const formItemLayout = {
   labelCol: { span: 6 },
@@ -95,7 +95,7 @@ const CreateGroup = (props: any) => {
       </Form.Item>
     </Form>
   );
-  return <>{isLoading ? <DefaultLoader progress={progress} /> : form};</>;
+  return <>{isLoading ? <ProgressLoader progress={progress} /> : form};</>;
 };
 
 export default CreateGroup;

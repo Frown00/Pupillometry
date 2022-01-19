@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import { Form, Button } from 'antd';
+import { Form, Button, Progress } from 'antd';
 import { useState } from 'react';
 import SelectItem from './items/SelectItem';
 import ElectronWindow from '../../ElectronWindow';
@@ -7,7 +7,7 @@ import { Channel, State } from '../../../ipc/channels';
 import GlobalState from '../GlobalState';
 import FileSelectItem from './items/FileSelectItem';
 import { IResponseAddRespondent } from '../../../ipc/types';
-import DefaultLoader from '../Loader';
+import { ProgressLoader } from '../Loader';
 
 const formItemLayout = {
   labelCol: { span: 6 },
@@ -85,7 +85,7 @@ const AddRespondent = (props: any) => {
       </Form.Item>
     </Form>
   );
-  return <>{isLoading ? <DefaultLoader progress={progress} /> : form};</>;
+  return <>{isLoading ? <ProgressLoader progress={progress} /> : form};</>;
 };
 
 export default AddRespondent;

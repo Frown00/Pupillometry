@@ -1,4 +1,5 @@
 /* eslint-disable react/require-default-props */
+import { Progress } from 'antd';
 import ReactLoading from 'react-loading';
 
 const Loader = ({
@@ -35,6 +36,18 @@ const DefaultLoader = ({ progress }: IProps) => (
   >
     <Loader type="spin" color="orange" />
     <div>{progress !== undefined ? `${progress}%` : ''}</div>
+  </div>
+);
+
+export const ProgressLoader = ({ progress }: IProps) => (
+  <div
+    style={{
+      position: 'absolute',
+      top: '40%',
+      left: '50%',
+    }}
+  >
+    <Progress type="circle" percent={progress} />
   </div>
 );
 
