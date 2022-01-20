@@ -62,7 +62,7 @@ export default class RespondentTable extends React.Component<IProps, IState> {
         },
         sortOrder: sortedInfo.columnKey === 'name' && sortedInfo.order,
         ellipsis: true,
-        render: (text: IRecord) => (
+        render: (text: string) => (
           <Link to={`/study/${studyName}/${groupName}/${text}`}>
             <div className="link">{text}</div>
           </Link>
@@ -79,6 +79,15 @@ export default class RespondentTable extends React.Component<IProps, IState> {
         },
         sortOrder: sortedInfo.columnKey === 'validity' && sortedInfo.order,
         ellipsis: true,
+        render: (text: string) => (
+          <span
+            style={{
+              color: text.toLowerCase() === 'valid' ? '#a0d911' : '#f5222d',
+            }}
+          >
+            {text}
+          </span>
+        ),
       },
       {
         title: 'Missing',

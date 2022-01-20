@@ -8,7 +8,7 @@ import ElectronWindow from '../../ElectronWindow';
 import { Channel, State } from '../../../ipc/channels';
 import GlobalState from '../GlobalState';
 import FileSelectItem from './items/FileSelectItem';
-import DefaultLoader, { ProgressLoader } from '../Loader';
+import { ProgressLoader } from '../Loader';
 
 const formItemLayout = {
   labelCol: { span: 6 },

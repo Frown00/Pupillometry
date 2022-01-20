@@ -33,7 +33,11 @@ export default class SlidingTabs extends React.Component<IProps, IState> {
     const { segments, config, respondentName } = this.props;
 
     return (
-      <div style={{ width: mode === 'top' ? config.chart.width + 10 : '' }}>
+      <div
+        style={{
+          width: mode === 'top' ? Math.max(config.chart.width + 10, 700) : '',
+        }}
+      >
         <Radio.Group
           onChange={this.handleModeChange}
           value={mode}
@@ -45,10 +49,14 @@ export default class SlidingTabs extends React.Component<IProps, IState> {
         <Tabs
           defaultActiveKey="1"
           tabPosition={mode}
-          style={{ height: mode === 'left' ? config.chart.height + 300 : '' }}
+          style={{
+            height:
+              mode === 'left' ? Math.max(config.chart.height + 300, 300) : '',
+          }}
         >
           {segments.map((s) => (
             <TabPane tab={`${s.name}`} key={s.name}>
+              <p>{s.isValid}</p>
               <Chart config={config} samples={s} name={respondentName} />
             </TabPane>
           ))}

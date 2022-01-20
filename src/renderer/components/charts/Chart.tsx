@@ -5,6 +5,18 @@
 import React from 'react';
 import * as d3 from 'd3';
 import DefaultLoader from '../Loader';
+import Metrics from './Metrics';
+
+enum InterpolationType {
+  linear = 'linear',
+  basis = 'basis',
+  bundle = 'bundle',
+  cardinal = 'cardinal',
+  natural = 'natural',
+  step = 'step',
+  stepAfter = 'stepAfter',
+  stepBefore = 'stepBefore',
+}
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface IProps {
@@ -41,6 +53,11 @@ export default class Chart extends React.Component<IProps, IState> {
     name: '',
   };
 
+  constructor(props: IProps) {
+    super(props);
+    this.getCurveFunction = this.getCurveFunction.bind(this);
+  }
+
   componentDidMount() {
     // activate
     const { samples } = this.props;
@@ -65,6 +82,33 @@ export default class Chart extends React.Component<IProps, IState> {
     d3.select(this.ref).selectAll('g').remove();
   }
 
+  getCurveFunction(): any {
+    const { config } = this.props;
+    const { chart } = config;
+    const { curve } = chart;
+    if (!curve) return d3.curveLinear;
+    switch (curve.type) {
+      case InterpolationType.linear:
+        return d3.curveLinear;
+      case InterpolationType.basis:
+        return d3.curveBasis;
+      case InterpolationType.natural:
+        return d3.curveNatural;
+      case InterpolationType.step:
+        return d3.curveStep;
+      case InterpolationType.stepAfter:
+        return d3.curveStepAfter;
+      case InterpolationType.stepBefore:
+        return d3.curveStepBefore;
+      case InterpolationType.cardinal:
+        return d3.curveCardinal.tension(curve?.parameter ?? 0);
+      case InterpolationType.bundle:
+        return d3.curveBundle.beta(curve?.parameter ?? 0);
+      default:
+        return d3.curveBundle.beta(1);
+    }
+  }
+
   private buildGraph(dataset: any[]) {
     const { config } = this.props;
     if (dataset.length <= 0) return;
@@ -77,6 +121,7 @@ export default class Chart extends React.Component<IProps, IState> {
 
     const time = '%M:%S'; // TODO config
     const formatMillisecond = d3.timeFormat('.%L');
+    const curve = this.getCurveFunction();
     // #endregion
     // #region  Dimensions
     const dimensions = {
@@ -147,7 +192,6 @@ export default class Chart extends React.Component<IProps, IState> {
           i: number
         ) => string
       );
-    // .tickValues([0.4, 0.5, 0.8])
 
     const xAxisGroup = container
       .append('g')
@@ -185,21 +229,6 @@ export default class Chart extends React.Component<IProps, IState> {
     // #endregion
 
     // container
-    //   .append('path')
-    //   .datum(dataset)
-    //   .attr('fill', 'none')
-    //   .attr('stroke', ColorPallette.okabe.orangeSolid)
-    //   .attr('stroke-width', 1.5)
-    //   .attr(
-    //     'd',
-    //     d3
-    //       .line()
-    //       .x((d: any) => xScale(xAccessor(d)))
-    //       .y((d: any) => yScale(yAccessorMean(d)))
-    //     // .defined((d: IPupilSample) => {
-    //     //   return yScale(yAccessorLeft(d)) > 0;
-    //     // })
-    //   );
     if (config.chart.showMeanPlot) {
       if (config.processing.interpolation.on) {
         container
@@ -214,12 +243,7 @@ export default class Chart extends React.Component<IProps, IState> {
               .line()
               .x((d: any) => xScale(xAccessor(d)))
               .y((d: any) => yScale(yAccessorMean(d)))
-              .curve(d3.curveBundle.beta(1))
-            // .defined((d: IPupilSample) => {
-            //   return yScale(yAccessorRight(d)) > 0
-            //     ? yScale(yAccessorRight(d))
-            //     : null;
-            // })
+              .curve(curve)
           );
       } else {
         container
@@ -280,7 +304,6 @@ export default class Chart extends React.Component<IProps, IState> {
   render() {
     const { isLoading } = this.state;
     const { name, samples } = this.props;
-    const { stats } = samples;
     return (
       <div>
         {isLoading ? (
@@ -295,92 +318,7 @@ export default class Chart extends React.Component<IProps, IState> {
                 height="500"
               />
             </div>
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                width: '30%',
-              }}
-            >
-              <p style={{ display: 'flex' }}>
-                <span className="pupil-label">Respondent:</span> <b>{name}</b>
-              </p>
-              <p style={{ display: 'flex' }}>
-                <span className="pupil-label">Segment:</span>{' '}
-                <b>{samples?.name ?? ''}</b>
-              </p>
-            </div>
-
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                width: '70%',
-              }}
-            >
-              <div>
-                <h3>Metrics</h3>
-                <p style={{ display: 'flex' }}>
-                  <span className="pupil-label">Mean:</span>
-                  {stats.mean}
-                </p>
-                <p style={{ display: 'flex' }}>
-                  <span className="pupil-label">Min:</span> {stats.min}
-                </p>
-                <p style={{ display: 'flex' }}>
-                  <span className="pupil-label">Max:</span> {stats.max}
-                </p>
-                <p style={{ display: 'flex' }}>
-                  <span className="pupil-label">Std:</span> {stats.std}
-                </p>
-              </div>
-              <div>
-                <h3>Pupil Samples</h3>
-                <p style={{ display: 'flex' }}>
-                  <span className="pupil-label">Raw count:</span>{' '}
-                  {stats.rawSamplesCount}
-                </p>
-                <p style={{ display: 'flex' }}>
-                  <span className="pupil-label">Valid count:</span>{' '}
-                  {stats.validSamples}
-                </p>
-                <p style={{ display: 'flex' }}>
-                  <span className="pupil-label">Eye difference: </span>
-                  {stats.meanPupilDifference?.toFixed(2)} mm
-                </p>
-                <p style={{ display: 'flex' }}>
-                  <span className="pupil-label">Pupil correlation: </span>
-                  {stats.pupilCorrelation?.toFixed(2)}
-                </p>
-              </div>
-              <div>
-                <h3>Missing</h3>
-                <p style={{ display: 'flex' }}>
-                  <span className="pupil-label">General:</span>{' '}
-                  {(
-                    (stats.missing.general / stats.rawSamplesCount) *
-                    100
-                  )?.toFixed(2)}
-                  %
-                </p>
-                <p style={{ display: 'flex' }}>
-                  <span className="pupil-label">Right:</span>{' '}
-                  {(
-                    (stats.missing.rightPupil / stats.rawSamplesCount) *
-                    100
-                  )?.toFixed(2)}
-                  %
-                </p>
-                <p style={{ display: 'flex' }}>
-                  <span className="pupil-label">Left: </span>{' '}
-                  {(
-                    (stats.missing.leftPupil / stats.rawSamplesCount) *
-                    100
-                  )?.toFixed(2)}
-                  %
-                </p>
-              </div>
-            </div>
+            <Metrics respondentName={name} samples={samples} />
           </>
         )}
       </div>

@@ -12,6 +12,18 @@ interface IConfig {
     height: number;
     showEyesPlot: boolean;
     showMeanPlot: boolean;
+    curve?: {
+      type:
+        | 'linear'
+        | 'basis'
+        | 'bundle'
+        | 'cardinal'
+        | 'natural'
+        | 'step'
+        | 'stepAfter'
+        | 'stepBefore';
+      parameter?: number;
+    };
   };
   processing: {
     pupil: {
@@ -62,6 +74,14 @@ interface IConfig {
         end: number;
       }[];
     };
+    validityConditions: {
+      missing?: {
+        general?: number;
+        left?: number;
+        right?: number;
+      };
+      correlation?: number;
+    };
   };
 }
 
@@ -98,6 +118,18 @@ interface IPupillometryStats {
   min: number;
   max: number;
   std: number;
+  left: {
+    mean: number;
+    min: number;
+    max: number;
+    std: number;
+  };
+  right: {
+    mean: number;
+    min: number;
+    max: number;
+    std: number;
+  };
 }
 
 interface IPupillometry {

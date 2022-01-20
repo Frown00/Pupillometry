@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import { Form, Button, Progress } from 'antd';
+import { Form, Button } from 'antd';
 import { useState } from 'react';
 import SelectItem from './items/SelectItem';
 import ElectronWindow from '../../ElectronWindow';
