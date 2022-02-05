@@ -14,4 +14,4 @@ Science utility to preprocessing, visualizing and analysing raw pupillometry dat
 - React
 - D3.js
 
-[demo]: https://s10.gifyu.com/images/demoda4b27f4abc07da8.gif "Demo gif"
+[demo]: https://s10.gifyu.com/images/demo20259c11d297e873.gif "Demo gif"
