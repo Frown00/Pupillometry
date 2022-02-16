@@ -8,7 +8,7 @@ import { IMessage } from '../../ipc/types';
 import { Channel, State } from '../../ipc/channels';
 import { processPupilSamples } from '../pupillary/process';
 
-import * as configJSON from '../pupillary/config.json';
+import configJSON from '../pupillary/config.json';
 import saveMetrics from './saveMetrics';
 
 const DEFAULT_CONFIG = configJSON as IConfig;
@@ -163,14 +163,14 @@ class DB {
               );
               if (!study) throw new Error('Study does not exist');
               if (!study.groups) study.groups = [];
-              if (!form.groupName) return;
-              if (!form.isDependant) return;
-              if (!form.config) return;
+              if (!form.groupName) throw new Error('Group name is unknown');
+              if (form.isDependant === undefined)
+                throw new Error('isDependant is unknown');
+              if (!form.config) throw new Error('Config is unknown');
               const { files } = form;
-              if (!files) return;
+              if (!files) throw new Error('No files');
               const respondents: IRespondentSamples[] = [];
               const allConfigs = this.store.get(StoreKey.Configs);
-              console.log(allConfigs);
               const config = allConfigs?.[form.config.name] ?? DEFAULT_CONFIG;
               const groupFolder = `${this.assetsPath}/data/${study.name}/${form.groupName}`;
               if (!fs.existsSync(groupFolder)) {
@@ -223,16 +223,26 @@ class DB {
               const allConfigs = this.store.get(StoreKey.Configs);
               const config = allConfigs?.[form.config.name] ?? DEFAULT_CONFIG;
               let i = 0;
+              const groupFolder = `${this.assetsPath}/data/${study.name}/${form.groupName}`;
               for (const file of files) {
                 i += 1;
                 const res = await processPupilSamples(file.path, config);
+                const dataPath = `${groupFolder}/${res.name}`;
+                fs.writeFile(dataPath, JSON.stringify(res), (err) => {
+                  if (err) return console.log(err);
+                  return 0;
+                });
+                res.dataPath = dataPath;
+                res.segments.map((s) => {
+                  s.validSamples = [];
+                  return s;
+                });
                 group.respondents.push(res);
-                message.response = res;
                 message.progress = i / files.length;
                 message.state = State.Loading;
                 event.sender.send(responseChannel, message);
               }
-
+              message.response = group;
               this.store.set(StoreKey.Studies, studies);
               message.state = State.Done;
               message.progress = 1;

@@ -31,7 +31,7 @@ interface IResponseCreateGroup extends IMessage {
 }
 
 interface IResponseAddRespondent extends IMessage {
-  response: IRespondentSamples;
+  response: IGroup;
 }
 
 interface IResponseRespondentPupilData extends IMessage {

@@ -1,56 +1,32 @@
-/* eslint-disable react/button-has-type */
-/* eslint-disable no-return-assign */
 import { MemoryRouter as Router, Switch, Route } from 'react-router-dom';
 import './App.css';
-import StartingPage from './components/StartingPage';
-import Study from './components/study/Study';
-import Config from './components/Config';
-import Nav from './components/Nav';
-import Group from './components/group/Group';
-import Respondent from './components/respondent/Respondent';
-import Test from './components/playground/Test';
-import CreateStudy from './components/forms/CreateStudy';
-import CreateGroup from './components/forms/CreateGroup';
-import AddRespondent from './components/forms/AddRespondent';
-import StudyNav from './components/StudyNav';
-import About from './components/About';
+import StartingPage from './components/pages/Starting';
+import { Routes } from './constants';
+import Study from './components/pages/Study';
+import NewStudy from './components/pages/form/NewStudy';
+import NewGroup from './components/pages/form/NewGroup';
+import Group from './components/pages/Group';
+import Respondent from './components/pages/Respondent';
+import About from './components/pages/About';
+import Config from './components/pages/Config';
+import Test from './components/pages/Test';
+import AddRespondent from './components/pages/form/AddRespondent';
 
 export default function App() {
   return (
-    <div id="app">
-      <Router>
-        <Switch>
-          <Route exact path="/" component={Nav} />
-          <Route exact path="/test" component={Nav} />
-          <Route exact path="/config" component={Nav} />
-          <Route exact path="/about" component={Nav} />
-          <Route path="/study" component={StudyNav} />
-          <Route exact path="/form/newStudy" component={Nav} />
-          <Route path="/form" component={StudyNav} />
-        </Switch>
-        <main>
-          <Switch>
-            <Route exact path="/" component={StartingPage} />
-            <Route exact path="/study/:name" component={Study} />
-            <Route exact path="/form/newStudy" component={CreateStudy} />
-            <Route exact path="/study/:name/:groupName" component={Group} />
-            <Route exact path="/form/:name/newGroup" component={CreateGroup} />
-            <Route
-              exact
-              path="/study/:name/:groupName/:respondentName"
-              component={Respondent}
-            />
-            <Route
-              exact
-              path="/form/:name/:groupName/addRespondent"
-              component={AddRespondent}
-            />
-            <Route path="/config" component={Config} />
-            <Route path="/test" component={Test} />
-            <Route path="/about" component={About} />
-          </Switch>
-        </main>
-      </Router>
-    </div>
+    <Router>
+      <Switch>
+        <Route exact path={Routes.Starting} component={StartingPage} />
+        <Route exact path={Routes.Study()} component={Study} />
+        <Route exact path={Routes.NewStudy} component={NewStudy} />
+        <Route exact path={Routes.Group()} component={Group} />
+        <Route exact path={Routes.NewGroup()} component={NewGroup} />
+        <Route exact path={Routes.Respondent()} component={Respondent} />
+        <Route exact path={Routes.AddRespondent()} component={AddRespondent} />
+        <Route path={Routes.Config} component={Config} />
+        <Route path={Routes.Test} component={Test} />
+        <Route path={Routes.About} component={About} />
+      </Switch>
+    </Router>
   );
 }

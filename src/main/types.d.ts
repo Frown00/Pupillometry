@@ -35,7 +35,7 @@ interface IConfig {
       max: number; // mm
       acceptableDifference: number; // mm
     };
-    extraFilters: {
+    advancedFilters: {
       dilatationSpeed: {
         on: boolean;
         thresholdMultiplier: number;
@@ -74,14 +74,14 @@ interface IConfig {
         end: number;
       }[];
     };
-    validityConditions: {
-      missing?: {
-        general?: number;
-        left?: number;
-        right?: number;
-      };
-      correlation?: number;
+  };
+  validity: {
+    missing?: {
+      general?: number;
+      left?: number;
+      right?: number;
     };
+    correlation?: number;
   };
 }
 

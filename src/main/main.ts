@@ -67,8 +67,6 @@ const createWindow = async () => {
     return path.join(RESOURCES_PATH, ...paths);
   };
 
-  // console.log(readCSV('../../../dane/Badania/ROMIT/P4.csv'));
-
   mainWindow = new BrowserWindow({
     show: false,
     width: 1024,

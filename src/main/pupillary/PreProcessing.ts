@@ -159,7 +159,7 @@ export default class Preprocessing {
   }
 
   private checkIsValid(segment: IPupillometry) {
-    const vc = this.config.processing.validityConditions;
+    const vc = this.config.validity;
     segment.isValid = true;
     if (!vc) {
       return;
@@ -259,7 +259,7 @@ export default class Preprocessing {
   private dilatationSpeedFilter(segment: IPupillometry) {
     // Dilatation Speed Outlier Filter
     const { processing } = this.config;
-    const { dilatationSpeed } = processing.extraFilters;
+    const { dilatationSpeed } = processing.advancedFilters;
     if (!dilatationSpeed.on) return;
     const dilatationSeries = dSpeed.setDilatationSpeed(segment.validSamples);
     const threshold = {
@@ -312,7 +312,7 @@ export default class Preprocessing {
 
   private temporallyIsolatedSamples(segment: IPupillometry) {
     const { processing } = this.config;
-    const { temporallyIsolatedSamples } = processing.extraFilters;
+    const { temporallyIsolatedSamples } = processing.advancedFilters;
     if (!temporallyIsolatedSamples.on) return;
     let isolatedLeft = [];
     let isolatedRight = [];
@@ -367,7 +367,7 @@ export default class Preprocessing {
 
   private trendLineDeviation(segment: IPupillometry) {
     const { processing } = this.config;
-    const { trendLineDeviation } = processing.extraFilters;
+    const { trendLineDeviation } = processing.advancedFilters;
     if (!trendLineDeviation.on) return;
     const { maxJump } = trendLineDeviation;
     const samples = segment.validSamples;
