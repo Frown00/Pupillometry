@@ -21,6 +21,7 @@ const Form = (props: IProps) => {
   useEffect(() => {
     form.setFieldsValue(initialValues);
   }, [form, initialValues]);
+
   return (
     <>
       <AntdForm
