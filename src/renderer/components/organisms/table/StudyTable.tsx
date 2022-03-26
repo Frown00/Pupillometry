@@ -15,11 +15,12 @@ function createRecords(studies: IStudy[]) {
     const r: IStudyRecord = {
       key: i.toString(),
       name: study.name,
-      groups: study.groups.length,
-      respondents: study.groups.reduce(
-        (prev, curr) => prev + curr.respondents.length,
-        0
-      ),
+      groups: study.groups?.length ?? 0,
+      respondents:
+        study.groups?.reduce(
+          (prev, curr) => prev + curr.respondents.length,
+          0
+        ) ?? 0,
     };
     records.push(r);
   }
