@@ -6,7 +6,7 @@ import {
   IStudyResponse,
 } from '../../../ipc/channels/StudyChannel';
 import { activeGroupState, activeStudyState } from '../../assets/state';
-import { Routes } from '../../constants';
+import { Routes } from '../../routes';
 import { removeElement } from '../../../util';
 import ButtonGroup from '../molecules/ButtonGroup';
 import RouteLink from '../atoms/RouteLink';

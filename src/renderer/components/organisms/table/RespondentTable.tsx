@@ -1,6 +1,6 @@
 import { useRecoilState } from 'recoil';
 import { activeGroupState, activeStudyState } from '../../../assets/state';
-import { Routes } from '../../../constants';
+import { Routes } from '../../../routes';
 import Table, { IRecord } from '../../molecules/Table';
 
 export interface IRespondentRecord {

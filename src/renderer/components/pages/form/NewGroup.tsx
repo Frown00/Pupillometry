@@ -14,7 +14,7 @@ import ActiveStudy from '../../templates/ActiveStudy';
 import { activeStudyState, configsState } from '../../../assets/state';
 import Form from '../../organisms/Form';
 import { ProgressLoader } from '../../atoms/Loader';
-import { Routes } from '../../../constants';
+import { Routes } from '../../../routes';
 import { State } from '../../../../ipc/interfaces';
 
 interface IInitialValues {

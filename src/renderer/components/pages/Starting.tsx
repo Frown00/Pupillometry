@@ -10,7 +10,7 @@ import {
   IStudyResponse,
 } from '../../../ipc/channels/StudyChannel';
 import { removeElement } from '../../../util';
-import { Routes } from '../../constants';
+import { Routes } from '../../routes';
 import General from '../templates/General';
 import RouteLink from '../atoms/RouteLink';
 import Button from '../atoms/Button';

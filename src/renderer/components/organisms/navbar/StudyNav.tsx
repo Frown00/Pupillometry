@@ -10,7 +10,7 @@ import {
 import NavLink from '../../atoms/NavLink';
 import { activeGroupState, activeStudyState } from '../../../assets/state';
 import color from '../../../assets/color';
-import { Routes } from '../../../constants';
+import { Routes } from '../../../routes';
 import RouteLink from '../../atoms/RouteLink';
 import Logo from '../../molecules/Logo';
 

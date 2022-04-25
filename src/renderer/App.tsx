@@ -1,7 +1,7 @@
 import { MemoryRouter as Router, Switch, Route } from 'react-router-dom';
 import './App.css';
 import StartingPage from './components/pages/Starting';
-import { Routes } from './constants';
+import { Routes } from './routes';
 import Study from './components/pages/Study';
 import NewStudy from './components/pages/form/NewStudy';
 import NewGroup from './components/pages/form/NewGroup';

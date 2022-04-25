@@ -1,4 +1,4 @@
-import { Routes } from '../../../constants';
+import { Routes } from '../../../routes';
 import Table, { IRecord } from '../../molecules/Table';
 
 export interface IStudyRecord {

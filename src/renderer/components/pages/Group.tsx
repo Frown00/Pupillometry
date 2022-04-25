@@ -2,7 +2,7 @@ import { Button, Select } from 'antd';
 import { useEffect, useState } from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import { useRecoilState } from 'recoil';
-import { Routes } from '../../constants';
+import { Routes } from '../../routes';
 import { activeGroupState, activeStudyState } from '../../assets/state';
 import { removeElement } from '../../../util';
 import ActiveStudy from '../templates/ActiveStudy';
