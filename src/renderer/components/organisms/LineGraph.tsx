@@ -3,6 +3,7 @@ import React from 'react';
 import * as d3 from 'd3';
 import DefaultLoader from '../atoms/Loader';
 import Metrics from './Metrics';
+import Color from '../../assets/color';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface IProps {
@@ -14,18 +15,6 @@ interface IProps {
 interface IState {
   isLoading: boolean;
 }
-
-const ColorPallette = {
-  okabe: {
-    orange: 'rgba(230, 159, 0, 1)',
-    cyan: 'rgba(86, 180, 233, 1)',
-    green: 'rgba(0,158,115, 1)',
-    vermillion: 'rgba(213, 94, 0, 1)',
-    purple: 'rgba(204, 121, 167, 1)',
-    black: 'rgba(0, 0, 0, 1)',
-    blue: 'rgba(0, 114, 178, 1)',
-  },
-};
 
 export default class LineGraph extends React.Component<IProps, IState> {
   ref!: SVGSVGElement;
@@ -126,26 +115,26 @@ export default class LineGraph extends React.Component<IProps, IState> {
       .attr('cy', (d: IPupilSample) => yScale(yAccessor(d)))
       .attr('r', (d: any) => {
         const biggerSize = ['invalid', 'outlier'];
-        if (biggerSize.includes(d[markProperty]?.type)) return 2;
+        if (biggerSize.includes(d[markProperty]?.type)) return 1.5;
         return 1;
       })
       .attr('fill', color)
       .attr('stroke', (d: IPupilSample) => {
         const marker = d[markProperty];
         if (marker?.type === 'invalid') {
-          return ColorPallette.okabe.vermillion;
+          return Color.chart.invalid;
         }
         if (marker?.type === 'outlier') {
           if (marker.algorithm === 'Dilatation Speed - Gap') {
-            return ColorPallette.okabe.black;
+            return Color.chart.outlier.dilatationSpeed.gap;
           }
-          return ColorPallette.okabe.orange;
+          return Color.chart.outlier.dilatationSpeed.speed;
         }
         return color;
       })
       .attr('stroke-width', (d: any) => {
         const biggerSize = ['invalid', 'outlier'];
-        if (biggerSize.includes(d[markProperty]?.type)) return 2;
+        if (biggerSize.includes(d[markProperty]?.type)) return 1.5;
         return 1;
       })
       .attr('data-temp', yAccessor);
@@ -168,13 +157,16 @@ export default class LineGraph extends React.Component<IProps, IState> {
       .datum(dataset)
       .attr('fill', 'none')
       .attr('stroke', color)
-      .attr('stroke-width', 1.5)
+      .attr('stroke-width', 1)
       .attr(
         'd',
         d3
           .line()
           .x((d: any) => xScale(xAccessor(d)))
           .y((d: any) => yScale(yAccessor(d)))
+          .defined((d: any) => {
+            return !Number.isNaN(yAccessor(d));
+          })
           .curve(curve)
       );
   }
@@ -183,7 +175,8 @@ export default class LineGraph extends React.Component<IProps, IState> {
     const { config } = this.props;
     if (dataset.length <= 0) return;
     // #region Accessors
-    const xAccessor = (d: IPupilSample) => d.timestamp;
+    const xAccessor = (d: IPupilSample) =>
+      d?.timestamp !== undefined ? d.timestamp : '';
     const yAccessorLeft = (d: IPupilSample) =>
       d?.leftPupil ? d.leftPupil : NaN;
     const yAccessorRight = (d: IPupilSample) =>
@@ -191,10 +184,6 @@ export default class LineGraph extends React.Component<IProps, IState> {
     const yAccessorMean = (d: IPupilSample) => {
       return d?.mean ? d.mean : NaN;
     };
-
-    const time = '%M:%S'; // TODO config
-    const formatMillisecond = d3.timeFormat('.%L');
-
     // #endregion
     // #region  Dimensions
     const dimensions = this.getDimensions();
@@ -217,31 +206,35 @@ export default class LineGraph extends React.Component<IProps, IState> {
     const xScale = d3
       .scaleLinear()
       .domain([dataset[0].timestamp, dataset[dataset.length - 1].timestamp])
-      .rangeRound([0, dimensions.ctrWidth])
-      .clamp(true);
+      .rangeRound([0, dimensions.ctrWidth]);
 
     const yScale = d3
       .scaleLinear()
       .domain([
         Math.min(
-          d3.min(dataset, yAccessorLeft) ?? config.markers.outOfRange.max,
-          d3.min(dataset, yAccessorRight) ?? config.markers.outOfRange.max
+          d3.min(dataset, yAccessorLeft) ??
+            d3.min(dataset, yAccessorMean) ??
+            config.markers.outOfRange.max,
+          d3.min(dataset, yAccessorRight) ??
+            d3.min(dataset, yAccessorMean) ??
+            config.markers.outOfRange.max
         ),
         Math.max(
-          d3.max(dataset, yAccessorLeft) ?? config.markers.outOfRange.min,
-          d3.max(dataset, yAccessorRight) ?? config.markers.outOfRange.min
+          d3.max(dataset, yAccessorLeft) ??
+            d3.max(dataset, yAccessorMean) ??
+            config.markers.outOfRange.min,
+          d3.max(dataset, yAccessorRight) ??
+            d3.max(dataset, yAccessorMean) ??
+            config.markers.outOfRange.min
         ),
       ])
       .rangeRound([dimensions.ctrHeight, 0])
-      .nice()
-      .clamp(true);
+      .nice();
     // #endregion
 
     // #region  Axe X
     const xAxis = d3
       .axisBottom(xScale)
-      // .ticks(5)
-      // .tickFormat((d) => new Date(parseInt(d.toString(), 10)).toString())
       .tickSize(-dimensions.ctrHeight)
       .ticks(10)
       .tickFormat(
@@ -295,29 +288,19 @@ export default class LineGraph extends React.Component<IProps, IState> {
           xAccessor,
           yScale,
           yAccessor: yAccessorMean,
-          color: ColorPallette.okabe.cyan,
+          color: Color.chart.mean,
         });
-        this.drawLine({
-          container,
-          dataset: smoothed,
-          xScale,
-          xAccessor,
-          yScale,
-          yAccessor: yAccessorMean,
-          color: ColorPallette.okabe.blue,
-        });
-      } else {
-        this.drawCircles({
-          container,
-          dataset,
-          xScale,
-          xAccessor,
-          yScale,
-          yAccessor: yAccessorLeft,
-          className: 'pupil-mean',
-          color: ColorPallette.okabe.cyan,
-          markProperty: 'leftMark',
-        });
+        if (smoothed.length > 0) {
+          this.drawLine({
+            container,
+            dataset: smoothed,
+            xScale,
+            xAccessor,
+            yScale,
+            yAccessor: yAccessorMean,
+            color: Color.chart.smooted,
+          });
+        }
       }
     }
 
@@ -331,7 +314,7 @@ export default class LineGraph extends React.Component<IProps, IState> {
         yScale,
         yAccessor: yAccessorLeft,
         className: 'pupil-left',
-        color: ColorPallette.okabe.green,
+        color: Color.chart.left,
         markProperty: 'leftMark',
       });
 
@@ -343,7 +326,7 @@ export default class LineGraph extends React.Component<IProps, IState> {
         yScale,
         yAccessor: yAccessorRight,
         className: 'pupil-right',
-        color: ColorPallette.okabe.purple,
+        color: Color.chart.right,
         markProperty: 'rightMark',
       });
     }
