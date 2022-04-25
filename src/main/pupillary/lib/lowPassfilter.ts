@@ -1,35 +1,25 @@
 export default function lowPassFilter(
   samples: IPupilSample[],
   cutoff: number,
-  sampleRate: number,
-  numChannels = 1
+  sampleRate: number
 ): IPupilSample[] {
   const rc = 1.0 / (cutoff * 2 * Math.PI);
   const dt = 1.0 / sampleRate;
   const alpha = dt / (rc + dt);
-  const lastVal = [];
   const result = [];
-  let offset;
-  for (let i = 0; i < numChannels; i += 1) {
-    lastVal.push({ ...samples[i] });
-  }
+  let lastVal = samples.find((s) => s.mean && s.mean > 0)?.mean ?? 0;
   for (let i = 0; i < samples.length; i += 1) {
-    for (let j = 0; j < numChannels; j += 1) {
-      offset = i + j;
-
-      if (
-        samples[offset].mean &&
-        lastVal[j].mean &&
-        !Number.isNaN(samples[offset].mean)
-      ) {
-        lastVal[j].mean =
-          <number>lastVal[j].mean +
-          alpha * (<number>samples[offset].mean - <number>lastVal[j].mean);
-        result[offset] = {
-          ...lastVal[j],
-          timestamp: samples[offset].timestamp,
-        };
-      }
+    if (samples[i].mean && !Number.isNaN(samples[i].mean)) {
+      lastVal =
+        <number>lastVal + alpha * (<number>samples[i].mean - <number>lastVal);
+      result[i] = {
+        ...samples[i],
+        mean: lastVal,
+      };
+    } else {
+      result[i] = {
+        ...samples[i],
+      };
     }
   }
   return result;
