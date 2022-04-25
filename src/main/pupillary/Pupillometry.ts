@@ -22,6 +22,26 @@ export default class Pupillometry {
     this.#segments = segmentation(this.#samples, this.#config);
   }
 
+  test(): IPupillometryResult {
+    const allMarkers: IMarker[] = this.usedMarkers();
+    for (let i = 0; i < this.#segments.length; i += 1) {
+      const segment = this.#segments[i];
+
+      segment
+        .markOutliers(allMarkers)
+        .omitMarked(['missing'])
+        .calcMeanPupil()
+        .calcMedianDifference()
+        .smoothing()
+        .calcStats(true);
+    }
+    return {
+      name: this.#name,
+      segments: this.#segments.map((s) => s.getInfo()),
+      config: this.#config.name,
+    };
+  }
+
   process(): IPupillometryResult {
     const allMarkers: IMarker[] = this.usedMarkers();
     for (let i = 0; i < this.#segments.length; i += 1) {
@@ -29,15 +49,11 @@ export default class Pupillometry {
 
       segment
         .markOutliers(allMarkers)
-        .removeMarked(['missing'])
+        .omitMarked(['missing', 'outlier', 'invalid'])
         .calcMeanPupil()
-        .smoothing();
-      // console.log(segment.getInfo().name, rightWrong);
-      // .filterOutliers([])
-      // .validity()
-      // .resampling()
-      // .smoothing()
-      // .calcStats();
+        .smoothing()
+        .calcStats(true)
+        .reduce(true, true);
     }
     return {
       name: this.#name,

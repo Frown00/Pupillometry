@@ -13,26 +13,71 @@ export interface IPupillometryQuery {
 }
 
 export default abstract class PupillometryRepository {
+  static async test(
+    paths: string[],
+    config: IConfig,
+    saveCallback: (response: IPupillometryResponse) => void
+  ) {
+    const runCallback = (
+      name: string,
+      rawData: IPupilSampleRaw[],
+      cfg: IConfig
+    ) => {
+      const pupillometry = new Pupillometry(name, rawData, cfg);
+      return pupillometry.test();
+    };
+    return PupillometryRepository.wrapper(
+      paths,
+      config,
+      runCallback,
+      saveCallback
+    );
+  }
+
   static async process(
     paths: string[],
     config: IConfig,
-    responseCallback: (response: IPupillometryResponse) => void
+    saveCallback: (response: IPupillometryResponse) => void
+  ) {
+    const runCallback = (
+      name: string,
+      rawData: IPupilSampleRaw[],
+      cfg: IConfig
+    ) => {
+      const pupillometry = new Pupillometry(name, rawData, cfg);
+      return pupillometry.process();
+    };
+    return PupillometryRepository.wrapper(
+      paths,
+      config,
+      runCallback,
+      saveCallback
+    );
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  private static async wrapper(
+    paths: string[],
+    config: IConfig,
+    funName: (
+      name: string,
+      rawData: IPupilSampleRaw[],
+      config: IConfig
+    ) => IPupillometryResult,
+    saveCallback?: (response: IPupillometryResponse) => void
   ) {
     const results: IPupillometryResult[] = [];
     for (const path of paths) {
       const samples = await sampleLoader(path, config);
-      const pupillometry = new Pupillometry(
-        samples.name,
-        samples.rawData,
-        config
-      );
-      const p = pupillometry.process();
+      const p = funName(samples.name, samples.rawData, config);
       results.push(p);
-      responseCallback({
-        result: [p],
-        state: State.Loading,
-        progress: 0,
-      });
+      if (saveCallback) {
+        saveCallback({
+          result: [p],
+          state: State.Loading,
+          progress: 0,
+        });
+      }
     }
     return results;
   }

@@ -57,7 +57,7 @@ export default class PupillometryChannel implements IpcChannel {
         })
         .then(async (r: Electron.OpenDialogReturnValue) => {
           const path = r.filePaths[0];
-          const data = await PupillometryRepository.process(
+          const data = await PupillometryRepository.test(
             [path],
             config,
             () => null
