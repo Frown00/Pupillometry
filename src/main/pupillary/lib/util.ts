@@ -3,7 +3,7 @@ export function calcMean(left: number, right: number, diff: number) {
   if (left && right) return (left + right) / 2;
   if (left) return (left + (left - diff)) / 2;
   if (right) return (right + (right + diff)) / 2;
-  return 0;
+  return NaN;
 }
 
 /**

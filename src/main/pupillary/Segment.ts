@@ -33,7 +33,7 @@ export default class Segment {
     this.#stats = this.getInitialStats();
     this.#duration = this.calcDuration();
     this.#sampleRate = this.calcSampleRate();
-    this.#stats.result.difference = this.calcMedianDifference();
+    // this.calcMedianDifference();
     this.#smoothedSamples = [];
   }
 
@@ -61,17 +61,19 @@ export default class Segment {
     };
   }
 
-  private calcMedianDifference() {
-    if (this.#classification === 'Wrong') return Infinity;
+  calcMedianDifference() {
+    if (this.#classification === 'Wrong') return this;
     const diff = this.#samples
       .filter((s) => {
+        if (s.leftMark || s.rightMark) return false;
         if (s.leftPupil > 0 && s.rightPupil > 0) {
           return s;
         }
         return false;
       })
       .map((s) => Math.abs(s.leftPupil - s.rightPupil));
-    return diff.length > 0 ? median(diff) : -1;
+    this.#stats.result.difference = diff.length > 0 ? median(diff) : -1;
+    return this;
   }
 
   markOutliers(markers: IMarker[]) {
@@ -100,7 +102,23 @@ export default class Segment {
     return this;
   }
 
-  removeMarked(types: PupilMark[]) {
+  reduce(replaceBySmoothed = true, removeEyePupil = true) {
+    if (this.#classification === 'Wrong') return this;
+    if (!replaceBySmoothed) return this;
+    for (let i = 0; i < this.#samples.length; i += 1) {
+      this.#samples[i].mean = this.#smoothedSamples[i].mean;
+      if (removeEyePupil) {
+        delete this.#samples[i].leftMark;
+        delete this.#samples[i].rightMark;
+        delete (<any>this.#samples[i]).rightPupil;
+        delete (<any>this.#samples[i]).leftPupil;
+      }
+    }
+    this.#smoothedSamples = [];
+    return this;
+  }
+
+  omitMarked(types: PupilMark[]) {
     for (let i = 0; i < this.#samples.length; i += 1) {
       const sample = this.#samples[i];
       if (sample.rightMark && types.includes(sample.rightMark.type)) {
@@ -110,8 +128,7 @@ export default class Segment {
         sample.leftPupil = NaN;
       }
       if (Number.isNaN(sample.rightPupil) && Number.isNaN(sample.leftPupil)) {
-        this.#samples.splice(i, 1);
-        i -= 1;
+        sample.mean = NaN;
       }
     }
     return this;
@@ -120,6 +137,7 @@ export default class Segment {
   calcMeanPupil() {
     if (this.#classification === 'Wrong') return this;
     let dynamicDiffLP = 0;
+    let lastCorrectMean = 0;
     for (let i = 0; i < this.#samples.length; i += 1) {
       const sample = this.#samples[i];
       const nextDiff = sample.leftPupil - sample.rightPupil;
@@ -127,73 +145,79 @@ export default class Segment {
         dynamicDiffLP = nextDiff;
       }
       const sMean = util.calcMean(
-        sample.leftPupil,
-        sample.rightPupil,
+        sample.leftMark ? NaN : sample.leftPupil,
+        sample.rightMark ? NaN : sample.rightPupil,
         dynamicDiffLP
       );
-      sample.mean = sMean;
+      if (!Number.isNaN(sMean)) {
+        lastCorrectMean = sMean;
+      }
+      sample.mean = lastCorrectMean > 0 ? lastCorrectMean : NaN;
     }
     return this;
   }
 
-  calcStats() {
+  calcStats(baseOnSmoothed = false) {
     if (this.#classification === 'Wrong') return this;
-    const dynamicDiffLP = 0;
     const means: number[] = [];
     const lefts: number[] = [];
     const rights: number[] = [];
-    // for (let i = 0; i < this.#samples.length; i += 1) {
-    //   const sample = this.#samples[i];
-    //   const nextDiff = sample.leftPupil - sample.rightPupil;
-    //   if (nextDiff) {
-    //     dynamicDiffLP = nextDiff;
-    //   }
-    //   const sMean = util.calcMean(
-    //     sample.leftPupil,
-    //     sample.rightPupil,
-    //     dynamicDiffLP
-    //   );
-    //   sample.mean = sMean;
+    const leftsCorrelation: number[] = [];
+    const rightCorrelation: number[] = [];
+    const samples = baseOnSmoothed ? this.#smoothedSamples : this.#samples;
+    for (let i = 0; i < samples.length; i += 1) {
+      const sample = samples[i];
 
-    //   if (sMean > 0) {
-    //     means.push(sMean);
-    //   }
-    //   if (sample.leftMark && sample.rightMark) this.#stats.result.missing += 1;
+      if (sample.leftMark && sample.rightMark) this.#stats.result.missing += 1;
+      else if (sample.mean) {
+        means.push(sample.mean);
+      }
 
-    //   if (sample.leftMark) this.#stats.left.missing += 1;
-    //   else lefts.push(sample.leftPupil);
+      if (sample.leftMark) this.#stats.left.missing += 1;
+      else lefts.push(sample.leftPupil);
 
-    //   if (sample.rightMark) this.#stats.right.missing += 1;
-    //   else rights.push(sample.rightPupil);
-    // }
+      if (sample.rightMark) this.#stats.right.missing += 1;
+      else rights.push(sample.rightPupil);
 
-    // if (lefts.length > 1 && rights.length > 1) {
-    //   if (lefts.length > rights.length)
-    //     this.#stats.result.correlation = sampleCorrelation(lefts, rights);
-    //   else this.#stats.result.correlation = sampleCorrelation(rights, lefts);
-    // } else this.#stats.result.correlation = 1;
+      if (!(sample.leftMark || sample.rightMark)) {
+        leftsCorrelation.push(sample.leftPupil);
+        rightCorrelation.push(sample.rightPupil);
+      }
+    }
 
-    // this.#stats.result = {
-    //   ...this.#stats.result,
-    //   min: means.length ? min(means) : -1,
-    //   max: means.length ? max(means) : -1,
-    //   mean: means.length ? mean(means) : -1,
-    //   std: means.length ? standardDeviation(means) : -1,
-    // };
-    // this.#stats.left = {
-    //   ...this.#stats.left,
-    //   min: lefts.length ? min(lefts) : -1,
-    //   max: lefts.length ? max(lefts) : -1,
-    //   mean: lefts.length ? mean(lefts) : -1,
-    //   std: lefts.length ? standardDeviation(lefts) : -1,
-    // };
-    // this.#stats.right = {
-    //   ...this.#stats.right,
-    //   min: rights.length ? min(rights) : -1,
-    //   max: rights.length ? max(rights) : -1,
-    //   mean: rights.length ? mean(rights) : -1,
-    //   std: rights.length ? standardDeviation(rights) : -1,
-    // };
+    if (leftsCorrelation.length > 1 && rightCorrelation.length > 1) {
+      this.#stats.result.correlation = sampleCorrelation(
+        leftsCorrelation,
+        rightCorrelation
+      );
+    } else this.#stats.result.correlation = 1;
+
+    this.#stats.result = {
+      ...this.#stats.result,
+      min: means.length ? min(means) : -1,
+      max: means.length ? max(means) : -1,
+      mean: means.length ? mean(means) : -1,
+      std: means.length ? standardDeviation(means) : -1,
+    };
+    this.#stats.left = {
+      ...this.#stats.left,
+      min: lefts.length ? min(lefts) : -1,
+      max: lefts.length ? max(lefts) : -1,
+      mean: lefts.length ? mean(lefts) : -1,
+      std: lefts.length ? standardDeviation(lefts) : -1,
+    };
+    this.#stats.right = {
+      ...this.#stats.right,
+      min: rights.length ? min(rights) : -1,
+      max: rights.length ? max(rights) : -1,
+      mean: rights.length ? mean(rights) : -1,
+      std: rights.length ? standardDeviation(rights) : -1,
+    };
+    this.#stats.sample.valid = this.#samples.reduce(
+      (acc, sample) => (!sample.leftMark || !sample.rightMark ? acc + 1 : acc),
+      0
+    );
+    // this.#stats.sample.outlier
     return this;
   }
 
