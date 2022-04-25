@@ -11,12 +11,63 @@
     "width": 1200,
     "height": 500,
     "showEyesPlot": true,
-    "showMeanPlot": true,
-    "curve": {
-      "type": "basis",
-      "parameter": 0
+    "showMeanPlot": true
+  },
+  "mesurement": {
+    "eye": "both",
+    "baseline": "fromStart",
+    "segmentation": "scene",
+    "windows": [
+      {
+        "name": "Zadanie 1",
+        "start": 0,
+        "end": 30000
+      },
+      {
+        "name": "Zadanie 2",
+        "start": 30000,
+        "end": 60000
+      }
+    ]
+  },
+  "markers": {
+    "outOfRange": {
+      "min": 2,
+      "max": 9
+    },
+    "dilatationSpeed": {
+      "on": true,
+      "thresholdMultiplier": 3,
+      "gapMinimumDuration": 50,
+      "gapMaximumDuration": 70,
+      "backwardGapPadding": 100,
+      "forwardGapPadding": 100
+    },
+    "trendlineDeviation": {
+      "on": true,
+      "thresholdMultiplier": 1,
+      "cutoffFrequency": 4
+    },
+    "temporallyIsolatedSamples": {
+      "on": true,
+      "sizeMinimum": 40,
+      "isolationMinimum": 50
     }
   },
+  "trialValidity": {
+    "missing": 30,
+    "correlation": 0
+  },
+  "resampling": {
+    "on": true,
+    "rate": 1000,
+    "acceptableGap": 250
+  },
+  "smoothing": {
+    "on": true,
+    "cutoffFrequency": 4
+  },
+
   "processing": {
     "pupil": {
       "eye": "both",
@@ -43,7 +94,8 @@
     },
     "resampling": {
       "on": true,
-      "rate": 1000
+      "rate": 1000,
+      "acceptableGap": 250
     },
     "interpolation": {
       "on": true,
@@ -69,13 +121,5 @@
         }
       ]
     }
-  },
-  "validity": {
-    "missing": {
-      "general": 30,
-      "left": 100,
-      "right": 100
-    },
-    "correlation": 0
   }
 }

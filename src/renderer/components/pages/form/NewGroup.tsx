@@ -1,20 +1,21 @@
 import { useRecoilState } from 'recoil';
 import { useState } from 'react';
 import { RouteComponentProps } from 'react-router';
+import IpcService from '../../../IpcService';
+import {
+  IStudyRequest,
+  IStudyResponse,
+} from '../../../../ipc/channels/StudyChannel';
 import SwitchItem from '../../molecules/form/SwitchItem';
 import FileSelectItem from '../../molecules/form/FileSelectItem';
 import TextItem from '../../molecules/form/TextItem';
 import SelectItem from '../../molecules/form/SelectItem';
 import ActiveStudy from '../../templates/ActiveStudy';
-import { Routes } from '../../../constants';
 import { activeStudyState, configsState } from '../../../assets/state';
 import Form from '../../organisms/Form';
-import { Channel, State } from '../../../../ipc/channels';
-import ElectronWindow from '../../../ElectronWindow';
-import { IResponseCreateGroup } from '../../../../ipc/types';
 import { ProgressLoader } from '../../atoms/Loader';
-
-const { ipcRenderer } = ElectronWindow.get().api;
+import { Routes } from '../../../constants';
+import { State } from '../../../../ipc/interfaces';
 
 interface IInitialValues {
   config: string;
@@ -30,49 +31,65 @@ type MatchProps = RouteComponentProps<MatchParams>;
 
 const NewGroup = (props: MatchProps) => {
   const { history } = props;
-  const [state, setState] = useState({ isLoading: false, progress: 0 });
+  const [isLoading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [activeStudy, setActiveStudy] = useRecoilState(activeStudyState);
   const [configs] = useRecoilState(configsState);
 
-  const onFinish = (values: any) => {
-    values.study = activeStudy.name;
+  const onFinish = (values: {
+    name: string;
+    isDependant: string;
+    files: any[];
+    config: string;
+  }) => {
     const files = [];
     for (let i = 0; i < values.files.length; i += 1) {
       const { path, name } = values.files[i].originFileObj;
       files.push({ path, name });
     }
-    const form: IRequestForm = {
-      studyName: values.study,
-      groupName: values.name,
-      isDependant: values.isDependant,
-      files,
-      config: configs[values.config],
+    const request: IStudyRequest = {
+      method: 'create',
+      query: {
+        name: activeStudy.name,
+        select: 'group',
+        form: {
+          groupName: values.name,
+          isDependant: values.isDependant === 'Dependant',
+          files,
+          config: configs[values.config],
+        },
+      },
     };
-    ipcRenderer.send(Channel.Request, {
-      responseChannel: Channel.CreateGroup,
-      form,
-    });
-    ipcRenderer.on(Channel.CreateGroup, (message: IResponseCreateGroup) => {
-      if (message.state === State.Loading) {
-        const progress = Math.round(message.progress * 100);
-        setState({ isLoading: true, progress });
-      } else if (message.state === State.Done) {
+    const responseChannel = IpcService.send('study', request);
+    IpcService.on(responseChannel, (_, response: IStudyResponse) => {
+      if (response.state === State.Loading) {
+        console.log('RESPONSE LOADING', response);
+        const progressPercent = Math.round(response.progress * 100);
+        setLoading(true);
+        setProgress(progressPercent);
+        return;
+      }
+      if (response.state === State.Done) {
         const { groups } = activeStudy;
         const updated = [...groups];
-        updated.push(message.response);
+        updated.push(response.result);
+        console.log(response.result);
+        console.log(updated);
         setActiveStudy((prev) => ({
           ...prev,
           groups: updated,
         }));
-        setState({ isLoading: false, progress: 100 });
-        history.push(Routes.Group(values.study, values.name));
-      } else throw new Error('Something went wrong');
+        setLoading(false);
+        setProgress(100);
+        IpcService.removeAllListeners(responseChannel);
+        history.push(Routes.Group(activeStudy.name, values.name));
+        return;
+      }
+      throw new Error('Something went wrong');
     });
   };
 
-  const loader = state.isLoading ? (
-    <ProgressLoader progress={state.progress} />
-  ) : undefined;
+  const loader = isLoading ? <ProgressLoader progress={progress} /> : undefined;
 
   const fields = [
     <TextItem
@@ -80,7 +97,7 @@ const NewGroup = (props: MatchProps) => {
       name="name"
       label="Name"
       required
-      reservedValues={activeStudy.groups.map((g) => g.name) ?? []}
+      reservedValues={activeStudy?.groups.map((g) => g?.name) ?? []}
     />,
     <SwitchItem
       key="isDependant"

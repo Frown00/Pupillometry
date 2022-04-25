@@ -1,22 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable react/no-unused-state */
-/* eslint-disable react/state-in-constructor */
 /* eslint-disable no-return-assign */
 import React from 'react';
 import * as d3 from 'd3';
 import DefaultLoader from '../atoms/Loader';
 import Metrics from './Metrics';
-
-enum InterpolationType {
-  linear = 'linear',
-  basis = 'basis',
-  bundle = 'bundle',
-  cardinal = 'cardinal',
-  natural = 'natural',
-  step = 'step',
-  stepAfter = 'stepAfter',
-  stepBefore = 'stepBefore',
-}
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface IProps {
@@ -26,35 +12,29 @@ interface IProps {
 }
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface IState {
-  data: any[];
   isLoading: boolean;
 }
 
 const ColorPallette = {
   okabe: {
-    orangeSolid: 'rgba(230, 159, 0, 1)',
-    orange80: 'rgba(230, 159, 0, 0.8)',
-    orange30: 'rgba(230, 159, 0, 0.3)',
-    cyanSolid: 'rgba(86, 180, 233, 1)',
-    cyan80: 'rgba(86, 180, 233, 0.8)',
-    cyan30: 'rgba(86, 180, 233, 0.3)',
-    greenSolid: 'rgba(0,158,115, 1)',
-    green80: 'rgba(0,158,115, 0.8)',
-    green30: 'rgba(0,158,115, 0.3)',
+    orange: 'rgba(230, 159, 0, 1)',
+    cyan: 'rgba(86, 180, 233, 1)',
+    green: 'rgba(0,158,115, 1)',
+    vermillion: 'rgba(213, 94, 0, 1)',
+    purple: 'rgba(204, 121, 167, 1)',
+    black: 'rgba(0, 0, 0, 1)',
+    blue: 'rgba(0, 114, 178, 1)',
   },
 };
 
 export default class LineGraph extends React.Component<IProps, IState> {
   ref!: SVGSVGElement;
 
-  state = {
-    data: [1, 2, 3, 4, 5],
-    isLoading: false,
-    name: '',
-  };
-
   constructor(props: IProps) {
     super(props);
+    this.state = {
+      isLoading: false,
+    };
     this.getCurveFunction = this.getCurveFunction.bind(this);
   }
 
@@ -62,7 +42,7 @@ export default class LineGraph extends React.Component<IProps, IState> {
     // activate
     const { samples } = this.props;
     d3.select(this.ref).selectAll('g').remove();
-    this.buildGraph(samples?.validSamples ?? []);
+    this.buildGraph(samples?.samples ?? [], samples.smoothed ?? []);
   }
 
   shouldComponentUpdate(nextProps: IProps) {
@@ -75,7 +55,7 @@ export default class LineGraph extends React.Component<IProps, IState> {
   componentDidUpdate() {
     const { samples } = this.props;
     d3.select(this.ref).selectAll('g').remove();
-    this.buildGraph(samples?.validSamples ?? []);
+    this.buildGraph(samples?.samples ?? [], samples.smoothed ?? []);
   }
 
   componentWillUnmount() {
@@ -84,46 +64,11 @@ export default class LineGraph extends React.Component<IProps, IState> {
 
   getCurveFunction(): any {
     const { config } = this.props;
-    const { chart } = config;
-    const { curve } = chart;
-    if (!curve) return d3.curveLinear;
-    switch (curve.type) {
-      case InterpolationType.linear:
-        return d3.curveLinear;
-      case InterpolationType.basis:
-        return d3.curveBasis;
-      case InterpolationType.natural:
-        return d3.curveNatural;
-      case InterpolationType.step:
-        return d3.curveStep;
-      case InterpolationType.stepAfter:
-        return d3.curveStepAfter;
-      case InterpolationType.stepBefore:
-        return d3.curveStepBefore;
-      case InterpolationType.cardinal:
-        return d3.curveCardinal.tension(curve?.parameter ?? 0);
-      case InterpolationType.bundle:
-        return d3.curveBundle.beta(curve?.parameter ?? 0);
-      default:
-        return d3.curveBundle.beta(1);
-    }
+    return d3.curveLinear;
   }
 
-  private buildGraph(dataset: any[]) {
+  getDimensions() {
     const { config } = this.props;
-    if (dataset.length <= 0) return;
-    // #region Accessors
-    const xAccessor = (d: IPupilSamplePreprocessed) => d.timestamp;
-    const yAccessorLeft = (d: IPupilSamplePreprocessed) => d?.leftPupil ?? NaN;
-    const yAccessorRight = (d: IPupilSamplePreprocessed) =>
-      d?.rightPupil ?? NaN;
-    const yAccessorMean = (d: IPupilSamplePreprocessed) => d?.meanPupil ?? NaN;
-
-    const time = '%M:%S'; // TODO config
-    const formatMillisecond = d3.timeFormat('.%L');
-    const curve = this.getCurveFunction();
-    // #endregion
-    // #region  Dimensions
     const dimensions = {
       width: config.chart.width,
       height: config.chart.height,
@@ -140,6 +85,119 @@ export default class LineGraph extends React.Component<IProps, IState> {
       dimensions.width - dimensions.margin.left - dimensions.margin.right;
     dimensions.ctrHeight =
       dimensions.height - dimensions.margin.top - dimensions.margin.bottom;
+    return dimensions;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  private drawCircles(args: {
+    container: any;
+    dataset: IPupilSample[];
+    xScale: any;
+    xAccessor: any;
+    yScale: any;
+    yAccessor: any;
+    className: string;
+    markProperty: 'leftMark' | 'rightMark';
+    color: string;
+  }) {
+    const {
+      container,
+      dataset,
+      xScale,
+      xAccessor,
+      yScale,
+      yAccessor,
+      markProperty,
+      className,
+      color,
+    } = args;
+    container
+      .selectAll(`.${className}`)
+      .data(dataset)
+      .join('circle')
+      .classed(className, true)
+      .attr('visibility', (d: IPupilSample) => {
+        if (Number.isNaN(yAccessor(d))) {
+          return 'hidden';
+        }
+        return '';
+      })
+      .attr('cx', (d: IPupilSample) => xScale(xAccessor(d)))
+      .attr('cy', (d: IPupilSample) => yScale(yAccessor(d)))
+      .attr('r', (d: any) => {
+        const biggerSize = ['invalid', 'outlier'];
+        if (biggerSize.includes(d[markProperty]?.type)) return 2;
+        return 1;
+      })
+      .attr('fill', color)
+      .attr('stroke', (d: IPupilSample) => {
+        const marker = d[markProperty];
+        if (marker?.type === 'invalid') {
+          return ColorPallette.okabe.vermillion;
+        }
+        if (marker?.type === 'outlier') {
+          if (marker.algorithm === 'Dilatation Speed - Gap') {
+            return ColorPallette.okabe.black;
+          }
+          return ColorPallette.okabe.orange;
+        }
+        return color;
+      })
+      .attr('stroke-width', (d: any) => {
+        const biggerSize = ['invalid', 'outlier'];
+        if (biggerSize.includes(d[markProperty]?.type)) return 2;
+        return 1;
+      })
+      .attr('data-temp', yAccessor);
+  }
+
+  private drawLine(args: {
+    container: any;
+    dataset: IPupilSample[];
+    xScale: any;
+    xAccessor: any;
+    yScale: any;
+    yAccessor: any;
+    color: string;
+  }) {
+    const { container, dataset, xScale, xAccessor, yScale, yAccessor, color } =
+      args;
+    const curve = this.getCurveFunction();
+    container
+      .append('path')
+      .datum(dataset)
+      .attr('fill', 'none')
+      .attr('stroke', color)
+      .attr('stroke-width', 1.5)
+      .attr(
+        'd',
+        d3
+          .line()
+          .x((d: any) => xScale(xAccessor(d)))
+          .y((d: any) => yScale(yAccessor(d)))
+          .curve(curve)
+      );
+  }
+
+  private buildGraph(dataset: IPupilSample[], smoothed: IPupilSample[]) {
+    const { config } = this.props;
+    if (dataset.length <= 0) return;
+    // #region Accessors
+    const xAccessor = (d: IPupilSample) => d.timestamp;
+    const yAccessorLeft = (d: IPupilSample) =>
+      d?.leftPupil ? d.leftPupil : NaN;
+    const yAccessorRight = (d: IPupilSample) =>
+      d?.rightPupil ? d.rightPupil : NaN;
+    const yAccessorMean = (d: IPupilSample) => {
+      return d?.mean ? d.mean : NaN;
+    };
+
+    const time = '%M:%S'; // TODO config
+    const formatMillisecond = d3.timeFormat('.%L');
+
+    // #endregion
+    // #region  Dimensions
+    const dimensions = this.getDimensions();
     // #endregion
     // #region Creating SVG
     const svg = d3
@@ -166,12 +224,12 @@ export default class LineGraph extends React.Component<IProps, IState> {
       .scaleLinear()
       .domain([
         Math.min(
-          d3.min(dataset, yAccessorLeft) ?? config.processing.pupil.max,
-          d3.min(dataset, yAccessorRight) ?? config.processing.pupil.max
+          d3.min(dataset, yAccessorLeft) ?? config.markers.outOfRange.max,
+          d3.min(dataset, yAccessorRight) ?? config.markers.outOfRange.max
         ),
         Math.max(
-          d3.max(dataset, yAccessorLeft) ?? config.processing.pupil.min,
-          d3.max(dataset, yAccessorRight) ?? config.processing.pupil.min
+          d3.max(dataset, yAccessorLeft) ?? config.markers.outOfRange.min,
+          d3.max(dataset, yAccessorRight) ?? config.markers.outOfRange.min
         ),
       ])
       .rangeRound([dimensions.ctrHeight, 0])
@@ -187,10 +245,8 @@ export default class LineGraph extends React.Component<IProps, IState> {
       .tickSize(-dimensions.ctrHeight)
       .ticks(10)
       .tickFormat(
-        d3.timeFormat('%s.%L') as unknown as (
-          dv: number | { valueOf(): number },
-          i: number
-        ) => string
+        (x: any) =>
+          `${Number.isInteger(x / 1000) ? x / 1000 : (x / 1000).toFixed(3)}`
       );
 
     const xAxisGroup = container
@@ -211,10 +267,11 @@ export default class LineGraph extends React.Component<IProps, IState> {
       .attr('x', dimensions.ctrWidth / 2)
       .attr('y', dimensions.margin.bottom - 10)
       .attr('fill', 'black')
-      .text('Time [m]');
+      .text('Time [s]');
     // #endregion
     // #region Axe Y
     const yAxis = d3.axisLeft(yScale).tickSize(-dimensions.ctrWidth).ticks(10);
+
     const yAxisGroup = container.append('g').call(yAxis).classed('axis', true);
     yAxisGroup
       .append('text')
@@ -230,73 +287,65 @@ export default class LineGraph extends React.Component<IProps, IState> {
 
     // container
     if (config.chart.showMeanPlot) {
-      if (config.processing.interpolation.on) {
-        container
-          .append('path')
-          .datum(dataset)
-          .attr('fill', 'none')
-          .attr('stroke', ColorPallette.okabe.greenSolid)
-          .attr('stroke-width', 1.5)
-          .attr(
-            'd',
-            d3
-              .line()
-              .x((d: any) => xScale(xAccessor(d)))
-              .y((d: any) => yScale(yAccessorMean(d)))
-              .curve(curve)
-          );
+      if (true) {
+        this.drawLine({
+          container,
+          dataset,
+          xScale,
+          xAccessor,
+          yScale,
+          yAccessor: yAccessorMean,
+          color: ColorPallette.okabe.cyan,
+        });
+        this.drawLine({
+          container,
+          dataset: smoothed,
+          xScale,
+          xAccessor,
+          yScale,
+          yAccessor: yAccessorMean,
+          color: ColorPallette.okabe.blue,
+        });
       } else {
-        container
-          .selectAll('.pupil-mean')
-          .data(dataset)
-          .join('circle')
-          .classed('.pupil-mean', true)
-          .attr('cx', (d) => xScale(xAccessor(d)))
-          .attr('cy', (d) => yScale(yAccessorMean(d)))
-          .attr('visibility', (d) => {
-            if (Number.isNaN(yAccessorMean(d))) return 'hidden';
-            return '';
-          })
-          .attr('r', 1)
-          .attr('fill', ColorPallette.okabe.green30)
-          .attr('stroke', ColorPallette.okabe.greenSolid)
-          .attr('data-temp', yAccessorMean);
+        this.drawCircles({
+          container,
+          dataset,
+          xScale,
+          xAccessor,
+          yScale,
+          yAccessor: yAccessorLeft,
+          className: 'pupil-mean',
+          color: ColorPallette.okabe.cyan,
+          markProperty: 'leftMark',
+        });
       }
     }
 
     // #region  Draw Circles
     if (config.chart.showEyesPlot) {
-      container
-        .selectAll('.pupil-left')
-        .data(dataset)
-        .join('circle')
-        .classed('pupil-left', true)
-        .attr('visibility', (d: any) => {
-          if (Number.isNaN(yAccessorLeft(d))) return 'hidden';
-          return '';
-        })
-        .attr('cx', (d: any) => xScale(xAccessor(d)))
-        .attr('cy', (d: any) => yScale(yAccessorLeft(d)))
-        .attr('r', 1)
-        .attr('fill', ColorPallette.okabe.orange30)
-        .attr('stroke', ColorPallette.okabe.orangeSolid)
-        .attr('data-temp', yAccessorLeft);
+      this.drawCircles({
+        container,
+        dataset,
+        xScale,
+        xAccessor,
+        yScale,
+        yAccessor: yAccessorLeft,
+        className: 'pupil-left',
+        color: ColorPallette.okabe.green,
+        markProperty: 'leftMark',
+      });
 
-      container
-        .selectAll('.pupil-right')
-        .data(dataset)
-        .join('circle')
-        .classed('.pupil-right', true)
-        .attr('cx', (d) => xScale(xAccessor(d)))
-        .attr('cy', (d) => yScale(yAccessorRight(d)))
-        .attr('visibility', (d) => {
-          if (Number.isNaN(yAccessorRight(d))) return 'hidden';
-          return '';
-        })
-        .attr('r', 1)
-        .attr('fill', ColorPallette.okabe.cyan30)
-        .attr('stroke', ColorPallette.okabe.cyanSolid)
-        .attr('data-temp', yAccessorRight);
+      this.drawCircles({
+        container,
+        dataset,
+        xScale,
+        xAccessor,
+        yScale,
+        yAccessor: yAccessorRight,
+        className: 'pupil-right',
+        color: ColorPallette.okabe.purple,
+        markProperty: 'rightMark',
+      });
     }
     // #endregion
   }
@@ -310,14 +359,18 @@ export default class LineGraph extends React.Component<IProps, IState> {
           <DefaultLoader />
         ) : (
           <>
-            <div className="svg">
-              <svg
-                className="container"
-                ref={(ref: SVGSVGElement) => (this.ref = ref)}
-                width="500"
-                height="500"
-              />
-            </div>
+            {samples.samples.length ? (
+              <div className="svg">
+                <svg
+                  className="container"
+                  ref={(ref: SVGSVGElement) => (this.ref = ref)}
+                  width="500"
+                  height="500"
+                />
+              </div>
+            ) : (
+              ''
+            )}
             <Metrics respondentName={name} samples={samples} />
           </>
         )}

@@ -1,7 +1,7 @@
 interface IGroup {
   name: string;
   isDependant: boolean;
-  respondents: IRespondentSamples[];
+  respondents: IPupillometryResult[];
 }
 
 interface IStudy {

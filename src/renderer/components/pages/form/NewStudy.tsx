@@ -1,14 +1,12 @@
 import { useRecoilState } from 'recoil';
+import { IStudyRequest } from '../../../../ipc/channels/StudyChannel';
+import IpcService from '../../../IpcService';
 import SelectItem from '../../molecules/form/SelectItem';
 import TextItem from '../../molecules/form/TextItem';
 import { configsState, studiesState } from '../../../assets/state';
 import General from '../../templates/General';
 import Form from '../../organisms/Form';
-import { Channel, State } from '../../../../ipc/channels';
-import ElectronWindow from '../../../ElectronWindow';
-import { IResponseCreateStudy } from '../../../../ipc/types';
-
-const { ipcRenderer } = ElectronWindow.get().api;
+import { State } from '../../../../ipc/interfaces';
 
 interface IInitialValues {
   config: string;
@@ -24,20 +22,27 @@ const NewStudy = (props: IProps) => {
   const [studies] = useRecoilState(studiesState);
 
   const onFinish = (values: any) => {
-    const form: IRequestForm = {
-      studyName: values.name,
-      config: configs[values.config],
+    const request: IStudyRequest = {
+      method: 'create',
+      query: {
+        select: 'study',
+        form: {
+          studyName: values.name,
+          config: configs[values.config],
+        },
+      },
     };
-    ipcRenderer.send(Channel.Request, {
-      responseChannel: Channel.CreateStudy,
-      form,
-    });
-    ipcRenderer.on(Channel.CreateStudy, (message: IResponseCreateStudy) => {
-      if (message.state === State.Loading) {
-        // no loader
-      } else if (message.state === State.Done) {
+    const responseChannel = IpcService.send('study', request);
+    IpcService.on(responseChannel, (_, response) => {
+      if (response.state === State.Loading) {
+        // setLoading(true);
+        return;
+      }
+      if (response.state === State.Done) {
         history.push(`/study/${values.name}`);
-      } else throw new Error('Something went wrong');
+        return;
+      }
+      throw new Error('Something went wrong');
     });
   };
 

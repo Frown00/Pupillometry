@@ -15,7 +15,7 @@ export interface IRespondentRecord {
   std: number;
 }
 
-function createRecords(respondents: IRespondentSamples[]) {
+function createRecords(respondents: IPupillometryResult[]) {
   if (respondents.length === 0) return [];
   const records = [];
   let segmentRecords = [];
@@ -37,19 +37,20 @@ function createRecords(respondents: IRespondentSamples[]) {
         console.log('SOME WRONG', respondents[r].name, s);
         // eslint-disable-next-line no-continue
       } else {
-        const { isValid, stats } = respondents[r].segments[s];
+        const { classification, stats } = respondents[r].segments[s];
+
         res = {
           key: r.toString(),
           name: respondents[r].name,
-          validity: isValid ? 'VALID' : 'INVALID',
-          pupilCorrelation: parseFloat(stats.pupilCorrelation?.toFixed(2)),
-          min: parseFloat(stats.min?.toFixed(4)),
-          max: parseFloat(stats.max?.toFixed(4)),
-          mean: parseFloat(stats.mean?.toFixed(4)),
+          validity: classification,
+          pupilCorrelation: parseFloat(stats.result.correlation?.toFixed(2)),
+          min: parseFloat(stats.result.min?.toFixed(4)),
+          max: parseFloat(stats.result.max?.toFixed(4)),
+          mean: parseFloat(stats.result.mean?.toFixed(4)),
           missing: parseFloat(
-            ((stats.missing.general / stats.rawSamplesCount) * 100)?.toFixed(2)
+            ((stats.result.missing / stats.sample.raw) * 100)?.toFixed(2)
           ),
-          std: parseFloat(stats.std?.toFixed(4)),
+          std: parseFloat(stats.result.std?.toFixed(4)),
         };
       }
       segmentRecords.push(res);
@@ -61,7 +62,7 @@ function createRecords(respondents: IRespondentSamples[]) {
 }
 
 interface IProps {
-  respondents: IRespondentSamples[];
+  respondents: IPupillometryResult[];
   handleOnDelete: (record: any) => void;
 }
 

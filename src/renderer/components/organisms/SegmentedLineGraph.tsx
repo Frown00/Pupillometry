@@ -14,7 +14,7 @@ export default function SegmentedLineGraph(props: IProps) {
   const { segments, config, respondentName } = props;
   const panes = segments.map((s) => (
     <TabPane tab={`${s.name}`} key={s.name}>
-      <p>{s.isValid}</p>
+      <p>{s.classification}</p>
       <LineGraph config={config} samples={s} name={respondentName} />
     </TabPane>
   ));

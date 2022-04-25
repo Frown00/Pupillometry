@@ -1,4 +1,4 @@
-import { State } from './channels';
+import { State } from './interfaces';
 
 interface IMessage {
   state: State;
@@ -7,7 +7,7 @@ interface IMessage {
     | IStudy[]
     | IStudy
     | IGroup
-    | IRespondentSamples
+    | IPupillometryResult
     | IConfigMap
     | null
     | undefined
@@ -35,7 +35,7 @@ interface IResponseAddRespondent extends IMessage {
 }
 
 interface IResponseRespondentPupilData extends IMessage {
-  response: IRespondentSamples;
+  response: IPupillometryResult;
 }
 
 interface IResponseGetConfigs extends IMessage {

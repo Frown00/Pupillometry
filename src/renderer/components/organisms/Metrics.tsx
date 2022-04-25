@@ -9,7 +9,7 @@ interface IProps {
 
 export default function Metrics(props: IProps) {
   const { respondentName, samples } = props;
-  const { stats, isValid } = samples;
+  const { stats, classification } = samples;
   const higherPrecision = 4;
   const lowerPrecision = 2;
   return (
@@ -22,7 +22,7 @@ export default function Metrics(props: IProps) {
         }}
       >
         <div>
-          {isValid ? (
+          {classification === 'Valid' ? (
             <h2 style={{ color: '#a0d911' }}>
               <b>VALID</b>
             </h2>
@@ -58,7 +58,7 @@ export default function Metrics(props: IProps) {
             <Col span={12}>
               <Statistic
                 title="Mean"
-                value={stats.mean}
+                value={stats.result.mean}
                 precision={higherPrecision}
               />
             </Col>
@@ -66,7 +66,7 @@ export default function Metrics(props: IProps) {
               {' '}
               <Statistic
                 title="Std"
-                value={stats.std}
+                value={stats.result.std}
                 precision={higherPrecision}
               />
             </Col>
@@ -74,14 +74,14 @@ export default function Metrics(props: IProps) {
               {' '}
               <Statistic
                 title="Min"
-                value={stats.min}
+                value={stats.result.min}
                 precision={higherPrecision}
               />
             </Col>
             <Col span={12}>
               <Statistic
                 title="Max"
-                value={stats.max}
+                value={stats.result.max}
                 precision={higherPrecision}
               />
             </Col>
@@ -94,22 +94,22 @@ export default function Metrics(props: IProps) {
           </h3>
           <Row gutter={[24, 16]}>
             <Col span={12}>
-              <Statistic title="Valid" value={stats.validSamples} />
+              <Statistic title="Valid" value={stats.sample.valid} />
             </Col>
             <Col span={12}>
-              <Statistic title="Raw" value={stats.rawSamplesCount} />
+              <Statistic title="Raw" value={stats.sample.raw} />
             </Col>
             <Col span={12}>
               <Statistic
                 title="Pupil Correlation"
-                value={stats.pupilCorrelation}
+                value={stats.result.correlation}
                 precision={lowerPrecision}
               />
             </Col>
             <Col span={12}>
               <Statistic
                 title="Eye difference [mm]"
-                value={stats.meanPupilDifference}
+                value={stats.result.difference}
                 precision={lowerPrecision}
               />
             </Col>
@@ -131,7 +131,7 @@ export default function Metrics(props: IProps) {
             <Col span={12}>
               <Statistic
                 title="Both"
-                value={(stats.missing.general / stats.rawSamplesCount) * 100}
+                value={(stats.result.missing / stats.sample.raw) * 100}
                 precision={lowerPrecision}
               />
             </Col>
@@ -139,14 +139,14 @@ export default function Metrics(props: IProps) {
             <Col span={12}>
               <Statistic
                 title="Left"
-                value={(stats.missing.leftPupil / stats.rawSamplesCount) * 100}
+                value={(stats.left.missing / stats.sample.raw) * 100}
                 precision={lowerPrecision}
               />
             </Col>
             <Col span={12}>
               <Statistic
                 title="Right"
-                value={(stats.missing.rightPupil / stats.rawSamplesCount) * 100}
+                value={(stats.right.missing / stats.sample.raw) * 100}
                 precision={lowerPrecision}
               />
             </Col>

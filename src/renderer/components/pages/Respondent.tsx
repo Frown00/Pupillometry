@@ -2,19 +2,22 @@ import { useEffect, useState } from 'react';
 import { RouteComponentProps } from 'react-router';
 import { useRecoilState } from 'recoil';
 import {
+  IStudyRequest,
+  IStudyResponse,
+} from '../../../ipc/channels/StudyChannel';
+import {
   activeGroupState,
   activeStudyState,
   configsState,
 } from '../../assets/state';
-import { Channel, State } from '../../../ipc/channels';
-import ElectronWindow from '../../ElectronWindow';
 import DefaultLoader from '../atoms/Loader';
 import ActiveStudy from '../templates/ActiveStudy';
-import { IResponseRespondentPupilData } from '../../../ipc/types';
 import Title from '../atoms/Title';
 import Text from '../atoms/Text';
 import SelectWithSearch from '../molecules/SelectWithSearch';
 import SegmentedLineGraph from '../organisms/SegmentedLineGraph';
+import { State } from '../../../ipc/interfaces';
+import IpcService from '../../IpcService';
 
 interface MatchParams {
   studyName: string;
@@ -22,61 +25,64 @@ interface MatchParams {
   respondentName: string;
 }
 
-interface IState {
-  isLoading: boolean;
-  respondent: IRespondentSamples | null;
-}
-
 type MatchProps = RouteComponentProps<MatchParams>;
-
-const { ipcRenderer } = ElectronWindow.get().api;
 
 export default function Respondent(props: MatchProps) {
   const { match, history } = props;
   const { respondentName } = match.params;
-  const [state, setState] = useState<IState>({
-    respondent: null,
-    isLoading: true,
-  });
+  const [isLoading, setLoading] = useState(false);
+  const [respondent, setRespondent] = useState<IPupillometryResult | null>(
+    null
+  );
   const [activeStudy] = useRecoilState(activeStudyState);
   const [activeGroup] = useRecoilState(activeGroupState);
   const [configs] = useRecoilState(configsState);
 
   useEffect(() => {
-    const form: IRequestForm = {
-      studyName: activeStudy.name,
-      groupName: activeGroup.name,
-      respondentName,
+    const request: IStudyRequest = {
+      method: 'readOne',
+      query: {
+        name: activeStudy.name,
+        group: activeGroup.name,
+        respondent: respondentName,
+        select: 'respondent',
+      },
     };
-    ipcRenderer.send(Channel.Request, {
-      responseChannel: Channel.GetRespondentPupilData,
-      form,
-    });
-    ipcRenderer.on(
-      Channel.GetRespondentPupilData,
-      (message: IResponseRespondentPupilData) => {
-        if (message.state === State.Loading) {
-          setState((prev: IState) => ({ ...prev, isLoading: true }));
-        } else {
-          setState({
-            isLoading: false,
-            respondent: message.response,
-          });
-        }
+    const responseChannel = IpcService.send('study', request);
+    IpcService.on(responseChannel, (e, response: IStudyResponse) => {
+      if (response.state === State.Loading) {
+        setLoading(true);
+        return;
       }
-    );
+      if (response.state === State.Done) {
+        console.log(response.result);
+        setRespondent(response.result);
+        setLoading(false);
+      }
+    });
     return () => {
-      ipcRenderer.removeAllListeners(Channel.GetRespondentPupilData);
+      IpcService.removeAllListeners(responseChannel);
     };
   }, [activeStudy.name, activeGroup.name, respondentName]);
 
   const respondentNames = activeGroup.respondents.map((r) => r.name);
-  const loader = state.isLoading ? <DefaultLoader /> : undefined;
+  const loader = isLoading ? <DefaultLoader /> : undefined;
   let config = null;
-  if (state.respondent?.config) {
-    config = configs[state.respondent?.config];
+  if (respondent?.config) {
+    config = configs[respondent?.config];
   }
 
+  const correctConfig = config ? (
+    <SegmentedLineGraph
+      config={config}
+      respondentName={respondentName}
+      segments={respondent?.segments ?? []}
+    />
+  ) : (
+    <Title level={3}>
+      <Text type="danger">Error with config</Text>
+    </Title>
+  );
   return (
     <ActiveStudy routerProps={props} Loader={loader}>
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -92,17 +98,7 @@ export default function Respondent(props: MatchProps) {
       <div>
         <Title level={2}>Overview</Title>
         <Text>Config: {config?.name ?? 'NO CONFIG'}</Text>
-        {config ? (
-          <SegmentedLineGraph
-            config={config}
-            respondentName={respondentName}
-            segments={state.respondent?.segments ?? []}
-          />
-        ) : (
-          <Title level={3}>
-            <Text type="danger">Error with config</Text>
-          </Title>
-        )}
+        {correctConfig}
       </div>
     </ActiveStudy>
   );

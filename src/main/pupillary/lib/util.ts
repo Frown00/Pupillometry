@@ -21,7 +21,7 @@ export function validateSample(sample: number, min: number, max: number) {
 }
 
 export function findNextSamples(
-  samples: IPupilSamplePreprocessed[],
+  samples: IPupilSampleParsed[],
   index: number,
   n: number,
   eye: 'left' | 'right'
@@ -29,7 +29,7 @@ export function findNextSamples(
   const next = [];
   for (let i = index + 1; i < samples.length; i += 1) {
     const val = eye === 'left' ? samples[i].leftPupil : samples[i].rightPupil;
-    if (!Number.isNaN(val)) {
+    if (!Number.isNaN(val) && val > 0) {
       next.push(samples[i]);
     }
     if (next.length === n) break;
@@ -38,7 +38,7 @@ export function findNextSamples(
 }
 
 export function findPreviousSamples(
-  samples: IPupilSamplePreprocessed[],
+  samples: IPupilSampleParsed[],
   index: number,
   n: number,
   eye: 'left' | 'right'
@@ -46,7 +46,7 @@ export function findPreviousSamples(
   const previous = [];
   for (let i = index - 1; i >= 0; i -= 1) {
     const val = eye === 'left' ? samples[i].leftPupil : samples[i].rightPupil;
-    if (!Number.isNaN(val)) {
+    if (!Number.isNaN(val) && val > 0) {
       previous.push(samples[i]);
     }
     if (previous.length === n) break;

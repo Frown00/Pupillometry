@@ -2,14 +2,15 @@ import { useRecoilState } from 'recoil';
 import { Select } from 'antd';
 import { useState } from 'react';
 import { unflattenObject } from '../../util/flattenObject';
-import { IMessage } from '../../../ipc/types';
-import { Channel, State } from '../../../ipc/channels';
-import ElectronWindow from '../../ElectronWindow';
 import { configsState } from '../../assets/state';
 import ConfigForm, { IConfigFormValues } from '../organisms/ConfigForm';
 import General from '../templates/General';
-
-const { ipcRenderer } = ElectronWindow.get().api;
+import {
+  IConfigRequest,
+  IConfigResponse,
+} from '../../../ipc/channels/ConfigChannel';
+import IpcService from '../../IpcService';
+import { State } from '../../../ipc/interfaces';
 
 const { Option } = Select;
 
@@ -21,17 +22,24 @@ export default function Config(props: any) {
 
   const action = (values: IConfigFormValues) => {
     const newConfig = unflattenObject(values) as IConfig;
-    const request: IRequestForm = { config: newConfig };
-    ipcRenderer.send(Channel.Request, {
-      responseChannel: Channel.CreateConfig,
-      form: request,
-    });
-    ipcRenderer.on(Channel.CreateConfig, (message: IMessage) => {
-      if (message.state === State.Loading) {
-        //
-      } else if (message.state === State.Done) {
+    const request: IConfigRequest = {
+      method: 'create',
+      query: {
+        form: newConfig,
+      },
+    };
+    const responseChannel = IpcService.send('config', request);
+    IpcService.on(responseChannel, (e, response: IConfigResponse) => {
+      console.log('CREATE CONFIG', e);
+      if (response.state === State.Loading) {
+        // setLoading(true);
+        return;
+      }
+      if (response.state === State.Done) {
         history.push(`/`);
-      } else throw new Error('Something went wrong');
+        return;
+      }
+      throw new Error('Something went wrong');
     });
   };
   const options = Object.keys(configs).map((configName) => (
