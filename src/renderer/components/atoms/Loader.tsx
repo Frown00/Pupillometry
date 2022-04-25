@@ -17,7 +17,13 @@ const Loader = ({
     | 'spinningBubbles'
     | 'spokes';
   color: string;
-}) => <ReactLoading type={type} color={color} height="20%" width="20%" />;
+}) => {
+  return (
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    <ReactLoading type={type} color={color} height="100px" width="100px" />
+  );
+};
 
 interface IProps {
   progress?: number;
@@ -30,7 +36,7 @@ const DefaultLoader = ({ progress }: IProps) => (
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
-      top: '50%',
+      top: 'calc(50vh - 100px - 30px)',
       flexDirection: 'column',
     }}
   >
