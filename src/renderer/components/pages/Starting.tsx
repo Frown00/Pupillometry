@@ -1,11 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useRecoilState } from 'recoil';
+import {
+  IConfigRequest,
+  IConfigResponse,
+} from '../../../ipc/channels/ConfigChannel';
+import IpcService from '../../IpcService';
+import {
+  IStudyRequest,
+  IStudyResponse,
+} from '../../../ipc/channels/StudyChannel';
 import { removeElement } from '../../../util';
-import { Routes } from '../../constants';
-import ElectronWindow from '../../ElectronWindow';
+import { Routes } from '../../routes';
 import General from '../templates/General';
-import { Channel, State } from '../../../ipc/channels';
-import { IResponseGetConfigs, IResponseGetStudies } from '../../../ipc/types';
 import RouteLink from '../atoms/RouteLink';
 import Button from '../atoms/Button';
 import Title from '../atoms/Title';
@@ -14,72 +20,70 @@ import ButtonGroup from '../molecules/ButtonGroup';
 import StudyTable, { IStudyRecord } from '../organisms/table/StudyTable';
 import { configsState, studiesState } from '../../assets/state';
 import DefaultLoader from '../atoms/Loader';
-
-interface IState {
-  isLoading: boolean;
-  studies: IStudy[];
-  recent: IStudy | null;
-}
-const { ipcRenderer } = ElectronWindow.get().api;
+import { State } from '../../../ipc/interfaces';
 
 export default function StartingPage() {
-  const [state, setState] = useState<IState>({
-    isLoading: true,
-    studies: [],
-    recent: null,
-  });
-  const [, setStudies] = useRecoilState(studiesState);
+  const [isLoading, setLoading] = useState(false);
+  const [studies, setStudies] = useRecoilState(studiesState);
   const [, setConfigs] = useRecoilState(configsState);
-
+  // LOAD STUDIES
   useEffect(() => {
-    // LOAD STUDIES
-    ipcRenderer.send(Channel.Request, {
-      responseChannel: Channel.GetStudies,
-    });
-    ipcRenderer.on(Channel.GetStudies, (message: IResponseGetStudies) => {
-      if (message.state === State.Loading) {
-        setState((prev: IState) => ({ ...prev, isLoading: true }));
-      } else if (message.state === State.Done) {
-        setState((prev: IState) => ({
-          ...prev,
-          isLoading: false,
-          studies: message.response,
-        }));
-        setStudies(message.response);
+    const request: IStudyRequest = {
+      method: 'readAll',
+      query: {
+        select: 'study',
+      },
+    };
+    const responseChannel = IpcService.send('study', request);
+    IpcService.on(responseChannel, (_, response: IStudyResponse) => {
+      if (response.state === State.Loading) {
+        setLoading(true);
+        return;
       }
-    });
-    // LOAD CONFIGS
-    ipcRenderer.send(Channel.Request, {
-      responseChannel: Channel.GetConfigs,
-    });
-    ipcRenderer.on(Channel.GetConfigs, (message: IResponseGetConfigs) => {
-      if (message.state === State.Loading) {
-        setState((prev) => ({ ...prev, isLoading: true }));
-      } else if (message.state === State.Done) {
-        setState((prev) => ({
-          ...prev,
-          isLoading: false,
-        }));
-        setConfigs(message.response);
-      }
+      setLoading(false);
+      setStudies(response.result);
     });
     return () => {
-      ipcRenderer.removeAllListeners(Channel.GetStudies);
-      ipcRenderer.removeAllListeners(Channel.GetConfigs);
+      IpcService.removeAllListeners('study');
     };
-  }, [setStudies, setConfigs]);
+  }, [setLoading, setStudies]);
+
+  // LOAD CONFIGS
+  useEffect(() => {
+    const request: IConfigRequest = {
+      method: 'readAll',
+      query: {},
+    };
+    const responseChannel = IpcService.send('config', request);
+    IpcService.on(responseChannel, (_, response: IConfigResponse) => {
+      if (response.state === State.Loading) {
+        setLoading(true);
+        return;
+      }
+      setLoading(false);
+      console.log('CONFIG', response);
+      setConfigs(response.result);
+    });
+    return () => {
+      IpcService.removeAllListeners(responseChannel);
+    };
+  }, [setLoading, setConfigs]);
 
   const handleOnDelete = (record: IStudyRecord) => {
-    const { studies } = state;
     const studiesCopy = [...studies];
-    const removed = removeElement(studiesCopy, 'name', record.name);
-    const deleteForm: IDeleteStudy = { studyName: removed.name };
-    ipcRenderer.send(Channel.DeleteStudy, deleteForm);
-    setState((prev) => ({ ...prev, studies: studiesCopy }));
-    setStudies(studiesCopy);
+    const request: IStudyRequest = {
+      method: 'deleteOne',
+      query: {
+        name: record.name,
+      },
+    };
+    const responseChannel = IpcService.send('study', request);
+    IpcService.on(responseChannel, () => {
+      removeElement(studiesCopy, 'name', record.name);
+      setStudies(studiesCopy);
+    });
   };
 
-  const { isLoading, studies, recent } = state;
   const loader = isLoading ? <DefaultLoader /> : undefined;
 
   return (
@@ -91,7 +95,11 @@ export default function StartingPage() {
         />
         <Button
           onClick={() => {
-            ipcRenderer.send(Channel.ClearDB);
+            const request: IStudyRequest = {
+              method: 'clear',
+              query: {},
+            };
+            IpcService.send('study', request);
             window.location.reload();
           }}
         >

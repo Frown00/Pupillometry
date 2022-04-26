@@ -14,10 +14,10 @@ import path from 'path';
 import { app, BrowserWindow, shell } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
+import { registerIpcChannels } from '../ipc';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
-import DB from './filesystem/store';
-import processing from './pupillary/process';
+import FileStore from './store/FileStore';
 
 export default class AppUpdater {
   constructor() {
@@ -67,6 +67,12 @@ const createWindow = async () => {
     return path.join(RESOURCES_PATH, ...paths);
   };
 
+  const getDataPath = (): string => {
+    return app.isPackaged
+      ? path.join(process.resourcesPath, 'daa')
+      : path.join(__dirname, '../../data');
+  };
+
   mainWindow = new BrowserWindow({
     show: false,
     width: 1024,
@@ -83,6 +89,7 @@ const createWindow = async () => {
     if (!mainWindow) {
       throw new Error('"mainWindow" is not defined');
     }
+
     if (process.env.START_MINIMIZED) {
       mainWindow.minimize();
     } else {
@@ -102,13 +109,10 @@ const createWindow = async () => {
     event.preventDefault();
     shell.openExternal(url);
   });
-  const db = new DB(mainWindow, getAssetPath());
-  db.listenEvents();
-  console.log('PATH', app.getPath('userData'));
-  processing(mainWindow);
-  // Remove this if your app does not use auto updates
-  // eslint-disable-next-line
-  new AppUpdater();
+
+  // Init
+  const fileStore = new FileStore({ data: { location: getDataPath() } });
+  registerIpcChannels(<BrowserWindow>mainWindow);
 };
 
 /**
@@ -130,7 +134,6 @@ app
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the
       // dock icon is clicked and there are no other windows open.
-      if (mainWindow === null) createWindow();
     });
   })
   .catch(console.log);

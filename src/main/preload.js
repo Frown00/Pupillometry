@@ -5,28 +5,20 @@ const objValidChannels = Object.values(validChannels);
 
 contextBridge.exposeInMainWorld('api', {
   ipcRenderer: {
-    processPupil(config) {
-      ipcRenderer.send(validChannels.ProcessPupil, config);
-    },
-    send(key, value) {
-      ipcRenderer.send(key, value);
+    send(channel, value) {
+      if (objValidChannels.includes(channel)) {
+        // Deliberately strip event as it includes `sender`
+        ipcRenderer.send(channel, value);
+      } else {
+        throw new Error('Trying to use invalid channel');
+      }
     },
 
     on(channel, func) {
-      if (objValidChannels.includes(channel)) {
-        // Deliberately strip event as it includes `sender`
-        ipcRenderer.on(channel, (event, ...args) => func(...args));
-      } else {
-        throw new Error('Trying to use invalid channel');
-      }
+      ipcRenderer.on(channel, (event, ...args) => func(event, ...args));
     },
     once(channel, func) {
-      if (objValidChannels.includes(channel)) {
-        // Deliberately strip event as it includes `sender`
-        ipcRenderer.once(channel, (event, ...args) => func(...args));
-      } else {
-        throw new Error('Trying to use invalid channel');
-      }
+      ipcRenderer.once(channel, (event, ...args) => func(event, ...args));
     },
     removeAllListeners(channel) {
       ipcRenderer.removeAllListeners(channel);

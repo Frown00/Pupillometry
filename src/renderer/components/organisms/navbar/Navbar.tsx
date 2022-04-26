@@ -6,7 +6,7 @@ import {
 import styled from 'styled-components';
 import NavLink from '../../atoms/NavLink';
 import color from '../../../assets/color';
-import { Routes } from '../../../constants';
+import { Routes } from '../../../routes';
 import RouteLink from '../../atoms/RouteLink';
 import Logo from '../../molecules/Logo';
 

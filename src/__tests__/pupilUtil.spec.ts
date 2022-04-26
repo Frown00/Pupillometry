@@ -1,4 +1,4 @@
-import * as util from '../main/pupillary/util';
+import * as util from '../main/pupillary/lib/util';
 
 describe('Calc mean', () => {
   describe('Both pupil is valid number', () => {

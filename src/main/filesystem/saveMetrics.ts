@@ -15,7 +15,7 @@ function mergeString(rowNum: number, from: number, to: number) {
   return `${numberToLetters(from)}${rowNum}:${numberToLetters(to)}${rowNum}`;
 }
 
-function getAllTasks(respondents: IRespondentSamples[]) {
+function getAllTasks(respondents: IPupillometryResult[]) {
   const tasks = [];
   const respondent = respondents[0];
   for (let j = 0; j < respondent.segments.length; j += 1) {
@@ -92,7 +92,6 @@ export default async function saveMetrics(
 ) {
   if (!study) return null;
   if (!study.groups) return null;
-  console.log(study);
   const workbook = new ExcelJS.Workbook();
   // freeze first row and column
   for (let i = 0; i < study.groups.length; i += 1) {
@@ -136,47 +135,33 @@ export default async function saveMetrics(
         const righMove = eye.right * metrics + s * taskColumns;
         const bothMove = eye.both * metrics + s * taskColumns;
         const { stats } = segment;
-        const {
-          min,
-          max,
-          mean,
-          pupilCorrelation,
-          std,
-          missing,
-          rawSamplesCount,
-          left,
-          right,
-        } = stats;
+        const { result, sample, left, right } = stats;
+        const { min, max, mean, correlation, std, missing } = result;
+        const { raw } = sample;
 
-        row[1 + s * taskColumns] = segment?.isValid ?? 'NO DATA';
-        row[2 + s * taskColumns] = parseFloat(
-          pupilCorrelation?.toFixed(2) ?? -1
-        );
+        row[1 + s * taskColumns] = segment?.classification ?? 'NO DATA';
+        row[2 + s * taskColumns] = parseFloat(correlation?.toFixed(2) ?? -1);
         // left
         // both
         row[3 + leftMove] = parseFloat(left.min?.toFixed(precision) ?? -1);
         row[4 + leftMove] = parseFloat(left.max?.toFixed(precision) ?? -1);
         row[5 + leftMove] = parseFloat(left.mean?.toFixed(precision) ?? -1);
         row[6 + leftMove] = parseFloat(left.std?.toFixed(precision) ?? 1);
-        row[7 + leftMove] = parseFloat(
-          ((missing.leftPupil / rawSamplesCount) * 100).toFixed(2)
-        );
+        row[7 + leftMove] = parseFloat(((left.missing / raw) * 100).toFixed(2));
         // right
         row[3 + righMove] = parseFloat(right.min?.toFixed(precision) ?? -1);
         row[4 + righMove] = parseFloat(right.max?.toFixed(precision) ?? -1);
         row[5 + righMove] = parseFloat(right.mean?.toFixed(precision) ?? -1);
         row[6 + righMove] = parseFloat(right.std?.toFixed(precision) ?? 1);
         row[7 + righMove] = parseFloat(
-          ((missing.rightPupil / rawSamplesCount) * 100).toFixed(2)
+          ((right.missing / raw) * 100).toFixed(2)
         );
         // both
         row[3 + bothMove] = parseFloat(min?.toFixed(precision) ?? -1);
         row[4 + bothMove] = parseFloat(max?.toFixed(precision) ?? -1);
         row[5 + bothMove] = parseFloat(mean?.toFixed(precision) ?? -1);
         row[6 + bothMove] = parseFloat(std?.toFixed(precision) ?? 1);
-        row[7 + bothMove] = parseFloat(
-          ((missing.general / rawSamplesCount) * 100).toFixed(2)
-        );
+        row[7 + bothMove] = parseFloat(((missing / raw) * 100).toFixed(2));
       }
       worksheet.addRow(row);
     }

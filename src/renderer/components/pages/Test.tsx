@@ -1,36 +1,39 @@
 import { Button } from 'antd';
 import { useEffect, useState } from 'react';
 import { useRecoilState } from 'recoil';
-import { Channel } from '../../../ipc/channels';
+import { State } from '../../../ipc/interfaces';
 import { unflattenObject } from '../../util/flattenObject';
 import { configsState } from '../../assets/state';
-import ElectronWindow from '../../ElectronWindow';
 import Title from '../atoms/Title';
 import ConfigForm, { IConfigFormValues } from '../organisms/ConfigForm';
 import SegmentedLineGraph from '../organisms/SegmentedLineGraph';
 import General from '../templates/General';
 import DefaultLoader from '../atoms/Loader';
-
-const { ipcRenderer } = ElectronWindow.get().api;
+import IpcService from '../../IpcService';
+import {
+  IPupillometryRequest,
+  IPupillometryResponse,
+} from '../../../ipc/channels/PupillometryChannel';
 
 export default function Test() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isConfigMode, setIsConfigMode] = useState<boolean>(false);
-  const [pupilData, setPuilData] = useState<IRespondentSamples>();
+  const [pupilData, setPuilData] = useState<IPupillometryResult>();
   const [configs] = useRecoilState(configsState);
   const [config, setConfig] = useState<IConfig>(configs.default);
+  const responseChannel = 'pupillometry_response';
 
   useEffect(() => {
     setConfig((prev) => ({ ...prev, name: 'test' }));
-    ipcRenderer.on(
-      Channel.GetValidPupilSamples,
-      (respondent: IRespondentSamples) => {
-        setPuilData(respondent);
+    IpcService.on(responseChannel, (_, response: IPupillometryResponse) => {
+      if (response.state === State.Done) {
+        console.log('RESPONSE', response);
         setIsLoading(false);
+        setPuilData(response.result[0] ?? null);
       }
-    );
+    });
     return () => {
-      ipcRenderer.removeAllListeners(Channel.GetValidPupilSamples);
+      IpcService.removeAllListeners(responseChannel);
     };
   }, []);
 
@@ -51,20 +54,30 @@ export default function Test() {
         style={{
           display: 'flex',
           justifyContent: 'space-between',
-          width: '600px',
+          width: '350px',
           marginBottom: '20px',
         }}
       >
         <Button
+          style={{ minWidth: 150 }}
           type="primary"
           onClick={() => {
-            ipcRenderer.processPupil(config);
+            const request: IPupillometryRequest = {
+              method: 'test',
+              query: {
+                form: {
+                  config,
+                },
+              },
+              responseChannel,
+            };
+            IpcService.send('pupillometry', request);
             setIsLoading(true);
           }}
         >
           Process
         </Button>
-        <Button onClick={toggleConfig}>
+        <Button style={{ minWidth: 150 }} onClick={toggleConfig}>
           {isConfigMode ? 'Show Metrics' : 'Change Config'}
         </Button>
       </div>
