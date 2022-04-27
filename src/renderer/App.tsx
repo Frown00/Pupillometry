@@ -11,6 +11,7 @@ import About from './components/pages/About';
 import Config from './components/pages/Config';
 import Test from './components/pages/Test';
 import AddRespondent from './components/pages/form/AddRespondent';
+import Export from './components/pages/form/Export';
 
 export default function App() {
   return (
@@ -23,6 +24,7 @@ export default function App() {
         <Route exact path={Routes.NewGroup()} component={NewGroup} />
         <Route exact path={Routes.Respondent()} component={Respondent} />
         <Route exact path={Routes.AddRespondent()} component={AddRespondent} />
+        <Route exact path={Routes.Export()} component={Export} />
         <Route path={Routes.Config} component={Config} />
         <Route path={Routes.Test} component={Test} />
         <Route path={Routes.About} component={About} />

@@ -13,6 +13,11 @@ interface IConfigMap {
   [config: string]: IConfig;
 }
 
+interface ITaskGroup {
+  name: string;
+  tasks: string[];
+}
+
 interface IStore {
   recent: string;
   studies: IStudy[];

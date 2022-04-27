@@ -32,7 +32,6 @@ export default function Group(props: MatchProps) {
   const studyName = activeStudy.name ?? '';
 
   useEffect(() => {
-    console.log('ACTIVE', group);
     if (group) {
       setActiveGroup(group);
       setRespondents(group.respondents ?? []);
