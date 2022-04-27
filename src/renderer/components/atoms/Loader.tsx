@@ -1,28 +1,13 @@
 /* eslint-disable react/require-default-props */
-import { Progress } from 'antd';
-import ReactLoading from 'react-loading';
+import { Progress, Spin } from 'antd';
+import { Loading3QuartersOutlined } from '@ant-design/icons';
+import Color from '../../assets/color';
 
-const Loader = ({
-  type,
-  color,
-}: {
-  type:
-    | 'blank'
-    | 'balls'
-    | 'bars'
-    | 'bubbles'
-    | 'cubes'
-    | 'cylon'
-    | 'spin'
-    | 'spinningBubbles'
-    | 'spokes';
-  color: string;
-}) => {
-  return (
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    <ReactLoading type={type} color={color} height="100px" width="100px" />
-  );
+const antIcon = <Loading3QuartersOutlined style={{ fontSize: 100 }} spin />;
+
+const Loader = (props: { color: string }) => {
+  const { color } = props;
+  return <Spin indicator={antIcon} style={{ color }} />;
 };
 
 interface IProps {
@@ -40,7 +25,7 @@ const DefaultLoader = ({ progress }: IProps) => (
       flexDirection: 'column',
     }}
   >
-    <Loader type="spin" color="orange" />
+    <Loader color={Color.accent.primary} />
     <div>{progress !== undefined ? `${progress}%` : ''}</div>
   </div>
 );
