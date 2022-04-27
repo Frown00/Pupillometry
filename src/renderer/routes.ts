@@ -16,4 +16,5 @@ export const Routes = {
   NewGroup: (studyName = ':studyName') => `/form/${studyName}/newGroup`,
   AddRespondent: (studyName = ':studyName', groupName = ':groupName') =>
     `/form/${studyName}/${groupName}/addRespondent`,
+  Export: (studyName = ':studyName') => `/export/study/${studyName}`,
 };

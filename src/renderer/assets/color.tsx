@@ -18,9 +18,9 @@ export default {
     tertiary: '#8878CB',
   },
   actions: {
-    negative: '',
-    neutral: '',
-    positiove: '',
+    negative: ColorPallette.okabe.vermillion,
+    neutral: ColorPallette.okabe.cyan,
+    positiove: ColorPallette.okabe.green,
   },
   core: {
     primary: '#353435',
@@ -43,15 +43,6 @@ export default {
         speed: ColorPallette.okabe.orange,
         gap: ColorPallette.okabe.black,
       },
-    },
-    okabe: {
-      orange: 'rgba(230, 159, 0, 1)',
-      cyan: 'rgba(86, 180, 233, 1)',
-      green: 'rgba(0,158,115, 1)',
-      vermillion: 'rgba(213, 94, 0, 1)',
-      purple: 'rgba(204, 121, 167, 1)',
-      black: 'rgba(0, 0, 0, 1)',
-      blue: 'rgba(0, 114, 178, 1)',
     },
   },
 } as const;

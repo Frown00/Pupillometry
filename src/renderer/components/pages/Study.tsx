@@ -73,7 +73,7 @@ export default function Study(props: MatchProps) {
     });
   };
 
-  const { match } = props;
+  const { match, history } = props;
   const { studyName } = match.params;
   const loader = isLoading ? <DefaultLoader /> : undefined;
 
@@ -85,13 +85,7 @@ export default function Study(props: MatchProps) {
           Wrapper={() => <Button type="primary">New Group</Button>}
         />
         <Button
-          onClick={() =>
-            // ipcRenderer.send(Channel.ExportMetrics, {
-            //   name: studyName,
-            //   groups: [],
-            // })
-            3
-          }
+          onClick={() => history.push(Routes.Export(activeStudy.name))}
           type="default"
         >
           Export

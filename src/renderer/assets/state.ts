@@ -20,3 +20,8 @@ export const configsState = atom({
   key: 'configs',
   default: {} as IConfigMap,
 });
+
+export const taskGroupsState = atom({
+  key: 'taskGroups',
+  default: {} as { [groupName: string]: ITaskGroup[] },
+});
