@@ -1,12 +1,13 @@
 /* eslint-disable no-restricted-syntax */
-import { BrowserWindow, dialog, ipcMain, IpcMainEvent } from 'electron';
+import { BrowserWindow, dialog, ipcMain, IpcMainEvent, shell } from 'electron';
+import ExportFasade from '../../main/pupillary/export';
 import PupillometryRepository, {
   IPupillometryQuery,
 } from '../../main/store/repository/PupillometryRepository';
 import { ChannelNames, IpcChannel, IpcRequest, State } from '../interfaces';
 
 export interface IPupillometryRequest extends IpcRequest {
-  method: 'test' | 'process';
+  method: 'test' | 'process' | 'export';
   query: IPupillometryQuery;
 }
 
@@ -44,12 +45,15 @@ export default class PupillometryChannel implements IpcChannel {
     event.sender.send(request.responseChannel, response);
     // Process
     const { query, method, responseChannel } = request;
-    const { files, config } = query.form;
+    const { files = [], config = null } = query.form ?? {};
     const saveCallback = (res: IPupillometryResponse) => {
       ipcMain.emit(responseChannel, event, res);
     };
 
     if (method === 'test') {
+      if (!config) {
+        throw new Error('NO CONFIG');
+      }
       const result = await dialog
         .showOpenDialog(this.mainWindow, {
           buttonLabel: 'Select a pupillometry file',
@@ -76,6 +80,9 @@ export default class PupillometryChannel implements IpcChannel {
     }
 
     if (method === 'process') {
+      if (!config) {
+        throw new Error('NO CONFIG');
+      }
       const paths = files?.map((f) => f.path) ?? [];
       const data = await PupillometryRepository.process(
         paths,
@@ -84,6 +91,17 @@ export default class PupillometryChannel implements IpcChannel {
       );
       response.result = data;
       saveCallback({ ...response, progress: 1, state: State.Done });
+    }
+
+    if (method === 'export') {
+      const { study, taskGroups } = query?.export ?? {};
+      if (!study) throw new Error('No study');
+      if (!taskGroups) throw new Error('No task groups');
+
+      const dir = await ExportFasade.saveGroupedMetrics(study, taskGroups);
+      if (dir) {
+        shell.openPath(dir);
+      }
     }
   }
 }
