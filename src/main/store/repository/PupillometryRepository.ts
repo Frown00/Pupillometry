@@ -6,9 +6,15 @@ import sampleLoader from '../../pupillary/lib/sampleLoader';
 import type { IPupillometryResponse } from '../../../ipc/channels/PupillometryChannel';
 
 export interface IPupillometryQuery {
-  form: {
-    config: IConfig;
+  form?: {
+    config: IConfig | null;
     files?: { path: string }[];
+  };
+  export?: {
+    study: IStudy;
+    taskGroups: {
+      [groupName: string]: ITaskGroup[];
+    };
   };
 }
 

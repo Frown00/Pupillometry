@@ -1,5 +1,6 @@
 import { PlusCircleFilled } from '@ant-design/icons';
 import { Button, Form, Select } from 'antd';
+import { useEffect } from 'react';
 import { useRecoilState } from 'recoil';
 import { taskGroupsState } from '../../assets/state';
 import TextItem from '../molecules/form/TextItem';
@@ -14,9 +15,11 @@ interface IProps {
 export default function CreateTaskGroup(props: IProps) {
   const [form] = Form.useForm();
   const [taskGroups, setTaskGroupsState] = useRecoilState(taskGroupsState);
-
+  const { groupName, values } = props;
+  useEffect(() => {
+    form.resetFields();
+  }, [form, groupName]);
   const onFinish = () => {
-    const { groupName } = props;
     const taskGroup: ITaskGroup = {
       name: form.getFieldValue('name'),
       tasks: form.getFieldValue('tasks'),
@@ -27,11 +30,15 @@ export default function CreateTaskGroup(props: IProps) {
     }
     form.resetFields();
   };
-  const { values } = props;
-  const options = values.map((v) => <Option key={v}>{v}</Option>);
 
+  const options = values.map((v) => <Option key={v}>{v}</Option>);
   return (
-    <Form form={form} onFinish={onFinish} layout="vertical">
+    <Form
+      form={form}
+      onFinish={onFinish}
+      layout="vertical"
+      initialValues={{ tasks: [] }}
+    >
       <TextItem
         key="name"
         name="name"
@@ -48,7 +55,6 @@ export default function CreateTaskGroup(props: IProps) {
           allowClear
           style={{ width: '100%' }}
           placeholder="Select tasks to group them"
-          defaultValue={[]}
         >
           {options}
         </Select>

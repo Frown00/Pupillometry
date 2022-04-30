@@ -1,7 +1,10 @@
 import { RouteComponentProps } from 'react-router-dom';
-import { Card, Divider, List, Select, Space } from 'antd';
+import { Divider, List, Select, Space } from 'antd';
 import { useRecoilState } from 'recoil';
 import { useState } from 'react';
+import { IPupillometryRequest } from '../../../../ipc/channels/PupillometryChannel';
+import { ChannelNames } from '../../../../ipc/interfaces';
+import IpcService from '../../../IpcService';
 import { removeElement } from '../../../../util';
 import Button from '../../atoms/Button';
 import ActiveStudy from '../../templates/ActiveStudy';
@@ -36,7 +39,7 @@ const TaskGroupList = () => {
 
   Object.entries(taskGroups).map(([name, groupedTasks]) =>
     groupCards.push(
-      <>
+      <li key={name}>
         <List
           grid={{ gutter: 16, column: 4 }}
           header={<Title level={4}>{name}</Title>}
@@ -65,7 +68,7 @@ const TaskGroupList = () => {
           )}
         />
         <Divider />
-      </>
+      </li>
     )
   );
   return (
@@ -92,8 +95,16 @@ export default function Export(props: MatchProps) {
   const [selectedGroupId, setSelectedGroupId] = useState<number>(0);
 
   const onClick = () => {
-    console.log(taskGroups);
-    setTimeout(() => 3, 1000);
+    const request: IPupillometryRequest = {
+      method: 'export',
+      query: {
+        export: {
+          study: activeStudy,
+          taskGroups,
+        },
+      },
+    };
+    IpcService.send(ChannelNames.PUPILLOMETRY, request);
     setTaskGroupsState({});
   };
 
@@ -113,7 +124,7 @@ export default function Export(props: MatchProps) {
   return (
     <ActiveStudy routerProps={props}>
       <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-        <Title level={2}>Export to CSV</Title>
+        <Title level={2}>Export to Excel File</Title>
         <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
           <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
             <span>Study group</span>
