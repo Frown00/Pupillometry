@@ -1,5 +1,4 @@
 /* eslint-disable no-underscore-dangle */
-
 import {
   max,
   mean,
@@ -8,7 +7,7 @@ import {
   sampleCorrelation,
   standardDeviation,
 } from 'simple-statistics';
-import lowPassFilter from './lib/lowPassfilter';
+import lib from './lib';
 import * as util from './lib/util';
 
 export default class Segment {
@@ -90,15 +89,27 @@ export default class Segment {
     return this;
   }
 
-  resampling() {
+  resampling(on: boolean, rate: number, gap: number) {
+    if (!on) return this;
     if (this.#classification === 'Wrong') return this;
-
+    this.#samples = lib.resampling(this.#samples, {
+      currentRate: this.sampleRate,
+      wantedRate: rate,
+      interpolationGap: gap,
+    });
+    this.#duration = this.calcDuration();
+    this.#sampleRate = this.calcSampleRate();
     return this;
   }
 
-  smoothing() {
+  smoothing(on: boolean, cutoff: number) {
+    if (!on) return this;
     if (this.#classification === 'Wrong') return this;
-    this.#smoothedSamples = lowPassFilter(this.#samples, 4, this.#sampleRate);
+    this.#smoothedSamples = lib.lowPassFilter(
+      this.#samples,
+      cutoff,
+      this.#sampleRate
+    );
     return this;
   }
 
@@ -134,7 +145,7 @@ export default class Segment {
     return this;
   }
 
-  calcMeanPupil() {
+  calcMeanPupil(isChartContinous: boolean) {
     if (this.#classification === 'Wrong') return this;
     let dynamicDiffLP = 0;
     let lastCorrectMean = 0;
@@ -149,29 +160,24 @@ export default class Segment {
         sample.rightMark ? NaN : sample.rightPupil,
         dynamicDiffLP
       );
-      if (!Number.isNaN(sMean)) {
+      if (!Number.isNaN(sMean) && sMean > 0) {
         lastCorrectMean = sMean;
       }
-      sample.mean = lastCorrectMean > 0 ? lastCorrectMean : NaN;
+      const value = isChartContinous ? lastCorrectMean : sMean;
+      sample.mean = value;
     }
     return this;
   }
 
-  calcStats(baseOnSmoothed = false) {
-    if (this.#classification === 'Wrong') return this;
-    const means: number[] = [];
+  calcStats() {
     const lefts: number[] = [];
     const rights: number[] = [];
     const leftsCorrelation: number[] = [];
     const rightCorrelation: number[] = [];
-    const samples = baseOnSmoothed ? this.#smoothedSamples : this.#samples;
-    for (let i = 0; i < samples.length; i += 1) {
-      const sample = samples[i];
+    for (let i = 0; i < this.#samples.length; i += 1) {
+      const sample = this.#samples[i];
 
       if (sample.leftMark && sample.rightMark) this.#stats.result.missing += 1;
-      else if (sample.mean) {
-        means.push(sample.mean);
-      }
 
       if (sample.leftMark) this.#stats.left.missing += 1;
       else lefts.push(sample.leftPupil);
@@ -184,7 +190,6 @@ export default class Segment {
         rightCorrelation.push(sample.rightPupil);
       }
     }
-
     if (leftsCorrelation.length > 1 && rightCorrelation.length > 1) {
       this.#stats.result.correlation = sampleCorrelation(
         leftsCorrelation,
@@ -192,13 +197,6 @@ export default class Segment {
       );
     } else this.#stats.result.correlation = 1;
 
-    this.#stats.result = {
-      ...this.#stats.result,
-      min: means.length ? min(means) : -1,
-      max: means.length ? max(means) : -1,
-      mean: means.length ? mean(means) : -1,
-      std: means.length ? standardDeviation(means) : -1,
-    };
     this.#stats.left = {
       ...this.#stats.left,
       min: lefts.length ? min(lefts) : -1,
@@ -217,7 +215,27 @@ export default class Segment {
       (acc, sample) => (!sample.leftMark || !sample.rightMark ? acc + 1 : acc),
       0
     );
-    // this.#stats.sample.outlier
+    return this;
+  }
+
+  calcResultStats(baseOnSmoothed = false) {
+    if (this.#classification === 'Wrong') return this;
+    const means: number[] = [];
+    const samples = baseOnSmoothed ? this.#smoothedSamples : this.#samples;
+    for (let i = 0; i < samples.length; i += 1) {
+      const sample = samples[i];
+      if (sample.mean) {
+        means.push(sample.mean);
+      }
+    }
+
+    this.#stats.result = {
+      ...this.#stats.result,
+      min: means.length ? min(means) : -1,
+      max: means.length ? max(means) : -1,
+      mean: means.length ? mean(means) : -1,
+      std: means.length ? standardDeviation(means) : -1,
+    };
     return this;
   }
 
@@ -267,6 +285,6 @@ export default class Segment {
 
   private calcSampleRate() {
     if (this.#classification === 'Wrong') return 0;
-    return this.#samples.length / (this.#duration / 1000);
+    return Math.floor(this.#samples.length / (this.#duration / 1000));
   }
 }

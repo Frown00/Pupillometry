@@ -164,9 +164,7 @@ export default class LineGraph extends React.Component<IProps, IState> {
           .line()
           .x((d: any) => xScale(xAccessor(d)))
           .y((d: any) => yScale(yAccessor(d)))
-          .defined((d: any) => {
-            return !Number.isNaN(yAccessor(d));
-          })
+          .defined((d: any) => !Number.isNaN(yAccessor(d)))
           .curve(curve)
       );
   }

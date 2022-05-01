@@ -23,17 +23,24 @@ export default class Pupillometry {
   }
 
   test(): IPupillometryResult {
+    const { resampling, smoothing } = this.#config;
     const allMarkers: IMarker[] = this.usedMarkers();
+    const toOmit: PupilMark[] = ['missing', 'outlier', 'invalid'];
+    const isChartContinous = !resampling.acceptableGap;
     for (let i = 0; i < this.#segments.length; i += 1) {
       const segment = this.#segments[i];
-
-      segment
-        .markOutliers(allMarkers)
-        .omitMarked(['missing'])
-        .calcMeanPupil()
-        .calcMedianDifference()
-        .smoothing()
-        .calcStats(true);
+      segment.markOutliers(allMarkers);
+      segment.omitMarked(toOmit);
+      segment.calcMeanPupil(isChartContinous);
+      segment.calcMedianDifference();
+      segment.calcStats();
+      segment.resampling(
+        resampling.on,
+        resampling.rate,
+        resampling.acceptableGap
+      );
+      segment.smoothing(smoothing.on, smoothing.cutoffFrequency);
+      segment.calcResultStats(false);
     }
     return {
       name: this.#name,
@@ -43,16 +50,22 @@ export default class Pupillometry {
   }
 
   process(): IPupillometryResult {
+    const { resampling, smoothing } = this.#config;
     const allMarkers: IMarker[] = this.usedMarkers();
+    const toOmit: PupilMark[] = ['missing', 'outlier', 'invalid'];
+    const isChartContinous = !resampling?.acceptableGap;
     for (let i = 0; i < this.#segments.length; i += 1) {
       const segment = this.#segments[i];
 
       segment
         .markOutliers(allMarkers)
-        .omitMarked(['missing', 'outlier', 'invalid'])
-        .calcMeanPupil()
-        .smoothing()
-        .calcStats(true)
+        .omitMarked(toOmit)
+        .calcMeanPupil(isChartContinous)
+        .calcMedianDifference()
+        .calcResultStats(smoothing.on)
+        .resampling(resampling.on, resampling.rate, resampling.acceptableGap)
+        .smoothing(smoothing.on, smoothing.cutoffFrequency)
+        .calcStats()
         .reduce(true, true);
     }
     return {

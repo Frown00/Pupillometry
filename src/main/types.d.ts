@@ -146,6 +146,7 @@ interface IPupilMarked extends IPupilSampleParsed {
     type: PupilMark;
     algorithm?: OutlierAlghorithm;
   };
+  meanMark?: 'upsampled' | 'downsampled';
 }
 
 type SegmentClass = 'Valid' | 'Invalid' | 'Wrong';
