@@ -10,7 +10,9 @@ export default function lowPassFilter(
   let lastVal = samples.find((s) => s.mean && s.mean > 0)?.mean ?? 0;
   for (let i = 0; i < samples.length; i += 1) {
     if (samples[i].mean && !Number.isNaN(samples[i].mean)) {
-      lastVal += alpha * (<number>samples[i].mean - lastVal);
+      if (samples[i].meanMark !== 'binned') {
+        lastVal += alpha * (<number>samples[i].mean - lastVal);
+      }
       result[i] = {
         ...samples[i],
         mean: lastVal,

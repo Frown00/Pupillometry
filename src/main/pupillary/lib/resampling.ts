@@ -52,7 +52,12 @@ function upsampling(samples: IPupilSample[], sampleRate: number, gap = 0) {
       };
       sampled.push(s);
     }
-    sampled.push({ ...s2, timestamp: t2, mean: isGap ? NaN : s2.mean });
+    sampled.push({
+      ...s2,
+      timestamp: t2,
+      mean: isGap ? NaN : s2.mean,
+      meanMark: 'upsampled',
+    });
   }
   return sampled;
 }
@@ -65,7 +70,7 @@ function downsampling(samples: IPupilSample[], sampleRate: number) {
   const sampled: IPupilSample[] = [];
   let bin: IPupilSample[] = [];
   let currentTime = binDuration;
-  const sampleTemp: IPupilSample = {
+  const binTemp: IPupilSample = {
     segmentActive: samples[0].segmentActive,
     timestamp: 0,
     leftPupil: NaN,
@@ -83,28 +88,36 @@ function downsampling(samples: IPupilSample[], sampleRate: number) {
       bin.push(samples[i]);
     } else {
       const s: IPupilSample = {
-        ...sampleTemp,
+        ...binTemp,
         timestamp: currentTime - binDuration,
         mean: calcMean(bin.map((b) => <number>b.mean)),
       };
       sampled.push(s);
-      sampled.push(
-        ...bin.map((b) => ({
-          ...b,
-          timestamp:
-            b.timestamp === s.timestamp ? s.timestamp + 1 : b.timestamp,
-          mean: s.mean,
-        }))
-      );
+      const binned: IPupilSample[] = bin.map((b: IPupilSample) => ({
+        ...b,
+        timestamp: b.timestamp === s.timestamp ? s.timestamp + 1 : b.timestamp,
+        mean: s.mean,
+        meanMark: 'binned',
+      }));
+      sampled.push(...binned);
       bin = [samples[i]];
       currentTime += binDuration;
     }
   }
-  sampled.push({
-    ...sampleTemp,
+  const lastBin = {
+    ...binTemp,
     timestamp: currentTime - binDuration,
     mean: calcMean(bin.map((b) => <number>b.mean)),
-  });
+  };
+  sampled.push(lastBin);
+  sampled.push(
+    ...bin.map((b) => ({
+      ...b,
+      timestamp:
+        b.timestamp === lastBin.timestamp ? lastBin.timestamp + 1 : b.timestamp,
+      mean: lastBin.mean,
+    }))
+  );
   return sampled;
 }
 

@@ -103,7 +103,7 @@ export default class Segment {
       interpolationGap: gap,
     });
     this.#duration = this.calcDuration();
-    this.#sampleRate = this.calcSampleRate();
+    this.#sampleRate = this.calcSampleRate(on);
     return this;
   }
 
@@ -271,18 +271,20 @@ export default class Segment {
           <number>smoothedSample.mean / this.#baseline.value || NaN;
       }
 
-      if (sample.mean) {
+      if (sample.mean && sample.meanMark !== 'binned') {
         means.push(sample.mean);
       }
-      if (sample.baselineMinus) minusBaseline.push(sample.baselineMinus);
-      if (sample.baselineDivide) divideBaseline.push(sample.baselineDivide);
+      if (sample.baselineMinus && sample.meanMark !== 'binned')
+        minusBaseline.push(sample.baselineMinus);
+      if (sample.baselineDivide && sample.meanMark !== 'binned')
+        divideBaseline.push(sample.baselineDivide);
 
-      if (smoothedSample.mean) {
+      if (smoothedSample.mean && sample.meanMark !== 'binned') {
         meansSmoothed.push(smoothedSample.mean);
       }
-      if (smoothedSample.baselineMinus)
+      if (smoothedSample.baselineMinus && sample.meanMark !== 'binned')
         minusBaselineSmoothed.push(smoothedSample.baselineMinus);
-      if (smoothedSample.baselineDivide)
+      if (smoothedSample.baselineDivide && sample.meanMark !== 'binned')
         divideBaselineSmoothed.push(smoothedSample.baselineDivide);
     }
 
@@ -320,53 +322,53 @@ export default class Segment {
       const smoothedSample = this.#smoothedSamples[i];
 
       sample.zscore = zscoreFun(
-        sample.mean!,
+        <number>sample.mean,
         meanGrand.normal,
         stdGrand.normal
       );
       sample.zscoreMinusBaseline = zscoreFun(
-        sample.mean! - this.#baseline.value,
+        <number>sample.mean - this.#baseline.value,
         meanGrand.corrected.minus.normal,
         stdGrand.corrected.minus.normal
       );
       sample.zscoreDivideBaseline = zscoreFun(
-        sample.mean! / this.#baseline.value,
+        <number>sample.mean / this.#baseline.value,
         meanGrand.corrected.divide.normal,
         stdGrand.corrected.divide.normal
       );
       if (smoothing) {
         smoothedSample.zscore = zscoreFun(
-          smoothedSample.mean!,
+          <number>smoothedSample.mean,
           meanGrand.smoothed,
           stdGrand.smoothed
         );
         smoothedSample.zscoreMinusBaseline = zscoreFun(
-          smoothedSample.mean! - this.#baseline.value,
+          <number>smoothedSample.mean - this.#baseline.value,
           meanGrand.corrected.minus.smoothed,
           stdGrand.corrected.minus.smoothed
         );
         smoothedSample.zscoreDivideBaseline = zscoreFun(
-          smoothedSample.mean! / this.#baseline.value,
+          <number>smoothedSample.mean / this.#baseline.value,
           meanGrand.corrected.divide.smoothed,
           stdGrand.corrected.divide.smoothed
         );
       }
-      if (sample.zscore) {
+      if (sample.zscore && sample.meanMark !== 'binned') {
         zscore.push(sample.zscore);
       }
-      if (sample.zscoreMinusBaseline) {
+      if (sample.zscoreMinusBaseline && sample.meanMark !== 'binned') {
         zscoreMinus.push(sample.zscoreMinusBaseline);
       }
-      if (sample.zscoreDivideBaseline) {
+      if (sample.zscoreDivideBaseline && sample.meanMark !== 'binned') {
         zscoreDivide.push(sample.zscoreDivideBaseline);
       }
-      if (smoothedSample.zscore) {
+      if (smoothedSample.zscore && sample.meanMark !== 'binned') {
         zscoreSmoothed.push(smoothedSample.zscore);
       }
-      if (smoothedSample.zscoreMinusBaseline) {
+      if (smoothedSample.zscoreMinusBaseline && sample.meanMark !== 'binned') {
         zscoreMinusSmoothed.push(smoothedSample.zscoreMinusBaseline);
       }
-      if (smoothedSample.zscoreDivideBaseline) {
+      if (smoothedSample.zscoreDivideBaseline && sample.meanMark !== 'binned') {
         zscoreDivideSmoothed.push(smoothedSample.zscoreDivideBaseline);
       }
 
@@ -446,8 +448,18 @@ export default class Segment {
     return Math.round(timeDiff);
   }
 
-  private calcSampleRate() {
+  private calcSampleRate(isResampled = false) {
     if (this.#classification === 'Wrong') return 0;
-    return Math.floor(this.#samples.length / (this.#duration / 1000));
+    let samples = this.#samples.length;
+    if (isResampled) {
+      samples = this.#samples.reduce(
+        (acc, s) =>
+          s.meanMark === 'upsampled' || s.meanMark === 'downsampled'
+            ? acc + 1
+            : acc,
+        0
+      );
+    }
+    return Math.floor(samples / (this.#duration / 1000));
   }
 }
