@@ -1,7 +1,6 @@
 /* eslint-disable no-return-assign */
 import React from 'react';
 import * as d3 from 'd3';
-import d3ToPng from 'd3-svg-to-png';
 import DefaultLoader from '../atoms/Loader';
 import Color from '../../assets/color';
 import type { ChartOption } from './SegmentedLineGraph';
@@ -96,10 +95,10 @@ export default class LineGraph extends React.Component<IProps, IState> {
     if (chartType === 'Mean') {
       const minValues = config.chart.showEyesPlot
         ? [stats.right.min, stats.left.min, stats.result.min]
-        : [stats.result.min];
+        : [stats.result.min, stats.resultSmoothed.min || Infinity];
       const maxValues = config.chart.showEyesPlot
         ? [stats.right.max, stats.left.max, stats.result.max]
-        : [stats.result.max];
+        : [stats.result.max, stats.resultSmoothed.max || -Infinity];
       const min = Math.min(...minValues);
       const max = Math.max(...maxValues);
       return [min, max];

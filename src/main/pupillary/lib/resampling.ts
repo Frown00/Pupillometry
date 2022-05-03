@@ -41,27 +41,11 @@ function upsampling(samples: IPupilSample[], sampleRate: number, gap = 0) {
             { x: t1, y: <number>s1.mean },
             { x: t2, y: <number>s2.mean }
           );
-      const baselinSub = isGap
-        ? NaN
-        : interpolate(
-            x,
-            { x: t1, y: <number>s1.baselineSubstract },
-            { x: t2, y: <number>s2.baselineSubstract }
-          );
-      const baselinDiv = isGap
-        ? NaN
-        : interpolate(
-            x,
-            { x: t1, y: <number>s1.baselineDivide },
-            { x: t2, y: <number>s2.baselineDivide }
-          );
       const s: IPupilSample = {
         ...s1,
         segmentActive: s1.segmentActive,
         timestamp: x,
         mean: y,
-        baselineSubstract: baselinSub,
-        baselineDivide: baselinDiv,
         leftPupil: NaN,
         rightPupil: NaN,
         meanMark: 'upsampled',

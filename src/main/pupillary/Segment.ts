@@ -72,21 +72,6 @@ export default class Segment {
     };
   }
 
-  calcMedianDifference() {
-    if (this.#classification === 'Wrong') return this;
-    const diff = this.#samples
-      .filter((s) => {
-        if (s.leftMark || s.rightMark) return false;
-        if (s.leftPupil > 0 && s.rightPupil > 0) {
-          return s;
-        }
-        return false;
-      })
-      .map((s) => Math.abs(s.leftPupil - s.rightPupil));
-    this.#stats.result.difference = diff.length > 0 ? median(diff) : -1;
-    return this;
-  }
-
   markOutliers(markers: IMarker[]) {
     if (this.#classification === 'Wrong') return this;
     for (let i = 0; i < markers.length; i += 1) {
@@ -158,36 +143,19 @@ export default class Segment {
   }
 
   setBaseline(params: {
-    isChartContinous?: boolean | undefined;
     evaluatedBaseline?: number | undefined;
     baselineWindowSize?: number | undefined;
   }) {
-    const { baselineWindowSize, evaluatedBaseline, isChartContinous } = params;
+    const { baselineWindowSize, evaluatedBaseline } = params;
     if (evaluatedBaseline !== undefined) {
       this.#baseline.value = evaluatedBaseline;
       return this;
     }
     const baselineWindow = [];
-    let dynamicDiffLP = 0;
-    let lastCorrectMean = 0;
     const windowSize = Math.max(0, baselineWindowSize || 1000);
     for (let i = 0; i < this.#samples.length; i += 1) {
-      const sample = this.#samples[i];
-      if (sample.timestamp > windowSize) break;
-      const nextDiff = sample.leftPupil - sample.rightPupil;
-      if (nextDiff && !sample.leftMark && !sample.rightMark) {
-        dynamicDiffLP = nextDiff;
-      }
-      const sMean = util.calcMean(
-        sample.leftMark ? NaN : sample.leftPupil,
-        sample.rightMark ? NaN : sample.rightPupil,
-        dynamicDiffLP
-      );
-      if (!Number.isNaN(sMean) && sMean > 0) {
-        lastCorrectMean = sMean;
-      }
-      const value = isChartContinous ? lastCorrectMean : sMean;
-      baselineWindow.push(value);
+      if (this.#samples[i].timestamp > windowSize) break;
+      baselineWindow.push(this.#samples[i].mean ?? NaN);
     }
     const correctValues = baselineWindow.filter(
       (b) => !Number.isNaN(b) && b > 0
@@ -197,13 +165,19 @@ export default class Segment {
     return this;
   }
 
-  calcMeasures(isChartContinous: boolean) {
-    if (this.#classification === 'Wrong') return this;
+  calcBeforeReshape(isChartContinous: boolean) {
+    const lefts: number[] = [];
+    const rights: number[] = [];
+    const leftsCorrelation: number[] = [];
+    const rightCorrelation: number[] = [];
+    const diff: number[] = [];
     let dynamicDiffLP = 0;
     let lastCorrectMean = 0;
 
     for (let i = 0; i < this.#samples.length; i += 1) {
       const sample = this.#samples[i];
+
+      // #region MEAN
       const nextDiff = sample.leftPupil - sample.rightPupil;
       if (nextDiff && !sample.leftMark && !sample.rightMark) {
         dynamicDiffLP = nextDiff;
@@ -218,23 +192,9 @@ export default class Segment {
       }
       const value = isChartContinous ? lastCorrectMean : sMean;
       sample.mean = value;
-      sample.baselineSubstract =
-        this.#baseline.value && value ? value - this.#baseline.value : NaN;
-      sample.baselineDivide =
-        this.#baseline.value && value ? value / this.#baseline.value : NaN;
-    }
-    return this;
-  }
-
-  calcStats() {
-    const lefts: number[] = [];
-    const rights: number[] = [];
-    const leftsCorrelation: number[] = [];
-    const rightCorrelation: number[] = [];
-    for (let i = 0; i < this.#samples.length; i += 1) {
-      const sample = this.#samples[i];
-
-      if (sample.leftMark && sample.rightMark) this.#stats.result.missing += 1;
+      // #endregion
+      // #region Calc Missing
+      if (sample.leftMark && sample.rightMark) this.#stats.sample.missing += 1;
 
       if (sample.leftMark) this.#stats.left.missing += 1;
       else lefts.push(sample.leftPupil);
@@ -245,14 +205,19 @@ export default class Segment {
       if (!(sample.leftMark || sample.rightMark)) {
         leftsCorrelation.push(sample.leftPupil);
         rightCorrelation.push(sample.rightPupil);
+        diff.push(Math.abs(sample.leftPupil - sample.rightPupil));
       }
+      // #endregion Calc Missing
     }
+
     if (leftsCorrelation.length > 1 && rightCorrelation.length > 1) {
-      this.#stats.result.correlation = sampleCorrelation(
+      this.#stats.sample.correlation = sampleCorrelation(
         leftsCorrelation,
         rightCorrelation
       );
-    } else this.#stats.result.correlation = 1;
+    } else this.#stats.sample.correlation = 1;
+
+    this.#stats.sample.difference = diff.length > 0 ? median(diff) : -1;
 
     this.#stats.left = {
       ...this.#stats.left,
@@ -275,44 +240,69 @@ export default class Segment {
     return this;
   }
 
-  calcResultStats(baseOnSmoothed = false) {
+  calcResultStats(smoothing = false) {
     if (this.#classification === 'Wrong') return this;
     const means: number[] = [];
+    const meansSmoothed: number[] = [];
     const substractBaseline: number[] = [];
-    const divideBaseline: number[] = [];
+    const substractBaselineSmoothed: number[] = [];
 
-    const samples = baseOnSmoothed ? this.#smoothedSamples : this.#samples;
-    for (let i = 0; i < samples.length; i += 1) {
-      const sample = samples[i];
+    const divideBaseline: number[] = [];
+    const divideBaselineSmoothed: number[] = [];
+
+    // const samples = baseOnSmoothed ? this.#smoothedSamples : this.#samples;
+    for (let i = 0; i < this.#samples.length; i += 1) {
+      const sample = this.#samples[i];
+      const smoothedSample = this.#smoothedSamples[i];
+      sample.baselineSubstract =
+        <number>sample.mean - this.#baseline.value || NaN;
+      sample.baselineDivide = <number>sample.mean / this.#baseline.value || NaN;
+      if (smoothing) {
+        smoothedSample.baselineSubstract =
+          <number>smoothedSample.mean - this.#baseline.value || NaN;
+        smoothedSample.baselineDivide =
+          <number>smoothedSample.mean / this.#baseline.value || NaN;
+      }
+
       if (sample.mean) {
         means.push(sample.mean);
-        substractBaseline.push(sample.baselineSubstract ?? NaN);
-        divideBaseline.push(sample.baselineDivide ?? NaN);
+        if (sample.baselineSubstract)
+          substractBaseline.push(sample.baselineSubstract);
+        if (sample.baselineDivide) divideBaseline.push(sample.baselineDivide);
+      }
+      if (smoothing && smoothedSample.mean) {
+        meansSmoothed.push(smoothedSample.mean);
+        if (smoothedSample.baselineSubstract)
+          substractBaselineSmoothed.push(smoothedSample.baselineSubstract);
+        if (smoothedSample.baselineDivide)
+          divideBaselineSmoothed.push(smoothedSample.baselineDivide);
       }
     }
 
-    this.#stats.result = {
-      ...this.#stats.result,
-      min: means.length ? min(means) : -1,
-      max: means.length ? max(means) : -1,
-      mean: means.length ? mean(means) : -1,
-      std: means.length ? standardDeviation(means) : -1,
-    };
-    this.#baseline.substractStats.result = {
-      ...this.#stats.result,
-      min: substractBaseline.length ? min(substractBaseline) : -1,
-      max: substractBaseline.length ? max(substractBaseline) : -1,
-      mean: substractBaseline.length ? mean(substractBaseline) : -1,
-      std: substractBaseline.length ? standardDeviation(substractBaseline) : -1,
-    };
-    this.#baseline.divideStats.result = {
-      ...this.#stats.result,
-      min: divideBaseline.length ? min(divideBaseline) : -1,
-      max: divideBaseline.length ? max(divideBaseline) : -1,
-      mean: divideBaseline.length ? mean(divideBaseline) : -1,
-      std: divideBaseline.length ? standardDeviation(divideBaseline) : -1,
-    };
+    this.#stats.result = this.countResult(means);
+    this.#stats.resultSmoothed = this.countResult(meansSmoothed);
+    this.#baseline.substractStats.sample = this.#stats.sample;
+    this.#baseline.substractStats.result = this.countResult(substractBaseline);
+    this.#baseline.substractStats.resultSmoothed = this.countResult(
+      substractBaselineSmoothed
+    );
+    this.#baseline.divideStats.sample = this.#stats.sample;
+    this.#baseline.divideStats.result = this.countResult(divideBaseline);
+    this.#baseline.divideStats.resultSmoothed = this.countResult(
+      divideBaselineSmoothed
+    );
+
     return this;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  private countResult(values: number[]) {
+    return {
+      min: values.length ? min(values) : -1,
+      max: values.length ? max(values) : -1,
+      mean: values.length ? mean(values) : -1,
+      std: values.length ? standardDeviation(values) : -1,
+    };
   }
 
   private getInitialStats() {
@@ -321,15 +311,21 @@ export default class Segment {
         raw: this.#samples.length,
         valid: 0,
         outlier: [],
+        difference: 0,
+        correlation: 0,
+        missing: 0,
       },
       result: {
         mean: 0,
         min: Infinity,
         max: -Infinity,
         std: 0,
-        difference: 0,
-        correlation: 0,
-        missing: 0,
+      },
+      resultSmoothed: {
+        mean: 0,
+        min: Infinity,
+        max: -Infinity,
+        std: 0,
       },
       left: {
         min: Infinity,

@@ -90,6 +90,17 @@ interface IPupilSamplePreprocessed extends IPupilSampleParsed {
   };
 }
 
+interface IStats {
+  mean: number;
+  min: number;
+  max: number;
+  std: number;
+}
+
+interface IStatsWithMissing extends IStats {
+  missing: number;
+}
+
 interface IPupillometryStats {
   sample: {
     raw: number;
@@ -98,30 +109,14 @@ interface IPupillometryStats {
       name: string;
       count: number;
     }[];
-  };
-  result: {
-    mean: number;
-    min: number;
-    max: number;
-    std: number;
     difference: number;
     correlation: number;
     missing: number;
   };
-  left: {
-    mean: number;
-    min: number;
-    max: number;
-    std: number;
-    missing: number;
-  };
-  right: {
-    mean: number;
-    min: number;
-    max: number;
-    std: number;
-    missing: number;
-  };
+  result: IStats;
+  resultSmoothed: IStats;
+  left: IStatsWithMissing;
+  right: IStatsWithMissing;
 }
 
 /**

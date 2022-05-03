@@ -25,6 +25,7 @@ export default function Metrics(props: IProps) {
   } = props;
   const higherPrecision = 4;
   const lowerPrecision = 2;
+  const preferedResult = stats.resultSmoothed || stats.result;
   return (
     <div>
       <div
@@ -71,7 +72,7 @@ export default function Metrics(props: IProps) {
             <Col span={12}>
               <Statistic
                 title="Mean"
-                value={stats.result.mean}
+                value={preferedResult.mean}
                 precision={higherPrecision}
               />
             </Col>
@@ -79,7 +80,7 @@ export default function Metrics(props: IProps) {
               {' '}
               <Statistic
                 title="Std"
-                value={stats.result.std}
+                value={preferedResult.std}
                 precision={higherPrecision}
               />
             </Col>
@@ -87,14 +88,14 @@ export default function Metrics(props: IProps) {
               {' '}
               <Statistic
                 title="Min"
-                value={stats.result.min}
+                value={preferedResult.min}
                 precision={higherPrecision}
               />
             </Col>
             <Col span={12}>
               <Statistic
                 title="Max"
-                value={stats.result.max}
+                value={preferedResult.max}
                 precision={higherPrecision}
               />
             </Col>
@@ -115,14 +116,14 @@ export default function Metrics(props: IProps) {
             <Col span={12}>
               <Statistic
                 title="Pupil Correlation"
-                value={stats.result.correlation}
+                value={stats.sample.correlation}
                 precision={lowerPrecision}
               />
             </Col>
             <Col span={12}>
               <Statistic
                 title="Eye difference [mm]"
-                value={stats.result.difference}
+                value={stats.sample.difference}
                 precision={lowerPrecision}
               />
             </Col>
@@ -144,7 +145,7 @@ export default function Metrics(props: IProps) {
             <Col span={12}>
               <Statistic
                 title="Both"
-                value={(stats.result.missing / stats.sample.raw) * 100}
+                value={(stats.sample.missing / stats.sample.raw) * 100}
                 precision={lowerPrecision}
               />
             </Col>

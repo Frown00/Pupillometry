@@ -34,7 +34,7 @@ export default class Pupillometry {
     return baselineSegment
       ?.markOutliers(allMarkers)
       .omitMarked(toOmit)
-      .calcMeasures(isChartContinous)
+      .calcBeforeReshape(isChartContinous)
       .calcResultStats()
       .getInfo().stats.result.mean;
   }
@@ -59,19 +59,16 @@ export default class Pupillometry {
 
       segment.markOutliers(allMarkers);
       segment.omitMarked(toOmit);
+      segment.calcBeforeReshape(isChartContinous);
       segment.setBaseline({
         evaluatedBaseline: baseline,
-        isChartContinous,
         baselineWindowSize: <number>baselineConfig.param,
       });
-      segment.calcMeasures(isChartContinous);
-      segment.calcMedianDifference();
-      segment.calcStats();
-      segment.resampling(
-        resampling.on,
-        resampling.rate,
-        resampling.acceptableGap
-      );
+      // segment.resampling(
+      //   resampling.on,
+      //   resampling.rate,
+      //   resampling.acceptableGap
+      // );
       segment.smoothing(smoothing.on, smoothing.cutoffFrequency);
       segment.calcResultStats(smoothing.on);
     }
@@ -93,10 +90,8 @@ export default class Pupillometry {
       segment
         .markOutliers(allMarkers)
         .omitMarked(toOmit)
-        .setBaseline({ isChartContinous, baselineWindowSize: 1000 })
-        .calcMeasures(isChartContinous)
-        .calcMedianDifference()
-        .calcStats()
+        .setBaseline({ baselineWindowSize: 1000 })
+        .calcBeforeReshape(isChartContinous)
         .resampling(resampling.on, resampling.rate, resampling.acceptableGap)
         .smoothing(smoothing.on, smoothing.cutoffFrequency)
         .calcResultStats(smoothing.on)
