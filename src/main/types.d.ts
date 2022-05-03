@@ -133,8 +133,11 @@ type OutlierAlghorithm =
   | 'Temporal Isolated Island';
 interface IPupilSample extends IPupilMarked {
   mean?: number;
-  baselineSubstract?: number;
+  baselineMinus?: number;
   baselineDivide?: number;
+  zscore?: number;
+  zscoreMinusBaseline?: number;
+  zscoreDivideBaseline?: number;
 }
 
 interface IPupilMarked extends IPupilSampleParsed {
@@ -153,8 +156,14 @@ type SegmentClass = 'Valid' | 'Invalid' | 'Wrong';
 
 interface IBaselineInfo {
   value: number;
-  substractStats: IPupillometryStats;
+  minusStats: IPupillometryStats;
   divideStats: IPupillometryStats;
+}
+
+interface IZscore {
+  standard: IPupillometryStats;
+  minusBaseline: IPupillometryStats;
+  divideBaseline: IPupillometryStats;
 }
 interface IPupillometry {
   samples: IPupilSample[];
@@ -165,6 +174,22 @@ interface IPupillometry {
   duration: number;
   sampleRate: number;
   baseline?: IBaselineInfo;
+  zscore?: IZscore;
+}
+
+interface IGrandValue {
+  normal: number;
+  smoothed: number;
+  corrected: {
+    minus: {
+      normal: number;
+      smoothed: number;
+    };
+    divide: {
+      normal: number;
+      smoothed: number;
+    };
+  };
 }
 
 interface IPupillometryResult {
@@ -172,4 +197,6 @@ interface IPupillometryResult {
   segments: IPupillometry[];
   config: string;
   dataPath?: string;
+  meanGrand?: IGrandValue;
+  stdGrand?: IGrandValue;
 }

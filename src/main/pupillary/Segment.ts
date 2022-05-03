@@ -27,6 +27,8 @@ export default class Segment {
 
   #baseline: IBaselineInfo;
 
+  #zscore: IZscore;
+
   constructor(name: string, samples: IPupilSampleParsed[]) {
     this.#name = name;
     this.#samples = samples;
@@ -39,7 +41,12 @@ export default class Segment {
     this.#baseline = {
       value: 0,
       divideStats: this.getInitialStats(),
-      substractStats: this.getInitialStats(),
+      minusStats: this.getInitialStats(),
+    };
+    this.#zscore = {
+      standard: this.getInitialStats(),
+      minusBaseline: this.getInitialStats(),
+      divideBaseline: this.getInitialStats(),
     };
   }
 
@@ -69,6 +76,7 @@ export default class Segment {
       sampleRate: this.#sampleRate,
       duration: this.#duration,
       baseline: this.#baseline,
+      zscore: this.#zscore,
     };
   }
 
@@ -160,7 +168,7 @@ export default class Segment {
     const correctValues = baselineWindow.filter(
       (b) => !Number.isNaN(b) && b > 0
     );
-    const baseline = correctValues.length > 0 ? median(correctValues) : 3;
+    const baseline = correctValues.length > 0 ? median(correctValues) : NaN;
     this.#baseline.value = baseline;
     return this;
   }
@@ -244,8 +252,8 @@ export default class Segment {
     if (this.#classification === 'Wrong') return this;
     const means: number[] = [];
     const meansSmoothed: number[] = [];
-    const substractBaseline: number[] = [];
-    const substractBaselineSmoothed: number[] = [];
+    const minusBaseline: number[] = [];
+    const minusBaselineSmoothed: number[] = [];
 
     const divideBaseline: number[] = [];
     const divideBaselineSmoothed: number[] = [];
@@ -254,11 +262,10 @@ export default class Segment {
     for (let i = 0; i < this.#samples.length; i += 1) {
       const sample = this.#samples[i];
       const smoothedSample = this.#smoothedSamples[i];
-      sample.baselineSubstract =
-        <number>sample.mean - this.#baseline.value || NaN;
+      sample.baselineMinus = <number>sample.mean - this.#baseline.value || NaN;
       sample.baselineDivide = <number>sample.mean / this.#baseline.value || NaN;
       if (smoothing) {
-        smoothedSample.baselineSubstract =
+        smoothedSample.baselineMinus =
           <number>smoothedSample.mean - this.#baseline.value || NaN;
         smoothedSample.baselineDivide =
           <number>smoothedSample.mean / this.#baseline.value || NaN;
@@ -266,33 +273,117 @@ export default class Segment {
 
       if (sample.mean) {
         means.push(sample.mean);
-        if (sample.baselineSubstract)
-          substractBaseline.push(sample.baselineSubstract);
-        if (sample.baselineDivide) divideBaseline.push(sample.baselineDivide);
       }
-      if (smoothing && smoothedSample.mean) {
+      if (sample.baselineMinus) minusBaseline.push(sample.baselineMinus);
+      if (sample.baselineDivide) divideBaseline.push(sample.baselineDivide);
+
+      if (smoothedSample.mean) {
         meansSmoothed.push(smoothedSample.mean);
-        if (smoothedSample.baselineSubstract)
-          substractBaselineSmoothed.push(smoothedSample.baselineSubstract);
-        if (smoothedSample.baselineDivide)
-          divideBaselineSmoothed.push(smoothedSample.baselineDivide);
       }
+      if (smoothedSample.baselineMinus)
+        minusBaselineSmoothed.push(smoothedSample.baselineMinus);
+      if (smoothedSample.baselineDivide)
+        divideBaselineSmoothed.push(smoothedSample.baselineDivide);
     }
 
     this.#stats.result = this.countResult(means);
     this.#stats.resultSmoothed = this.countResult(meansSmoothed);
-    this.#baseline.substractStats.sample = this.#stats.sample;
-    this.#baseline.substractStats.result = this.countResult(substractBaseline);
-    this.#baseline.substractStats.resultSmoothed = this.countResult(
-      substractBaselineSmoothed
+    this.#baseline.minusStats.sample = this.#stats.sample;
+    this.#baseline.minusStats.result = this.countResult(minusBaseline);
+    this.#baseline.minusStats.resultSmoothed = this.countResult(
+      minusBaselineSmoothed
     );
     this.#baseline.divideStats.sample = this.#stats.sample;
     this.#baseline.divideStats.result = this.countResult(divideBaseline);
     this.#baseline.divideStats.resultSmoothed = this.countResult(
       divideBaselineSmoothed
     );
-
     return this;
+  }
+
+  calcAdvancedMeasures(
+    smoothing: boolean,
+    meanGrand: IGrandValue,
+    stdGrand: IGrandValue
+  ) {
+    // Calc z-score
+    const zscore = [];
+    const zscoreSmoothed = [];
+    const zscoreMinus = [];
+    const zscoreMinusSmoothed = [];
+    const zscoreDivide = [];
+    const zscoreDivideSmoothed = [];
+    const zscoreFun = (value: number, meanG: number, stdG: number) =>
+      (value - meanG) / stdG || NaN;
+    for (let i = 0; i < this.#samples.length; i += 1) {
+      const sample = this.#samples[i];
+      const smoothedSample = this.#smoothedSamples[i];
+
+      sample.zscore = zscoreFun(
+        sample.mean!,
+        meanGrand.normal,
+        stdGrand.normal
+      );
+      sample.zscoreMinusBaseline = zscoreFun(
+        sample.mean! - this.#baseline.value,
+        meanGrand.corrected.minus.normal,
+        stdGrand.corrected.minus.normal
+      );
+      sample.zscoreDivideBaseline = zscoreFun(
+        sample.mean! / this.#baseline.value,
+        meanGrand.corrected.divide.normal,
+        stdGrand.corrected.divide.normal
+      );
+      if (smoothing) {
+        smoothedSample.zscore = zscoreFun(
+          smoothedSample.mean!,
+          meanGrand.smoothed,
+          stdGrand.smoothed
+        );
+        smoothedSample.zscoreMinusBaseline = zscoreFun(
+          smoothedSample.mean! - this.#baseline.value,
+          meanGrand.corrected.minus.smoothed,
+          stdGrand.corrected.minus.smoothed
+        );
+        smoothedSample.zscoreDivideBaseline = zscoreFun(
+          smoothedSample.mean! / this.#baseline.value,
+          meanGrand.corrected.divide.smoothed,
+          stdGrand.corrected.divide.smoothed
+        );
+      }
+      if (sample.zscore) {
+        zscore.push(sample.zscore);
+      }
+      if (sample.zscoreMinusBaseline) {
+        zscoreMinus.push(sample.zscoreMinusBaseline);
+      }
+      if (sample.zscoreDivideBaseline) {
+        zscoreDivide.push(sample.zscoreDivideBaseline);
+      }
+      if (smoothedSample.zscore) {
+        zscoreSmoothed.push(smoothedSample.zscore);
+      }
+      if (smoothedSample.zscoreMinusBaseline) {
+        zscoreMinusSmoothed.push(smoothedSample.zscoreMinusBaseline);
+      }
+      if (smoothedSample.zscoreDivideBaseline) {
+        zscoreDivideSmoothed.push(smoothedSample.zscoreDivideBaseline);
+      }
+
+      this.#zscore.standard.sample = this.#stats.sample;
+      this.#zscore.standard.result = this.countResult(zscore);
+      this.#zscore.standard.resultSmoothed = this.countResult(zscoreSmoothed);
+
+      this.#zscore.minusBaseline.sample = this.#stats.sample;
+      this.#zscore.minusBaseline.result = this.countResult(zscoreMinus);
+      this.#zscore.minusBaseline.resultSmoothed =
+        this.countResult(zscoreMinusSmoothed);
+
+      this.#zscore.divideBaseline.sample = this.#stats.sample;
+      this.#zscore.divideBaseline.result = this.countResult(zscoreDivide);
+      this.#zscore.divideBaseline.resultSmoothed =
+        this.countResult(zscoreDivideSmoothed);
+    }
   }
 
   // eslint-disable-next-line class-methods-use-this

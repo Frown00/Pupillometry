@@ -13,7 +13,13 @@ interface IProps {
   respondentName: string;
 }
 
-export type ChartOption = 'Mean' | 'Substract Baseline' | 'Divide By Baseline';
+export type ChartOption =
+  | 'Mean'
+  | 'Minus Baseline'
+  | 'Divide By Baseline'
+  | 'Z-Score'
+  | 'Z-Score -Baseline'
+  | 'Z-Score /Baseline';
 
 export default function SegmentedLineGraph(props: IProps) {
   const { segments, config, respondentName } = props;
@@ -21,17 +27,25 @@ export default function SegmentedLineGraph(props: IProps) {
   const [chartType, setChartType] = useState<ChartOption>('Mean');
   const chartOptions: ChartOption[] = [
     'Mean',
-    'Substract Baseline',
+    'Minus Baseline',
     'Divide By Baseline',
+    'Z-Score',
+    'Z-Score -Baseline',
+    'Z-Score /Baseline',
   ];
   const onChange = (value: SegmentedValue) => {
     setChartType(value as ChartOption);
   };
   const getStats = (s: IPupillometry) => {
-    if (chartType === 'Substract Baseline')
-      return s.baseline?.substractStats ?? s.stats;
+    if (chartType === 'Minus Baseline')
+      return s.baseline?.minusStats ?? s.stats;
     if (chartType === 'Divide By Baseline')
       return s.baseline?.divideStats ?? s.stats;
+    if (chartType === 'Z-Score') return s.zscore?.standard ?? s.stats;
+    if (chartType === 'Z-Score -Baseline')
+      return s.zscore?.minusBaseline ?? s.stats;
+    if (chartType === 'Z-Score /Baseline')
+      return s.zscore?.divideBaseline ?? s.stats;
     return s.stats;
   };
   const charts = {
@@ -43,12 +57,12 @@ export default function SegmentedLineGraph(props: IProps) {
         chartType="Mean"
       />
     ),
-    'Substract Baseline': (s: IPupillometry) => (
+    'Minus Baseline': (s: IPupillometry) => (
       <LineGraph
         config={config}
         samples={s}
         name={respondentName}
-        chartType="Substract Baseline"
+        chartType="Minus Baseline"
       />
     ),
     'Divide By Baseline': (s: IPupillometry) => (
@@ -57,6 +71,30 @@ export default function SegmentedLineGraph(props: IProps) {
         samples={s}
         name={respondentName}
         chartType="Divide By Baseline"
+      />
+    ),
+    'Z-Score': (s: IPupillometry) => (
+      <LineGraph
+        config={config}
+        samples={s}
+        name={respondentName}
+        chartType="Z-Score"
+      />
+    ),
+    'Z-Score -Baseline': (s: IPupillometry) => (
+      <LineGraph
+        config={config}
+        samples={s}
+        name={respondentName}
+        chartType="Z-Score -Baseline"
+      />
+    ),
+    'Z-Score /Baseline': (s: IPupillometry) => (
+      <LineGraph
+        config={config}
+        samples={s}
+        name={respondentName}
+        chartType="Z-Score /Baseline"
       />
     ),
   };

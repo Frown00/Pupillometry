@@ -86,10 +86,6 @@ function downsampling(samples: IPupilSample[], sampleRate: number) {
         ...sampleTemp,
         timestamp: currentTime - binDuration,
         mean: calcMean(bin.map((b) => <number>b.mean)),
-        baselineSubstract: calcMean(
-          bin.map((b) => <number>b.baselineSubstract)
-        ),
-        baselineDivide: calcMean(bin.map((b) => <number>b.baselineDivide)),
       };
       sampled.push(s);
       sampled.push(
@@ -98,8 +94,6 @@ function downsampling(samples: IPupilSample[], sampleRate: number) {
           timestamp:
             b.timestamp === s.timestamp ? s.timestamp + 1 : b.timestamp,
           mean: s.mean,
-          baselineDivide: s.baselineDivide,
-          baselineSubstract: s.baselineSubstract,
         }))
       );
       bin = [samples[i]];
@@ -110,8 +104,6 @@ function downsampling(samples: IPupilSample[], sampleRate: number) {
     ...sampleTemp,
     timestamp: currentTime - binDuration,
     mean: calcMean(bin.map((b) => <number>b.mean)),
-    baselineSubstract: calcMean(bin.map((b) => <number>b.baselineSubstract)),
-    baselineDivide: calcMean(bin.map((b) => <number>b.baselineDivide)),
   });
   return sampled;
 }

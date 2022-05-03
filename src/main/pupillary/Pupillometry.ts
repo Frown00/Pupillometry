@@ -5,6 +5,7 @@ import segmentation from './lib/segmentation';
 import EyeTrackerMarker from './markers/EyeTrackerMarker';
 import OutOfRangeMarker from './markers/OutOfRangeMarker';
 import DilatationSpeedMarker from './markers/DilatationSpeedMarker';
+import GrandStatsHelper from './lib/GrandStatsHelper';
 
 export default class Pupillometry {
   #name: string;
@@ -51,6 +52,9 @@ export default class Pupillometry {
       baseline = this.calcBaselineBasedOnSegment(<string>baselineConfig.param);
     }
 
+    const grandHelperMean = new GrandStatsHelper('mean');
+    const grandHelperStd = new GrandStatsHelper('std');
+
     for (let i = 0; i < this.#segments.length; i += 1) {
       const segment = this.#segments[i];
       // skip baseline segment
@@ -60,22 +64,39 @@ export default class Pupillometry {
       segment.markOutliers(allMarkers);
       segment.omitMarked(toOmit);
       segment.calcBeforeReshape(isChartContinous);
+      segment.resampling(
+        resampling.on,
+        resampling.rate,
+        resampling.acceptableGap
+      );
+      segment.smoothing(smoothing.on, smoothing.cutoffFrequency);
       segment.setBaseline({
         evaluatedBaseline: baseline,
         baselineWindowSize: <number>baselineConfig.param,
       });
-      // segment.resampling(
-      //   resampling.on,
-      //   resampling.rate,
-      //   resampling.acceptableGap
-      // );
-      segment.smoothing(smoothing.on, smoothing.cutoffFrequency);
       segment.calcResultStats(smoothing.on);
+      const { stats, baseline: corrected } = segment.getInfo();
+      grandHelperMean.add(stats, corrected);
+      grandHelperStd.add(stats, corrected);
     }
+
+    const meanGrand: IGrandValue = grandHelperMean.calc();
+    const stdGrand: IGrandValue = grandHelperStd.calc();
+
+    for (let i = 0; i < this.#segments.length; i += 1) {
+      const segment = this.#segments[i];
+      // skip baseline segment
+      // eslint-disable-next-line no-continue
+      if (baseOnSegment && baselineConfig.param === segment.name) continue;
+      segment.calcAdvancedMeasures(smoothing.on, meanGrand, stdGrand);
+    }
+
     return {
       name: this.#name,
       segments: this.#segments.map((s) => s.getInfo()),
       config: this.#config.name,
+      meanGrand,
+      stdGrand,
     };
   }
 

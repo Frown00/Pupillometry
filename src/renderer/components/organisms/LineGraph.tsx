@@ -83,33 +83,78 @@ export default class LineGraph extends React.Component<IProps, IState> {
     const { chartType } = this.props;
     if (chartType === 'Mean')
       return (d: IPupilSample) => (d?.mean ? d.mean : NaN);
-    if (chartType === 'Substract Baseline')
+    if (chartType === 'Minus Baseline')
+      return (d: IPupilSample) => (d?.baselineMinus ? d.baselineMinus : NaN);
+    if (chartType === 'Z-Score')
+      return (d: IPupilSample) => (d?.zscore ? d.zscore : NaN);
+    if (chartType === 'Z-Score -Baseline')
       return (d: IPupilSample) =>
-        d?.baselineSubstract ? d.baselineSubstract : NaN;
+        d?.zscoreMinusBaseline ? d.zscoreMinusBaseline : NaN;
+    if (chartType === 'Z-Score /Baseline')
+      return (d: IPupilSample) =>
+        d?.zscoreDivideBaseline ? d.zscoreDivideBaseline : NaN;
+
     return (d: IPupilSample) => (d?.baselineDivide ? d.baselineDivide : NaN);
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  private getMinValues(stats?: IPupillometryStats) {
+    if (!stats) return [-1];
+    return [stats.result.min, stats.resultSmoothed?.min || Infinity];
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  private getMaxValues(stats?: IPupillometryStats) {
+    if (!stats) return [1];
+    return [stats.result.max, stats.resultSmoothed?.max || Infinity];
   }
 
   private getDomain() {
     const { samples, chartType, config } = this.props;
-    const { stats, baseline } = samples;
+    const { stats, baseline, zscore } = samples;
     if (chartType === 'Mean') {
       const minValues = config.chart.showEyesPlot
         ? [stats.right.min, stats.left.min, stats.result.min]
         : [stats.result.min, stats.resultSmoothed.min || Infinity];
       const maxValues = config.chart.showEyesPlot
         ? [stats.right.max, stats.left.max, stats.result.max]
-        : [stats.result.max, stats.resultSmoothed.max || -Infinity];
+        : [stats.result.max, stats.resultSmoothed?.max || -Infinity];
       const min = Math.min(...minValues);
       const max = Math.max(...maxValues);
       return [min, max];
     }
-    if (chartType === 'Substract Baseline') {
-      const min = Math.min(baseline!.substractStats.result.min || -2);
-      const max = Math.max(baseline!.substractStats.result.max || 2);
+    if (chartType === 'Minus Baseline') {
+      const minValues = this.getMinValues(baseline?.minusStats);
+      const maxValues = this.getMaxValues(baseline?.minusStats);
+      const min = Math.min(...minValues);
+      const max = Math.max(...maxValues);
       return [min, max];
     }
-    const min = Math.min(baseline!.divideStats.result.min || 0);
-    const max = Math.max(baseline!.divideStats.result.max || 2);
+    if (chartType === 'Z-Score') {
+      const minValues = this.getMinValues(zscore?.standard);
+      const maxValues = this.getMaxValues(zscore?.standard);
+      const min = Math.min(...minValues);
+      const max = Math.max(...maxValues);
+      return [min, max];
+    }
+    if (chartType === 'Z-Score -Baseline') {
+      const minValues = this.getMinValues(zscore?.minusBaseline);
+      const maxValues = this.getMaxValues(zscore?.minusBaseline);
+      const min = Math.min(...minValues);
+      const max = Math.max(...maxValues);
+      return [min, max];
+    }
+    if (chartType === 'Z-Score /Baseline') {
+      const minValues = this.getMinValues(zscore?.divideBaseline);
+      const maxValues = this.getMaxValues(zscore?.divideBaseline);
+      const min = Math.min(...minValues);
+      const max = Math.max(...maxValues);
+      return [min, max];
+    }
+    const minValues = this.getMinValues(baseline?.divideStats);
+    const maxValues = this.getMaxValues(baseline?.divideStats);
+    const min = Math.min(...minValues);
+    const max = Math.max(...maxValues);
     return [min, max];
   }
 
