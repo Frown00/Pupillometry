@@ -13,9 +13,12 @@
     "showEyesPlot": true,
     "showMeanPlot": true
   },
-  "mesurement": {
+  "measurement": {
     "eye": "both",
-    "baseline": "fromStart",
+    "baseline": {
+      "type": "fromStart",
+      "param": 1000
+    },
     "segmentation": "scene",
     "windows": [
       {

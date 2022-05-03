@@ -41,11 +41,27 @@ function upsampling(samples: IPupilSample[], sampleRate: number, gap = 0) {
             { x: t1, y: <number>s1.mean },
             { x: t2, y: <number>s2.mean }
           );
+      const baselinSub = isGap
+        ? NaN
+        : interpolate(
+            x,
+            { x: t1, y: <number>s1.baselineSubstract },
+            { x: t2, y: <number>s2.baselineSubstract }
+          );
+      const baselinDiv = isGap
+        ? NaN
+        : interpolate(
+            x,
+            { x: t1, y: <number>s1.baselineDivide },
+            { x: t2, y: <number>s2.baselineDivide }
+          );
       const s: IPupilSample = {
         ...s1,
         segmentActive: s1.segmentActive,
         timestamp: x,
         mean: y,
+        baselineSubstract: baselinSub,
+        baselineDivide: baselinDiv,
         leftPupil: NaN,
         rightPupil: NaN,
         meanMark: 'upsampled',
@@ -82,10 +98,14 @@ function downsampling(samples: IPupilSample[], sampleRate: number) {
     if (samples[i].timestamp <= currentTime) {
       bin.push(samples[i]);
     } else {
-      const s = {
+      const s: IPupilSample = {
         ...sampleTemp,
         timestamp: currentTime - binDuration,
         mean: calcMean(bin.map((b) => <number>b.mean)),
+        baselineSubstract: calcMean(
+          bin.map((b) => <number>b.baselineSubstract)
+        ),
+        baselineDivide: calcMean(bin.map((b) => <number>b.baselineDivide)),
       };
       sampled.push(s);
       sampled.push(
@@ -94,6 +114,8 @@ function downsampling(samples: IPupilSample[], sampleRate: number) {
           timestamp:
             b.timestamp === s.timestamp ? s.timestamp + 1 : b.timestamp,
           mean: s.mean,
+          baselineDivide: s.baselineDivide,
+          baselineSubstract: s.baselineSubstract,
         }))
       );
       bin = [samples[i]];
@@ -104,6 +126,8 @@ function downsampling(samples: IPupilSample[], sampleRate: number) {
     ...sampleTemp,
     timestamp: currentTime - binDuration,
     mean: calcMean(bin.map((b) => <number>b.mean)),
+    baselineSubstract: calcMean(bin.map((b) => <number>b.baselineSubstract)),
+    baselineDivide: calcMean(bin.map((b) => <number>b.baselineDivide)),
   });
   return sampled;
 }

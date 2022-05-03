@@ -7,14 +7,30 @@ export default function lowPassFilter(
   const dt = 1.0 / sampleRate;
   const alpha = dt / (rc + dt);
   const result = [];
-  let lastVal = samples.find((s) => s.mean && s.mean > 0)?.mean ?? 0;
+  const lastVal = samples.find((s) => s.mean && s.mean > 0) ?? {
+    mean: 0,
+    baselineDivide: 0,
+    baselineSubstract: 0,
+  };
   for (let i = 0; i < samples.length; i += 1) {
     if (samples[i].mean && !Number.isNaN(samples[i].mean)) {
-      lastVal =
-        <number>lastVal + alpha * (<number>samples[i].mean - <number>lastVal);
+      lastVal.mean =
+        <number>lastVal.mean +
+        alpha * (<number>samples[i].mean - <number>lastVal.mean);
+      lastVal.baselineSubstract =
+        <number>lastVal.baselineSubstract +
+        alpha *
+          (<number>samples[i].baselineSubstract -
+            <number>lastVal.baselineSubstract);
+      lastVal.baselineDivide =
+        <number>lastVal.baselineDivide +
+        alpha *
+          (<number>samples[i].baselineDivide - <number>lastVal.baselineDivide);
       result[i] = {
         ...samples[i],
-        mean: lastVal,
+        mean: lastVal.mean,
+        baselineSubstract: lastVal.baselineSubstract,
+        baselineDivide: lastVal.baselineDivide,
       };
     } else {
       result[i] = {

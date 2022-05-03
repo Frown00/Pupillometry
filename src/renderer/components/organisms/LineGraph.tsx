@@ -1,15 +1,17 @@
 /* eslint-disable no-return-assign */
 import React from 'react';
 import * as d3 from 'd3';
+import d3ToPng from 'd3-svg-to-png';
 import DefaultLoader from '../atoms/Loader';
-import Metrics from './Metrics';
 import Color from '../../assets/color';
+import type { ChartOption } from './SegmentedLineGraph';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface IProps {
   config: IConfig;
   name: string;
   samples: IPupillometry;
+  chartType: ChartOption;
 }
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface IState {
@@ -35,10 +37,11 @@ export default class LineGraph extends React.Component<IProps, IState> {
   }
 
   shouldComponentUpdate(nextProps: IProps) {
-    const { samples, name } = this.props;
+    const { samples, name, chartType } = this.props;
     const differentTitle = samples !== nextProps.samples;
     const differentDone = name !== nextProps.name;
-    return differentTitle || differentDone;
+    const diffChartType = chartType !== nextProps.chartType;
+    return differentTitle || differentDone || diffChartType;
   }
 
   componentDidUpdate() {
@@ -75,6 +78,40 @@ export default class LineGraph extends React.Component<IProps, IState> {
     dimensions.ctrHeight =
       dimensions.height - dimensions.margin.top - dimensions.margin.bottom;
     return dimensions;
+  }
+
+  private getResultAccessor() {
+    const { chartType } = this.props;
+    if (chartType === 'Mean')
+      return (d: IPupilSample) => (d?.mean ? d.mean : NaN);
+    if (chartType === 'Substract Baseline')
+      return (d: IPupilSample) =>
+        d?.baselineSubstract ? d.baselineSubstract : NaN;
+    return (d: IPupilSample) => (d?.baselineDivide ? d.baselineDivide : NaN);
+  }
+
+  private getDomain() {
+    const { samples, chartType, config } = this.props;
+    const { stats, baseline } = samples;
+    if (chartType === 'Mean') {
+      const minValues = config.chart.showEyesPlot
+        ? [stats.right.min, stats.left.min, stats.result.min]
+        : [stats.result.min];
+      const maxValues = config.chart.showEyesPlot
+        ? [stats.right.max, stats.left.max, stats.result.max]
+        : [stats.result.max];
+      const min = Math.min(...minValues);
+      const max = Math.max(...maxValues);
+      return [min, max];
+    }
+    if (chartType === 'Substract Baseline') {
+      const min = Math.min(baseline!.substractStats.result.min || -2);
+      const max = Math.max(baseline!.substractStats.result.max || 2);
+      return [min, max];
+    }
+    const min = Math.min(baseline!.divideStats.result.min || 0);
+    const max = Math.max(baseline!.divideStats.result.max || 2);
+    return [min, max];
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -170,7 +207,7 @@ export default class LineGraph extends React.Component<IProps, IState> {
   }
 
   private buildGraph(dataset: IPupilSample[], smoothed: IPupilSample[]) {
-    const { config } = this.props;
+    const { config, chartType } = this.props;
     if (dataset.length <= 0) return;
     // #region Accessors
     const xAccessor = (d: IPupilSample) =>
@@ -179,9 +216,7 @@ export default class LineGraph extends React.Component<IProps, IState> {
       d?.leftPupil ? d.leftPupil : NaN;
     const yAccessorRight = (d: IPupilSample) =>
       d?.rightPupil ? d.rightPupil : NaN;
-    const yAccessorMean = (d: IPupilSample) => {
-      return d?.mean ? d.mean : NaN;
-    };
+    const yAccessorResult = this.getResultAccessor();
     // #endregion
     // #region  Dimensions
     const dimensions = this.getDimensions();
@@ -208,24 +243,7 @@ export default class LineGraph extends React.Component<IProps, IState> {
 
     const yScale = d3
       .scaleLinear()
-      .domain([
-        Math.min(
-          d3.min(dataset, yAccessorLeft) ??
-            d3.min(dataset, yAccessorMean) ??
-            config.markers.outOfRange.max,
-          d3.min(dataset, yAccessorRight) ??
-            d3.min(dataset, yAccessorMean) ??
-            config.markers.outOfRange.max
-        ),
-        Math.max(
-          d3.max(dataset, yAccessorLeft) ??
-            d3.max(dataset, yAccessorMean) ??
-            config.markers.outOfRange.min,
-          d3.max(dataset, yAccessorRight) ??
-            d3.max(dataset, yAccessorMean) ??
-            config.markers.outOfRange.min
-        ),
-      ])
+      .domain(this.getDomain())
       .rangeRound([dimensions.ctrHeight, 0])
       .nice();
     // #endregion
@@ -285,7 +303,7 @@ export default class LineGraph extends React.Component<IProps, IState> {
           xScale,
           xAccessor,
           yScale,
-          yAccessor: yAccessorMean,
+          yAccessor: yAccessorResult,
           color: Color.chart.mean,
         });
         if (smoothed.length > 0) {
@@ -295,7 +313,7 @@ export default class LineGraph extends React.Component<IProps, IState> {
             xScale,
             xAccessor,
             yScale,
-            yAccessor: yAccessorMean,
+            yAccessor: yAccessorResult,
             color: Color.chart.smooted,
           });
         }
@@ -303,7 +321,7 @@ export default class LineGraph extends React.Component<IProps, IState> {
     }
 
     // #region  Draw Circles
-    if (config.chart.showEyesPlot) {
+    if (config.chart.showEyesPlot && chartType === 'Mean') {
       this.drawCircles({
         container,
         dataset,
@@ -329,11 +347,20 @@ export default class LineGraph extends React.Component<IProps, IState> {
       });
     }
     // #endregion
+    // eslint-disable-next-line promise/catch-or-return
+    // eslint-disable-next-line promise/always-return
+    // d3ToPng('.container', 'some-name')
+    //   .then((fileData) => {
+    //     // eslint-disable-next-line no-console
+    //     console.log(fileData);
+    //     return fileData;
+    //   })
+    //   .catch((err) => console.log(err));
   }
 
   render() {
     const { isLoading } = this.state;
-    const { name, samples } = this.props;
+    const { samples } = this.props;
     return (
       <div>
         {isLoading ? (
@@ -352,7 +379,6 @@ export default class LineGraph extends React.Component<IProps, IState> {
             ) : (
               ''
             )}
-            <Metrics respondentName={name} samples={samples} />
           </>
         )}
       </div>

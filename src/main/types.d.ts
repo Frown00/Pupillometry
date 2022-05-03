@@ -13,9 +13,12 @@ interface IConfig {
     showEyesPlot: boolean;
     showMeanPlot: boolean;
   };
-  mesurement: {
+  measurement: {
     eye: 'left' | 'right' | 'both';
-    baseline: 'fromStart' | string;
+    baseline: {
+      type: 'fromStart' | 'selected segment';
+      param: number | string;
+    };
     segmentation: 'scene' | 'time windows';
     windows?: {
       name: string;
@@ -135,6 +138,8 @@ type OutlierAlghorithm =
   | 'Temporal Isolated Island';
 interface IPupilSample extends IPupilMarked {
   mean?: number;
+  baselineSubstract?: number;
+  baselineDivide?: number;
 }
 
 interface IPupilMarked extends IPupilSampleParsed {
@@ -151,15 +156,20 @@ interface IPupilMarked extends IPupilSampleParsed {
 
 type SegmentClass = 'Valid' | 'Invalid' | 'Wrong';
 
+interface IBaselineInfo {
+  value: number;
+  substractStats: IPupillometryStats;
+  divideStats: IPupillometryStats;
+}
 interface IPupillometry {
   samples: IPupilSample[];
   smoothed?: IPupilSample[];
-  // validSamples: IPupilSamplePreprocessed[];
   stats: IPupillometryStats;
   name: string;
   classification: SegmentClass;
   duration: number;
   sampleRate: number;
+  baseline?: IBaselineInfo;
 }
 
 interface IPupillometryResult {

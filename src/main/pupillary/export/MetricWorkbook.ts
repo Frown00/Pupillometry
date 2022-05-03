@@ -5,8 +5,6 @@ import Worksheet from './Worksheet';
 export default class MetricWorkbook {
   private workbook: ExcelJS.Workbook;
 
-  // private worksheets: ExcelJS.Worksheet[];
-
   private group: IGroup;
 
   private taskGroups: ITaskGroup[];

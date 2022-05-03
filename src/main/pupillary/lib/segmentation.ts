@@ -3,9 +3,9 @@ import Segment from '../Segment';
 type SegmentationType = 'No' | 'Window' | 'By Scene';
 
 function timeWindows(samples: IPupilSampleParsed[], config: IConfig) {
-  const { mesurement } = config;
+  const { measurement } = config;
   const segments: Segment[] = [];
-  const { windows = [] } = mesurement;
+  const { windows = [] } = measurement;
   for (let w = 0; w < windows.length; w += 1) {
     const fragment = windows[w];
     const data = [];
@@ -61,9 +61,9 @@ function byScene(samples: IPupilSampleParsed[]) {
 }
 
 function getType(config: IConfig): SegmentationType {
-  const { mesurement } = config;
-  if (mesurement.segmentation === 'time windows') return 'Window';
-  if (mesurement.segmentation === 'scene') return 'By Scene';
+  const { measurement } = config;
+  if (measurement.segmentation === 'time windows') return 'Window';
+  if (measurement.segmentation === 'scene') return 'By Scene';
   return 'No';
 }
 

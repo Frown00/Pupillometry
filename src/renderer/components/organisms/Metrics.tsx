@@ -1,15 +1,28 @@
 import { Col, Row } from 'antd';
 import Statistic from 'antd/lib/statistic';
+import type { ChartOption } from './SegmentedLineGraph';
 
 /* eslint-disable react/jsx-no-undef */
 interface IProps {
   respondentName: string;
-  samples: IPupillometry;
+  segmentName: string;
+  classification: string;
+  stats: IPupillometryStats;
+  duration: number;
+  sampleRate: number;
+  baseline: number;
 }
 
 export default function Metrics(props: IProps) {
-  const { respondentName, samples } = props;
-  const { stats, classification } = samples;
+  const {
+    respondentName,
+    segmentName,
+    stats,
+    classification,
+    duration,
+    sampleRate,
+    baseline,
+  } = props;
   const higherPrecision = 4;
   const lowerPrecision = 2;
   return (
@@ -38,7 +51,7 @@ export default function Metrics(props: IProps) {
         </p>
         <p style={{ display: 'flex' }}>
           <span className="pupil-label">Segment:</span>{' '}
-          <b>{samples?.name ?? ''}</b>
+          <b>{segmentName ?? ''}</b>
         </p>
       </div>
 
@@ -46,7 +59,7 @@ export default function Metrics(props: IProps) {
         style={{
           display: 'flex',
           justifyContent: 'space-between',
-          width: '800px',
+          width: '1000px',
           marginBottom: '50px',
         }}
       >
@@ -147,6 +160,31 @@ export default function Metrics(props: IProps) {
               <Statistic
                 title="Right"
                 value={(stats.right.missing / stats.sample.raw) * 100}
+                precision={lowerPrecision}
+              />
+            </Col>
+          </Row>
+        </div>
+        <div>
+          <h3>
+            <b>Info </b>
+          </h3>
+          <Row gutter={[24, 16]}>
+            <Col span={12}>
+              <Statistic title="Sample Rate" value={sampleRate} />
+            </Col>
+            <Col span={12} />
+            <Col span={12}>
+              <Statistic
+                title="Duration [s]"
+                value={`${duration / 1000}`}
+                precision={1}
+              />
+            </Col>
+            <Col span={12}>
+              <Statistic
+                title="Baseline"
+                value={baseline}
                 precision={lowerPrecision}
               />
             </Col>

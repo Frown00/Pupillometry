@@ -25,6 +25,8 @@ export default class Segment {
 
   #classification: SegmentClass;
 
+  #baseline: IBaselineInfo;
+
   constructor(name: string, samples: IPupilSampleParsed[]) {
     this.#name = name;
     this.#samples = samples;
@@ -34,6 +36,11 @@ export default class Segment {
     this.#sampleRate = this.calcSampleRate();
     // this.calcMedianDifference();
     this.#smoothedSamples = [];
+    this.#baseline = {
+      value: 0,
+      divideStats: this.getInitialStats(),
+      substractStats: this.getInitialStats(),
+    };
   }
 
   public get samples() {
@@ -48,6 +55,10 @@ export default class Segment {
     return this.#duration;
   }
 
+  public get name() {
+    return this.#name;
+  }
+
   getInfo(): IPupillometry {
     return {
       samples: this.#samples,
@@ -57,6 +68,7 @@ export default class Segment {
       classification: this.#classification,
       sampleRate: this.#sampleRate,
       duration: this.#duration,
+      baseline: this.#baseline,
     };
   }
 
@@ -145,10 +157,51 @@ export default class Segment {
     return this;
   }
 
-  calcMeanPupil(isChartContinous: boolean) {
+  setBaseline(params: {
+    isChartContinous?: boolean | undefined;
+    evaluatedBaseline?: number | undefined;
+    baselineWindowSize?: number | undefined;
+  }) {
+    const { baselineWindowSize, evaluatedBaseline, isChartContinous } = params;
+    if (evaluatedBaseline !== undefined) {
+      this.#baseline.value = evaluatedBaseline;
+      return this;
+    }
+    const baselineWindow = [];
+    let dynamicDiffLP = 0;
+    let lastCorrectMean = 0;
+    const windowSize = Math.max(0, baselineWindowSize || 1000);
+    for (let i = 0; i < this.#samples.length; i += 1) {
+      const sample = this.#samples[i];
+      if (sample.timestamp > windowSize) break;
+      const nextDiff = sample.leftPupil - sample.rightPupil;
+      if (nextDiff && !sample.leftMark && !sample.rightMark) {
+        dynamicDiffLP = nextDiff;
+      }
+      const sMean = util.calcMean(
+        sample.leftMark ? NaN : sample.leftPupil,
+        sample.rightMark ? NaN : sample.rightPupil,
+        dynamicDiffLP
+      );
+      if (!Number.isNaN(sMean) && sMean > 0) {
+        lastCorrectMean = sMean;
+      }
+      const value = isChartContinous ? lastCorrectMean : sMean;
+      baselineWindow.push(value);
+    }
+    const correctValues = baselineWindow.filter(
+      (b) => !Number.isNaN(b) && b > 0
+    );
+    const baseline = correctValues.length > 0 ? median(correctValues) : 3;
+    this.#baseline.value = baseline;
+    return this;
+  }
+
+  calcMeasures(isChartContinous: boolean) {
     if (this.#classification === 'Wrong') return this;
     let dynamicDiffLP = 0;
     let lastCorrectMean = 0;
+
     for (let i = 0; i < this.#samples.length; i += 1) {
       const sample = this.#samples[i];
       const nextDiff = sample.leftPupil - sample.rightPupil;
@@ -165,6 +218,10 @@ export default class Segment {
       }
       const value = isChartContinous ? lastCorrectMean : sMean;
       sample.mean = value;
+      sample.baselineSubstract =
+        this.#baseline.value && value ? value - this.#baseline.value : NaN;
+      sample.baselineDivide =
+        this.#baseline.value && value ? value / this.#baseline.value : NaN;
     }
     return this;
   }
@@ -221,11 +278,16 @@ export default class Segment {
   calcResultStats(baseOnSmoothed = false) {
     if (this.#classification === 'Wrong') return this;
     const means: number[] = [];
+    const substractBaseline: number[] = [];
+    const divideBaseline: number[] = [];
+
     const samples = baseOnSmoothed ? this.#smoothedSamples : this.#samples;
     for (let i = 0; i < samples.length; i += 1) {
       const sample = samples[i];
       if (sample.mean) {
         means.push(sample.mean);
+        substractBaseline.push(sample.baselineSubstract ?? NaN);
+        divideBaseline.push(sample.baselineDivide ?? NaN);
       }
     }
 
@@ -235,6 +297,20 @@ export default class Segment {
       max: means.length ? max(means) : -1,
       mean: means.length ? mean(means) : -1,
       std: means.length ? standardDeviation(means) : -1,
+    };
+    this.#baseline.substractStats.result = {
+      ...this.#stats.result,
+      min: substractBaseline.length ? min(substractBaseline) : -1,
+      max: substractBaseline.length ? max(substractBaseline) : -1,
+      mean: substractBaseline.length ? mean(substractBaseline) : -1,
+      std: substractBaseline.length ? standardDeviation(substractBaseline) : -1,
+    };
+    this.#baseline.divideStats.result = {
+      ...this.#stats.result,
+      min: divideBaseline.length ? min(divideBaseline) : -1,
+      max: divideBaseline.length ? max(divideBaseline) : -1,
+      mean: divideBaseline.length ? mean(divideBaseline) : -1,
+      std: divideBaseline.length ? standardDeviation(divideBaseline) : -1,
     };
     return this;
   }

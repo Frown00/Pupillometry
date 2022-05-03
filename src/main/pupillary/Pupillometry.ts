@@ -22,16 +22,49 @@ export default class Pupillometry {
     this.#segments = segmentation(this.#samples, this.#config);
   }
 
+  private calcBaselineBasedOnSegment(name: string) {
+    const { resampling } = this.#config;
+    const allMarkers: IMarker[] = this.usedMarkers();
+    const toOmit: PupilMark[] = ['missing', 'outlier', 'invalid'];
+    const baselineSegmentName = name;
+    const isChartContinous = !resampling.acceptableGap;
+    const baselineSegment = this.segments.find(
+      (s) => s.name.toLowerCase() === baselineSegmentName.toLowerCase()
+    );
+    return baselineSegment
+      ?.markOutliers(allMarkers)
+      .omitMarked(toOmit)
+      .calcMeasures(isChartContinous)
+      .calcResultStats()
+      .getInfo().stats.result.mean;
+  }
+
   test(): IPupillometryResult {
-    const { resampling, smoothing } = this.#config;
+    const { resampling, smoothing, measurement } = this.#config;
     const allMarkers: IMarker[] = this.usedMarkers();
     const toOmit: PupilMark[] = ['missing', 'outlier', 'invalid'];
     const isChartContinous = !resampling.acceptableGap;
+    const baselineConfig = measurement.baseline;
+    let baseline: number | undefined;
+    const baseOnSegment = baselineConfig.type === 'selected segment';
+    if (baseOnSegment) {
+      baseline = this.calcBaselineBasedOnSegment(<string>baselineConfig.param);
+    }
+
     for (let i = 0; i < this.#segments.length; i += 1) {
       const segment = this.#segments[i];
+      // skip baseline segment
+      // eslint-disable-next-line no-continue
+      if (baseOnSegment && baselineConfig.param === segment.name) continue;
+
       segment.markOutliers(allMarkers);
       segment.omitMarked(toOmit);
-      segment.calcMeanPupil(isChartContinous);
+      segment.setBaseline({
+        evaluatedBaseline: baseline,
+        isChartContinous,
+        baselineWindowSize: <number>baselineConfig.param,
+      });
+      segment.calcMeasures(isChartContinous);
       segment.calcMedianDifference();
       segment.calcStats();
       segment.resampling(
@@ -40,7 +73,7 @@ export default class Pupillometry {
         resampling.acceptableGap
       );
       segment.smoothing(smoothing.on, smoothing.cutoffFrequency);
-      segment.calcResultStats(false);
+      segment.calcResultStats(smoothing.on);
     }
     return {
       name: this.#name,
@@ -60,12 +93,13 @@ export default class Pupillometry {
       segment
         .markOutliers(allMarkers)
         .omitMarked(toOmit)
-        .calcMeanPupil(isChartContinous)
+        .setBaseline({ isChartContinous, baselineWindowSize: 1000 })
+        .calcMeasures(isChartContinous)
         .calcMedianDifference()
-        .calcResultStats(smoothing.on)
+        .calcStats()
         .resampling(resampling.on, resampling.rate, resampling.acceptableGap)
         .smoothing(smoothing.on, smoothing.cutoffFrequency)
-        .calcStats()
+        .calcResultStats(smoothing.on)
         .reduce(true, true);
     }
     return {
