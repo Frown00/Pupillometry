@@ -138,6 +138,8 @@ interface IPupilSample extends IPupilMarked {
   zscore?: number;
   zscoreMinusBaseline?: number;
   zscoreDivideBaseline?: number;
+  relative?: number;
+  erpd?: number;
 }
 
 interface IPupilMarked extends IPupilSampleParsed {
@@ -165,6 +167,11 @@ interface IZscore {
   minusBaseline: IPupillometryStats;
   divideBaseline: IPupillometryStats;
 }
+
+interface IPercentInfo {
+  relative: IPupillometryStats;
+  erpd: IPupillometryStats;
+}
 interface IPupillometry {
   samples: IPupilSample[];
   smoothed?: IPupilSample[];
@@ -175,6 +182,7 @@ interface IPupillometry {
   sampleRate: number;
   baseline?: IBaselineInfo;
   zscore?: IZscore;
+  percent?: IPercentInfo;
 }
 
 interface IGrandValue {

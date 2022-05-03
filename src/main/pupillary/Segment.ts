@@ -29,6 +29,8 @@ export default class Segment {
 
   #zscore: IZscore;
 
+  #percent: IPercentInfo;
+
   constructor(name: string, samples: IPupilSampleParsed[]) {
     this.#name = name;
     this.#samples = samples;
@@ -47,6 +49,10 @@ export default class Segment {
       standard: this.getInitialStats(),
       minusBaseline: this.getInitialStats(),
       divideBaseline: this.getInitialStats(),
+    };
+    this.#percent = {
+      erpd: this.getInitialStats(),
+      relative: this.getInitialStats(),
     };
   }
 
@@ -77,6 +83,7 @@ export default class Segment {
       duration: this.#duration,
       baseline: this.#baseline,
       zscore: this.#zscore,
+      percent: this.#percent,
     };
   }
 
@@ -315,8 +322,17 @@ export default class Segment {
     const zscoreMinusSmoothed = [];
     const zscoreDivide = [];
     const zscoreDivideSmoothed = [];
+    const relative = [];
+    const relativeSmoothed = [];
+    const erpd = [];
+    const erpdSmoothed = [];
     const zscoreFun = (value: number, meanG: number, stdG: number) =>
       (value - meanG) / stdG || NaN;
+    const relativeFun = (value: number, meanG: number) =>
+      ((value - meanG) / meanG) * 100 || NaN;
+    // event related pupil dilatation (pcpd)
+    const erpdFun = (value: number) =>
+      ((value - this.#baseline.value) / this.#baseline.value) * 100 || NaN;
     for (let i = 0; i < this.#samples.length; i += 1) {
       const sample = this.#samples[i];
       const smoothedSample = this.#smoothedSamples[i];
@@ -336,6 +352,8 @@ export default class Segment {
         meanGrand.corrected.divide.normal,
         stdGrand.corrected.divide.normal
       );
+      sample.relative = relativeFun(<number>sample.mean, meanGrand.normal);
+      sample.erpd = erpdFun(<number>sample.mean);
       if (smoothing) {
         smoothedSample.zscore = zscoreFun(
           <number>smoothedSample.mean,
@@ -352,6 +370,11 @@ export default class Segment {
           meanGrand.corrected.divide.smoothed,
           stdGrand.corrected.divide.smoothed
         );
+        smoothedSample.relative = relativeFun(
+          <number>smoothedSample.mean,
+          meanGrand.normal
+        );
+        smoothedSample.erpd = erpdFun(<number>smoothedSample.mean);
       }
       if (sample.zscore && sample.meanMark !== 'binned') {
         zscore.push(sample.zscore);
@@ -362,30 +385,56 @@ export default class Segment {
       if (sample.zscoreDivideBaseline && sample.meanMark !== 'binned') {
         zscoreDivide.push(sample.zscoreDivideBaseline);
       }
-      if (smoothedSample.zscore && sample.meanMark !== 'binned') {
+      if (sample.relative && sample.meanMark !== 'binned') {
+        relative.push(sample.relative);
+      }
+      if (sample.erpd && sample.meanMark !== 'binned') {
+        erpd.push(sample.erpd);
+      }
+
+      if (smoothedSample.zscore && smoothedSample.meanMark !== 'binned') {
         zscoreSmoothed.push(smoothedSample.zscore);
       }
-      if (smoothedSample.zscoreMinusBaseline && sample.meanMark !== 'binned') {
+      if (
+        smoothedSample.zscoreMinusBaseline &&
+        smoothedSample.meanMark !== 'binned'
+      ) {
         zscoreMinusSmoothed.push(smoothedSample.zscoreMinusBaseline);
       }
-      if (smoothedSample.zscoreDivideBaseline && sample.meanMark !== 'binned') {
+      if (
+        smoothedSample.zscoreDivideBaseline &&
+        smoothedSample.meanMark !== 'binned'
+      ) {
         zscoreDivideSmoothed.push(smoothedSample.zscoreDivideBaseline);
       }
-
-      this.#zscore.standard.sample = this.#stats.sample;
-      this.#zscore.standard.result = this.countResult(zscore);
-      this.#zscore.standard.resultSmoothed = this.countResult(zscoreSmoothed);
-
-      this.#zscore.minusBaseline.sample = this.#stats.sample;
-      this.#zscore.minusBaseline.result = this.countResult(zscoreMinus);
-      this.#zscore.minusBaseline.resultSmoothed =
-        this.countResult(zscoreMinusSmoothed);
-
-      this.#zscore.divideBaseline.sample = this.#stats.sample;
-      this.#zscore.divideBaseline.result = this.countResult(zscoreDivide);
-      this.#zscore.divideBaseline.resultSmoothed =
-        this.countResult(zscoreDivideSmoothed);
+      if (smoothedSample.relative && smoothedSample.meanMark !== 'binned') {
+        relativeSmoothed.push(smoothedSample.relative);
+      }
+      if (smoothedSample.erpd && smoothedSample.meanMark !== 'binned') {
+        erpdSmoothed.push(smoothedSample.erpd);
+      }
     }
+    this.#zscore.standard.sample = this.#stats.sample;
+    this.#zscore.standard.result = this.countResult(zscore);
+    this.#zscore.standard.resultSmoothed = this.countResult(zscoreSmoothed);
+
+    this.#zscore.minusBaseline.sample = this.#stats.sample;
+    this.#zscore.minusBaseline.result = this.countResult(zscoreMinus);
+    this.#zscore.minusBaseline.resultSmoothed =
+      this.countResult(zscoreMinusSmoothed);
+
+    this.#zscore.divideBaseline.sample = this.#stats.sample;
+    this.#zscore.divideBaseline.result = this.countResult(zscoreDivide);
+    this.#zscore.divideBaseline.resultSmoothed =
+      this.countResult(zscoreDivideSmoothed);
+
+    this.#percent.relative.sample = this.#stats.sample;
+    this.#percent.relative.result = this.countResult(relative);
+    this.#percent.relative.resultSmoothed = this.countResult(relativeSmoothed);
+
+    this.#percent.erpd.sample = this.#stats.sample;
+    this.#percent.erpd.result = this.countResult(erpd);
+    this.#percent.erpd.resultSmoothed = this.countResult(erpdSmoothed);
   }
 
   // eslint-disable-next-line class-methods-use-this

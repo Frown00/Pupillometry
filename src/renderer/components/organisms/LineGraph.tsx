@@ -93,6 +93,10 @@ export default class LineGraph extends React.Component<IProps, IState> {
     if (chartType === 'Z-Score /Baseline')
       return (d: IPupilSample) =>
         d?.zscoreDivideBaseline ? d.zscoreDivideBaseline : NaN;
+    if (chartType === 'Relative')
+      return (d: IPupilSample) => (d?.relative ? d.relative : NaN);
+    if (chartType === 'PCPD (ERPD)')
+      return (d: IPupilSample) => (d?.erpd ? d.erpd : NaN);
 
     return (d: IPupilSample) => (d?.baselineDivide ? d.baselineDivide : NaN);
   }
@@ -111,7 +115,7 @@ export default class LineGraph extends React.Component<IProps, IState> {
 
   private getDomain() {
     const { samples, chartType, config } = this.props;
-    const { stats, baseline, zscore } = samples;
+    const { stats, baseline, zscore, percent } = samples;
     if (chartType === 'Mean') {
       const minValues = config.chart.showEyesPlot
         ? [stats.right.min, stats.left.min, stats.result.min]
@@ -147,6 +151,20 @@ export default class LineGraph extends React.Component<IProps, IState> {
     if (chartType === 'Z-Score /Baseline') {
       const minValues = this.getMinValues(zscore?.divideBaseline);
       const maxValues = this.getMaxValues(zscore?.divideBaseline);
+      const min = Math.min(...minValues);
+      const max = Math.max(...maxValues);
+      return [min, max];
+    }
+    if (chartType === 'Relative') {
+      const minValues = this.getMinValues(percent?.relative);
+      const maxValues = this.getMaxValues(percent?.relative);
+      const min = Math.min(...minValues);
+      const max = Math.max(...maxValues);
+      return [min, max];
+    }
+    if (chartType === 'PCPD (ERPD)') {
+      const minValues = this.getMinValues(percent?.erpd);
+      const maxValues = this.getMaxValues(percent?.erpd);
       const min = Math.min(...minValues);
       const max = Math.max(...maxValues);
       return [min, max];
@@ -326,12 +344,21 @@ export default class LineGraph extends React.Component<IProps, IState> {
     const yAxis = d3.axisLeft(yScale).tickSize(-dimensions.ctrWidth).ticks(10);
 
     const yAxisGroup = container.append('g').call(yAxis).classed('axis', true);
+    const percentChartTypes: ChartOption[] = ['PCPD (ERPD)', 'Relative'];
+    const noUnitChartTypes: ChartOption[] = [
+      'Z-Score',
+      'Z-Score -Baseline',
+      'Z-Score /Baseline',
+    ];
+    let yUnit = '[mm]';
+    if (percentChartTypes.includes(chartType)) yUnit = '%';
+    if (noUnitChartTypes.includes(chartType)) yUnit = '';
     yAxisGroup
       .append('text')
       .attr('x', -dimensions.ctrHeight / 2)
       .attr('y', -dimensions.margin.left + 15)
       .attr('fill', 'black')
-      .html('Pupil size [mm]')
+      .html(`Pupil size ${yUnit}`)
       .style('transform', 'rotate(270deg)')
       .style('text-anchor', 'middle');
     // grid line
@@ -340,27 +367,25 @@ export default class LineGraph extends React.Component<IProps, IState> {
 
     // container
     if (config.chart.showMeanPlot) {
-      if (true) {
+      this.drawLine({
+        container,
+        dataset,
+        xScale,
+        xAccessor,
+        yScale,
+        yAccessor: yAccessorResult,
+        color: Color.chart.mean,
+      });
+      if (smoothed.length > 0) {
         this.drawLine({
           container,
-          dataset,
+          dataset: smoothed,
           xScale,
           xAccessor,
           yScale,
           yAccessor: yAccessorResult,
-          color: Color.chart.mean,
+          color: Color.chart.smooted,
         });
-        if (smoothed.length > 0) {
-          this.drawLine({
-            container,
-            dataset: smoothed,
-            xScale,
-            xAccessor,
-            yScale,
-            yAccessor: yAccessorResult,
-            color: Color.chart.smooted,
-          });
-        }
       }
     }
 
