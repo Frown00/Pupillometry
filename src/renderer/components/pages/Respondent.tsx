@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { RouteComponentProps } from 'react-router';
 import { useRecoilState } from 'recoil';
+import { Space } from 'antd';
 import {
   IStudyRequest,
   IStudyResponse,
@@ -55,7 +56,6 @@ export default function Respondent(props: MatchProps) {
         return;
       }
       if (response.state === State.Done) {
-        console.log(response.result);
         setRespondent(response.result);
         setLoading(false);
       }
@@ -72,7 +72,7 @@ export default function Respondent(props: MatchProps) {
     config = configs[respondent?.config];
   }
 
-  const correctConfig = config ? (
+  const chart = config ? (
     <SegmentedLineGraph
       config={config}
       respondentName={respondentName}
@@ -85,21 +85,23 @@ export default function Respondent(props: MatchProps) {
   );
   return (
     <ActiveStudy routerProps={props} Loader={loader}>
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+      <Space>
         <Title level={2}>{respondentName}</Title>
-        <SelectWithSearch
-          optionNames={respondentNames ?? []}
-          placeholder="Select respondent"
-          baseRoute={`/study/${activeStudy.name}/${activeGroup}`}
-          width={100}
-          history={history}
-        />
-      </div>
-      <div>
-        <Title level={2}>Overview</Title>
+      </Space>
+      <Space direction="vertical">
+        <Space style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <Title level={2}>Overview</Title>
+          <SelectWithSearch
+            optionNames={respondentNames ?? []}
+            placeholder="Select respondent"
+            baseRoute={`/study/${activeStudy.name}/${activeGroup.name}`}
+            width={200}
+            history={history}
+          />
+        </Space>
         <Text>Config: {config?.name ?? 'NO CONFIG'}</Text>
-        {correctConfig}
-      </div>
+        {chart}
+      </Space>
     </ActiveStudy>
   );
 }

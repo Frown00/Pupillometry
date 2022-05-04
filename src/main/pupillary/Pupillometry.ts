@@ -101,23 +101,51 @@ export default class Pupillometry {
   }
 
   process(): IPupillometryResult {
-    const { resampling, smoothing } = this.#config;
+    const { resampling, smoothing, measurement } = this.#config;
     const allMarkers: IMarker[] = this.usedMarkers();
     const toOmit: PupilMark[] = ['missing', 'outlier', 'invalid'];
     const isChartContinous = !resampling?.acceptableGap;
+    const baselineConfig = measurement.baseline;
+    let baseline: number | undefined;
+    const baseOnSegment = baselineConfig.type === 'selected segment';
+    if (baseOnSegment) {
+      baseline = this.calcBaselineBasedOnSegment(<string>baselineConfig.param);
+    }
+    const grandHelperMean = new GrandStatsHelper('mean');
+    const grandHelperStd = new GrandStatsHelper('std');
+
     for (let i = 0; i < this.#segments.length; i += 1) {
       const segment = this.#segments[i];
 
       segment
         .markOutliers(allMarkers)
         .omitMarked(toOmit)
-        .setBaseline({ baselineWindowSize: 1000 })
         .calcBeforeReshape(isChartContinous)
         .resampling(resampling.on, resampling.rate, resampling.acceptableGap)
         .smoothing(smoothing.on, smoothing.cutoffFrequency)
-        .calcResultStats(smoothing.on)
-        .reduce(true, true);
+        .setBaseline({
+          evaluatedBaseline: baseline,
+          baselineWindowSize: <number>baselineConfig.param,
+        })
+        .calcResultStats(smoothing.on);
+
+      const { stats, baseline: corrected } = segment.getInfo();
+      grandHelperMean.add(stats, corrected);
+      grandHelperStd.add(stats, corrected);
     }
+
+    const meanGrand: IGrandValue = grandHelperMean.calc();
+    const stdGrand: IGrandValue = grandHelperStd.calc();
+
+    for (let i = 0; i < this.#segments.length; i += 1) {
+      const segment = this.#segments[i];
+      // skip baseline segment
+      // eslint-disable-next-line no-continue
+      if (baseOnSegment && baselineConfig.param === segment.name) continue;
+      segment.calcAdvancedMeasures(smoothing.on, meanGrand, stdGrand);
+      segment.reduce(smoothing.on, true);
+    }
+
     return {
       name: this.#name,
       segments: this.#segments.map((s) => s.getInfo()),

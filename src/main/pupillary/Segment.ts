@@ -127,17 +127,40 @@ export default class Segment {
 
   reduce(replaceBySmoothed = true, removeEyePupil = true) {
     if (this.#classification === 'Wrong') return this;
-    if (!replaceBySmoothed) return this;
+    // if (!replaceBySmoothed) return this;
     for (let i = 0; i < this.#samples.length; i += 1) {
-      this.#samples[i].mean = this.#smoothedSamples[i].mean;
+      if (replaceBySmoothed) {
+        this.#samples[i].mean = this.#smoothedSamples[i].mean;
+        this.#samples[i].baselineMinus = this.#smoothedSamples[i].baselineMinus;
+        this.#samples[i].baselineDivide =
+          this.#smoothedSamples[i].baselineDivide;
+        this.#samples[i].zscore = this.#smoothedSamples[i].zscore;
+        this.#samples[i].zscoreMinusBaseline =
+          this.#smoothedSamples[i].zscoreMinusBaseline;
+        this.#samples[i].zscoreDivideBaseline =
+          this.#smoothedSamples[i].zscoreDivideBaseline;
+        this.#samples[i].relative = this.#smoothedSamples[i].relative;
+        this.#samples[i].erpd = this.#smoothedSamples[i].erpd;
+      }
       if (removeEyePupil) {
         delete this.#samples[i].leftMark;
         delete this.#samples[i].rightMark;
         delete (<any>this.#samples[i]).rightPupil;
         delete (<any>this.#samples[i]).leftPupil;
+        delete (<any>this.#samples[i]).meanMark;
+
+        if (!replaceBySmoothed) {
+          delete this.#smoothedSamples[i].leftMark;
+          delete this.#smoothedSamples[i].rightMark;
+          delete (<any>this.#smoothedSamples[i]).rightPupil;
+          delete (<any>this.#smoothedSamples[i]).leftPupil;
+          delete (<any>this.#samples[i]).meanMark;
+        }
       }
     }
-    this.#smoothedSamples = [];
+    if (replaceBySmoothed) {
+      this.#smoothedSamples = [];
+    }
     return this;
   }
 

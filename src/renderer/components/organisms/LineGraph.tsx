@@ -270,7 +270,8 @@ export default class LineGraph extends React.Component<IProps, IState> {
 
   private buildGraph(dataset: IPupilSample[], smoothed: IPupilSample[]) {
     const { config, chartType } = this.props;
-    if (dataset.length <= 0) return;
+    // eslint-disable-next-line no-param-reassign
+    if (dataset.length <= 0 && smoothed.length <= 0) return;
     // #region Accessors
     const xAccessor = (d: IPupilSample) =>
       d?.timestamp !== undefined ? d.timestamp : '';
@@ -279,9 +280,11 @@ export default class LineGraph extends React.Component<IProps, IState> {
     const yAccessorRight = (d: IPupilSample) =>
       d?.rightPupil ? d.rightPupil : NaN;
     const yAccessorResult = this.getResultAccessor();
+
     // #endregion
     // #region  Dimensions
     const dimensions = this.getDimensions();
+
     // #endregion
     // #region Creating SVG
     const svg = d3
@@ -296,11 +299,19 @@ export default class LineGraph extends React.Component<IProps, IState> {
         'transform',
         `translate(${dimensions.margin.left}, ${dimensions.margin.top})`
       );
+
     // #endregion
     // #region  Scales
+    const min =
+      dataset.length > 0 ? dataset[0].timestamp : smoothed[0].timestamp;
+    const max =
+      dataset.length > 0
+        ? dataset[dataset.length - 1].timestamp
+        : smoothed[smoothed.length - 1].timestamp;
+
     const xScale = d3
       .scaleLinear()
-      .domain([dataset[0].timestamp, dataset[dataset.length - 1].timestamp])
+      .domain([min, max])
       .rangeRound([0, dimensions.ctrWidth]);
 
     const yScale = d3
@@ -342,7 +353,6 @@ export default class LineGraph extends React.Component<IProps, IState> {
     // #endregion
     // #region Axe Y
     const yAxis = d3.axisLeft(yScale).tickSize(-dimensions.ctrWidth).ticks(10);
-
     const yAxisGroup = container.append('g').call(yAxis).classed('axis', true);
     const percentChartTypes: ChartOption[] = ['PCPD (ERPD)', 'Relative'];
     const noUnitChartTypes: ChartOption[] = [
@@ -367,26 +377,28 @@ export default class LineGraph extends React.Component<IProps, IState> {
 
     // container
     if (config.chart.showMeanPlot) {
-      this.drawLine({
-        container,
-        dataset,
-        xScale,
-        xAccessor,
-        yScale,
-        yAccessor: yAccessorResult,
-        color: Color.chart.mean,
-      });
-      if (smoothed.length > 0) {
+      if (dataset.length > 0) {
         this.drawLine({
           container,
-          dataset: smoothed,
+          dataset,
           xScale,
           xAccessor,
           yScale,
           yAccessor: yAccessorResult,
-          color: Color.chart.smooted,
+          color: Color.chart.mean,
         });
       }
+    }
+    if (smoothed.length > 0) {
+      this.drawLine({
+        container,
+        dataset: smoothed,
+        xScale,
+        xAccessor,
+        yScale,
+        yAccessor: yAccessorResult,
+        color: Color.chart.smooted,
+      });
     }
 
     // #region  Draw Circles

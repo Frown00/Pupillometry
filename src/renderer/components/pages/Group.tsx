@@ -22,10 +22,20 @@ interface MatchParams {
 
 type MatchProps = RouteComponentProps<MatchParams>;
 
+function getAllUniqueTasks(respondents: IPupillometryResult[]) {
+  const taskNames = new Set<string>();
+  for (let i = 0; i < respondents?.length; i += 1) {
+    const r = respondents[i];
+    r.segments.map((s) => taskNames.add(s.name));
+  }
+  return Array.from(taskNames);
+}
+
 export default function Group(props: MatchProps) {
   const [respondents, setRespondents] = useState<IPupillometryResult[]>([]);
   const [activeStudy, setActiveStudy] = useRecoilState(activeStudyState);
   const [activeGroup, setActiveGroup] = useRecoilState(activeGroupState);
+  const [selectedSegment, setSelectedSegment] = useState<string>('');
   const { match } = props;
   const { groupName } = match.params;
   const group = activeStudy.groups.find((g) => g.name === groupName);
@@ -62,23 +72,15 @@ export default function Group(props: MatchProps) {
     });
   };
 
-  const onChange = (value: any) => {
-    // setState((prev) => ({ ...prev, segmentRecord: respondents[value] }));
+  const onChange = (value: string) => {
+    setSelectedSegment(value);
   };
 
-  const onSearch = (val: any) => {};
-
   const dependant = group?.isDependant ? 'Dependant' : 'Independant';
-  // console.log('GROUP CCC', GlobalState.configs);
-  const options = [
-    <Select.Option key="0">0</Select.Option>,
-    <Select.Option key="1">1</Select.Option>,
-    <Select.Option key="2">2</Select.Option>,
-    <Select.Option key="3">3</Select.Option>,
-    <Select.Option key="4">4</Select.Option>,
-    <Select.Option key="5">5</Select.Option>,
-    <Select.Option key="6">6</Select.Option>,
-  ];
+  const segmentNames: string[] = getAllUniqueTasks(respondents);
+  const options = segmentNames.map((name) => (
+    <Select.Option key={name}>{name}</Select.Option>
+  ));
   // const validCount = segmentRecord.reduce(
   //   (p, c) => p + (c.validity.toLowerCase() === 'valid' ? 1 : 0),
   //   0
@@ -88,7 +90,6 @@ export default function Group(props: MatchProps) {
   //   0
   // );
   // const means = segmentRecord.map((s) => s.mean);
-  console.log('GROUP', respondents);
   return (
     <ActiveStudy routerProps={props}>
       <RouteLink
@@ -107,16 +108,12 @@ export default function Group(props: MatchProps) {
         style={{ minWidth: '100px', marginBottom: '30px' }}
         showSearch
         placeholder="Select segment"
-        optionFilterProp="children"
         onChange={(v) => onChange(v)}
-        onSearch={onSearch}
-        filterOption={(input, option: any) =>
-          option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
-        }
       >
         {options}
       </Select>
       <RespondentTable
+        segmentName={selectedSegment || segmentNames[0] || ''}
         handleOnDelete={handleOnDelete}
         respondents={respondents ?? []}
       />

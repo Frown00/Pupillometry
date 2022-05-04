@@ -123,6 +123,7 @@
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^12.1.2",
     "@types/chai": "^4.3.0",
+    "@types/compression": "^1.7.2",
     "@types/d3": "^7.1.0",
     "@types/enzyme": "^3.10.10",
     "@types/enzyme-adapter-react-16": "^1.0.6",
@@ -197,6 +198,7 @@
   "dependencies": {
     "@ant-design/icons": "^4.7.0",
     "antd": "^4.18.2",
+    "compression": "^1.7.4",
     "d3": "^7.2.1",
     "d3-svg-to-png": "^0.1.7",
     "electron-debug": "^3.2.0",
@@ -214,7 +216,8 @@
     "recoil": "^0.5.2",
     "simple-statistics": "^7.7.0",
     "styled-components": "^5.3.3",
-    "yup": "^0.32.11"
+    "yup": "^0.32.11",
+    "zipson": "^0.2.12"
   },
   "devEngines": {
     "node": ">=14.x",

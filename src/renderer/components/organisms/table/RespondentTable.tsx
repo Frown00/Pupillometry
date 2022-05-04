@@ -7,49 +7,66 @@ export interface IRespondentRecord {
   key: string;
   name: string;
   validity: string;
-  pupilCorrelation: number;
-  missing: number;
+  difference: number;
+  correlation: number;
+  missing: string;
   min: number;
   max: number;
   mean: number;
   std: number;
 }
 
+function getAllUniqueSegments(respondents: IPupillometryResult[]) {
+  const segments: { [name: string]: IPupillometry } = {};
+  for (let i = 0; i < respondents?.length; i += 1) {
+    const r = respondents[i];
+    r.segments.map((s) => {
+      segments[s.name] = s;
+      return true;
+    });
+  }
+  return segments;
+}
+
 function createRecords(respondents: IPupillometryResult[]) {
   if (respondents.length === 0) return [];
-  const records = [];
-  let segmentRecords = [];
-  const segments = respondents[0].segments.length;
-  for (let s = 0; s < segments; s += 1) {
+  const records: any[] = [];
+  let segmentRecords: any[] = [];
+  const segments = getAllUniqueSegments(respondents);
+  // eslint-disable-next-line no-restricted-syntax
+  Object.keys(segments).forEach((key, idx) => {
     for (let r = 0; r < respondents.length; r += 1) {
+      const respondent = respondents[r];
       let res: IRespondentRecord = {
         key: r.toString(),
         name: respondents[r].name,
         validity: 'NO DATA',
-        pupilCorrelation: -1,
+        correlation: -1,
+        difference: -1,
         min: -1,
         max: -1,
         mean: -1,
-        missing: 100,
+        missing: '100%',
         std: -1,
       };
-      if (!respondents?.[r]?.segments?.[s]) {
-        console.log('SOME WRONG', respondents[r].name, s);
+      if (!respondent.segments[idx]) {
+        console.log('SOME WRONG', respondents[r].name);
         // eslint-disable-next-line no-continue
       } else {
-        const { classification, stats } = respondents[r].segments[s];
+        const { classification, stats } = respondents[r].segments[idx];
 
         res = {
           key: r.toString(),
           name: respondents[r].name,
           validity: classification,
-          pupilCorrelation: parseFloat(stats.result.correlation?.toFixed(2)),
+          correlation: parseFloat(stats.sample.correlation?.toFixed(2)),
+          missing: `${parseFloat(
+            ((stats.sample.missing / stats.sample.raw) * 100)?.toFixed(2)
+          )}%`,
+          difference: parseFloat(stats.sample.difference?.toFixed(4)),
           min: parseFloat(stats.result.min?.toFixed(4)),
           max: parseFloat(stats.result.max?.toFixed(4)),
           mean: parseFloat(stats.result.mean?.toFixed(4)),
-          missing: parseFloat(
-            ((stats.result.missing / stats.sample.raw) * 100)?.toFixed(2)
-          ),
           std: parseFloat(stats.result.std?.toFixed(4)),
         };
       }
@@ -57,27 +74,33 @@ function createRecords(respondents: IPupillometryResult[]) {
     }
     records.push(segmentRecords);
     segmentRecords = [];
-  }
+  });
   return records as unknown as IRecord[][];
 }
 
 interface IProps {
   respondents: IPupillometryResult[];
+  segmentName: string;
   handleOnDelete: (record: any) => void;
 }
 
 export default function RespondentTable(props: IProps) {
-  const { respondents, handleOnDelete } = props;
+  const { respondents, segmentName, handleOnDelete } = props;
   const [activeStudy] = useRecoilState(activeStudyState);
   const [activeGroup] = useRecoilState(activeGroupState);
 
   const records = createRecords(respondents);
   const baseRoute = `${Routes.Group(activeStudy.name, activeGroup.name)}/`;
   const size = 5;
+  const allSegments = getAllUniqueSegments(respondents);
+  const segmentId = Object.keys(allSegments).findIndex(
+    (k) => k === segmentName
+  );
+  // const { meanGrand, stdGrand } = respondents[0];
   return (
     <Table
       baseRoute={baseRoute}
-      records={records[0]}
+      records={records[segmentId]}
       pageSize={size}
       handleOnDelete={handleOnDelete}
     />
