@@ -1,6 +1,4 @@
 import { IpcMainEvent, ipcMain } from 'electron';
-import { EventEmitter } from 'stream';
-import { string } from 'yup';
 import FileStore from '../../main/store/FileStore';
 import ConfigRepository from '../../main/store/repository/ConfigRepository';
 import StudyRepository, {
@@ -181,7 +179,7 @@ export default class StudyChannel implements IpcChannel {
           query.group,
           query.respondent
         );
-        response.result = FileStore.readFile(dataPath) ?? result;
+        response.result = FileStore.readFile(dataPath) || result;
       }
     }
     if (method === 'readAll') response.result = StudyRepository.readAll(query);

@@ -1,5 +1,5 @@
 import path from 'path';
-import fs from 'fs';
+import { stringify, parse } from 'zipson';
 import FsUtil from '../filesystem/FsUtil';
 
 interface IFileStoreConfig {
@@ -95,7 +95,7 @@ export default class FileStore {
 
   static saveFile(data: IPupillometryResult, dataPath: string) {
     try {
-      const toSave = JSON.stringify(data);
+      const toSave = stringify(data);
       FsUtil.createFile(path.join(dataPath, data.name), toSave);
     } catch (err) {
       throw new Error(`${err}`);
@@ -105,7 +105,7 @@ export default class FileStore {
   static readFile(dataPath: string) {
     try {
       const data = FsUtil.readFile(dataPath);
-      if (data) return JSON.parse(data);
+      if (data) return parse(data);
       return false;
     } catch (err) {
       throw new Error(`${err}`);
