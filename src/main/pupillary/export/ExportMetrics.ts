@@ -26,7 +26,7 @@ export default class ExportMetrics {
       const taskGroups = this.taskGroups[group.name];
       savePromises.push(
         new MetricWorkbook(group, taskGroups)
-          .addLegend()
+          .addInfoSheet()
           .addSheets()
           .save(exportDir)
       );
