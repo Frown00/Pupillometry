@@ -121,7 +121,7 @@ export default class Worksheet {
           isCalculating = true;
         } else {
           value = this.getValue(wantedResult) || '';
-          if (value !== '') {
+          if (value !== '' && value !== 'INVALID') {
             values.push(<number>value);
             if (wantedResult?.baseline?.value)
               baselines.push(wantedResult?.baseline?.value);
@@ -132,7 +132,11 @@ export default class Worksheet {
             baselines = [];
           }
         }
-        row.push(value ? Number(Number(value).toFixed(5)) : '');
+        if (value === 'INVALID') {
+          row.push(value);
+        } else {
+          row.push(value ? Number(Number(value).toFixed(5)) : '');
+        }
       }
       this.worksheet.addRow(row);
     }
@@ -161,6 +165,7 @@ export default class Worksheet {
 
   private getValue(p: IPupillometry | undefined) {
     if (!p) return '';
+    if (p.classification !== 'Valid') return 'INVALID';
     if (this.config.measureType === 'mean')
       return p.stats.resultSmoothed.mean || p.stats.result.mean;
     if (this.config.measureType === 'min')
