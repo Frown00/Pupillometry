@@ -12,6 +12,7 @@ interface IConfig {
     height: number;
     showEyesPlot: boolean;
     showMeanPlot: boolean;
+    showSmoothed: boolean;
   };
   measurement: {
     eye: 'left' | 'right' | 'both';
@@ -54,9 +55,10 @@ interface IConfig {
       isolationMinimum: number; // gap from both sides
     };
   };
-  trialValidity: {
+  validity: {
     missing: number;
     correlation?: number;
+    difference?: number;
   };
   resampling: {
     on: boolean;

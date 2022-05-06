@@ -10,8 +10,9 @@
   "chart": {
     "width": 800,
     "height": 400,
-    "showEyesPlot": true,
-    "showMeanPlot": true
+    "showEyesPlot": false,
+    "showMeanPlot": false,
+    "showSmoothed": true
   },
   "measurement": {
     "eye": "both",
@@ -57,9 +58,10 @@
       "isolationMinimum": 50
     }
   },
-  "trialValidity": {
+  "validity": {
     "missing": 30,
-    "correlation": 0
+    "correlation": 0,
+    "difference": 1
   },
   "resampling": {
     "on": true,

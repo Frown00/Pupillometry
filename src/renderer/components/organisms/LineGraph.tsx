@@ -102,25 +102,39 @@ export default class LineGraph extends React.Component<IProps, IState> {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  private getMinValues(stats?: IPupillometryStats) {
-    if (!stats) return [-1];
-    return [stats.result.min, stats.resultSmoothed?.min || Infinity];
+  private getMinDomain(stats?: IPupillometryStats) {
+    if (!stats) return -1;
+    const { config } = this.props;
+    if (config.chart.showMeanPlot && config.chart.showSmoothed) {
+      const arr = [stats.result.min, stats.resultSmoothed?.min || Infinity];
+      return Math.min(...arr);
+    }
+    if (config.chart.showMeanPlot) return stats.result.min;
+    return stats.resultSmoothed.min;
   }
 
   // eslint-disable-next-line class-methods-use-this
-  private getMaxValues(stats?: IPupillometryStats) {
-    if (!stats) return [1];
-    return [stats.result.max, stats.resultSmoothed?.max || Infinity];
+  private getMaxDomain(stats?: IPupillometryStats) {
+    if (!stats) return 1;
+    const { config } = this.props;
+    if (config.chart.showMeanPlot && config.chart.showSmoothed) {
+      const arr = [stats.result.max, stats.resultSmoothed?.max || Infinity];
+      return Math.min(...arr);
+    }
+    if (config.chart.showMeanPlot) return stats.result.max;
+    return stats.resultSmoothed.max;
   }
 
   private getDomain() {
     const { samples, chartType, config } = this.props;
     const { stats, baseline, zscore, percent } = samples;
     if (chartType === 'Mean') {
-      const minValues = config.chart.showEyesPlot
+      const includeBothPupils =
+        config.chart.showEyesPlot && 'leftPupil' in samples.samples[0];
+      const minValues = includeBothPupils
         ? [stats.right.min, stats.left.min, stats.result.min]
         : [stats.result.min, stats.resultSmoothed.min || Infinity];
-      const maxValues = config.chart.showEyesPlot
+      const maxValues = includeBothPupils
         ? [stats.right.max, stats.left.max, stats.result.max]
         : [stats.result.max, stats.resultSmoothed?.max || -Infinity];
       const min = Math.min(...minValues);
@@ -128,51 +142,37 @@ export default class LineGraph extends React.Component<IProps, IState> {
       return [min, max];
     }
     if (chartType === 'Minus Baseline') {
-      const minValues = this.getMinValues(baseline?.minusStats);
-      const maxValues = this.getMaxValues(baseline?.minusStats);
-      const min = Math.min(...minValues);
-      const max = Math.max(...maxValues);
+      const min = this.getMinDomain(baseline?.minusStats);
+      const max = this.getMaxDomain(baseline?.minusStats);
       return [min, max];
     }
     if (chartType === 'Z-Score') {
-      const minValues = this.getMinValues(zscore?.standard);
-      const maxValues = this.getMaxValues(zscore?.standard);
-      const min = Math.min(...minValues);
-      const max = Math.max(...maxValues);
+      const min = this.getMinDomain(zscore?.standard);
+      const max = this.getMaxDomain(zscore?.standard);
       return [min, max];
     }
     if (chartType === 'Z-Score -Baseline') {
-      const minValues = this.getMinValues(zscore?.minusBaseline);
-      const maxValues = this.getMaxValues(zscore?.minusBaseline);
-      const min = Math.min(...minValues);
-      const max = Math.max(...maxValues);
+      const min = this.getMinDomain(zscore?.minusBaseline);
+      const max = this.getMaxDomain(zscore?.minusBaseline);
       return [min, max];
     }
     if (chartType === 'Z-Score /Baseline') {
-      const minValues = this.getMinValues(zscore?.divideBaseline);
-      const maxValues = this.getMaxValues(zscore?.divideBaseline);
-      const min = Math.min(...minValues);
-      const max = Math.max(...maxValues);
+      const min = this.getMinDomain(zscore?.divideBaseline);
+      const max = this.getMaxDomain(zscore?.divideBaseline);
       return [min, max];
     }
     if (chartType === 'Relative') {
-      const minValues = this.getMinValues(percent?.relative);
-      const maxValues = this.getMaxValues(percent?.relative);
-      const min = Math.min(...minValues);
-      const max = Math.max(...maxValues);
+      const min = this.getMinDomain(percent?.relative);
+      const max = this.getMaxDomain(percent?.relative);
       return [min, max];
     }
     if (chartType === 'PCPD (ERPD)') {
-      const minValues = this.getMinValues(percent?.erpd);
-      const maxValues = this.getMaxValues(percent?.erpd);
-      const min = Math.min(...minValues);
-      const max = Math.max(...maxValues);
+      const min = this.getMinDomain(percent?.erpd);
+      const max = this.getMaxDomain(percent?.erpd);
       return [min, max];
     }
-    const minValues = this.getMinValues(baseline?.divideStats);
-    const maxValues = this.getMaxValues(baseline?.divideStats);
-    const min = Math.min(...minValues);
-    const max = Math.max(...maxValues);
+    const min = this.getMinDomain(baseline?.divideStats);
+    const max = this.getMaxDomain(baseline?.divideStats);
     return [min, max];
   }
 
@@ -376,7 +376,7 @@ export default class LineGraph extends React.Component<IProps, IState> {
     // #endregion
 
     // container
-    if (config.chart.showMeanPlot) {
+    if (config.chart.showMeanPlot || config.chart.showSmoothed) {
       if (dataset.length > 0) {
         this.drawLine({
           container,
@@ -388,17 +388,17 @@ export default class LineGraph extends React.Component<IProps, IState> {
           color: Color.chart.mean,
         });
       }
-    }
-    if (smoothed.length > 0) {
-      this.drawLine({
-        container,
-        dataset: smoothed,
-        xScale,
-        xAccessor,
-        yScale,
-        yAccessor: yAccessorResult,
-        color: Color.chart.smooted,
-      });
+      if (smoothed.length > 0) {
+        this.drawLine({
+          container,
+          dataset: smoothed,
+          xScale,
+          xAccessor,
+          yScale,
+          yAccessor: yAccessorResult,
+          color: Color.chart.smooted,
+        });
+      }
     }
 
     // #region  Draw Circles
