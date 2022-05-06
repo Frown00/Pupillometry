@@ -96,8 +96,23 @@ export default class Segment {
     return this;
   }
 
-  trialValidity() {
+  validity(missing: number, correlation?: number, pupilDiff?: number) {
     if (this.#classification === 'Wrong') return this;
+    if (!missing) return this;
+    const missingPercent =
+      (this.#stats.sample.missing / this.#stats.sample.raw) * 100;
+    if (missingPercent > missing) {
+      this.#classification = 'Invalid';
+      return this;
+    }
+    if (!correlation) return this;
+    if (this.#stats.sample.correlation > correlation) {
+      this.#classification = 'Invalid';
+      return this;
+    }
+    if (!pupilDiff) return this;
+    if (this.#stats.sample.difference > pupilDiff)
+      this.#classification = 'Invalid';
     return this;
   }
 
@@ -359,42 +374,46 @@ export default class Segment {
     for (let i = 0; i < this.#samples.length; i += 1) {
       const sample = this.#samples[i];
       const smoothedSample = this.#smoothedSamples[i];
+      // eslint-disable-next-line no-continue
+      if (!sample) continue;
+      // eslint-disable-next-line no-continue
+      if (!smoothedSample) continue;
 
       sample.zscore = zscoreFun(
-        <number>sample.mean,
-        meanGrand.normal,
-        stdGrand.normal
+        <number>sample?.mean,
+        meanGrand?.normal,
+        stdGrand?.normal
       );
       sample.zscoreMinusBaseline = zscoreFun(
-        <number>sample.mean - this.#baseline.value,
+        <number>sample?.mean - this.#baseline.value,
         meanGrand.corrected.minus.normal,
         stdGrand.corrected.minus.normal
       );
       sample.zscoreDivideBaseline = zscoreFun(
-        <number>sample.mean / this.#baseline.value,
+        <number>sample?.mean / this.#baseline.value,
         meanGrand.corrected.divide.normal,
         stdGrand.corrected.divide.normal
       );
-      sample.relative = relativeFun(<number>sample.mean, meanGrand.normal);
-      sample.erpd = erpdFun(<number>sample.mean);
+      sample.relative = relativeFun(<number>sample?.mean, meanGrand.normal);
+      sample.erpd = erpdFun(<number>sample?.mean);
       if (smoothing) {
         smoothedSample.zscore = zscoreFun(
-          <number>smoothedSample.mean,
+          <number>smoothedSample?.mean,
           meanGrand.smoothed,
           stdGrand.smoothed
         );
         smoothedSample.zscoreMinusBaseline = zscoreFun(
-          <number>smoothedSample.mean - this.#baseline.value,
+          <number>smoothedSample?.mean - this.#baseline.value,
           meanGrand.corrected.minus.smoothed,
           stdGrand.corrected.minus.smoothed
         );
         smoothedSample.zscoreDivideBaseline = zscoreFun(
-          <number>smoothedSample.mean / this.#baseline.value,
+          <number>smoothedSample?.mean / this.#baseline.value,
           meanGrand.corrected.divide.smoothed,
           stdGrand.corrected.divide.smoothed
         );
         smoothedSample.relative = relativeFun(
-          <number>smoothedSample.mean,
+          <number>smoothedSample?.mean,
           meanGrand.normal
         );
         smoothedSample.erpd = erpdFun(<number>smoothedSample.mean);

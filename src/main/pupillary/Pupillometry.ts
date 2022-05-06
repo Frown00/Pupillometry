@@ -41,7 +41,7 @@ export default class Pupillometry {
   }
 
   test(): IPupillometryResult {
-    const { resampling, smoothing, measurement } = this.#config;
+    const { resampling, smoothing, measurement, validity } = this.#config;
     const allMarkers: IMarker[] = this.usedMarkers();
     const toOmit: PupilMark[] = ['missing', 'outlier', 'invalid'];
     const isChartContinous = !resampling.acceptableGap;
@@ -75,6 +75,11 @@ export default class Pupillometry {
         baselineWindowSize: <number>baselineConfig.param,
       });
       segment.calcResultStats(smoothing.on);
+      segment.validity(
+        validity.missing,
+        validity.correlation,
+        validity.difference
+      );
       const { stats, baseline: corrected } = segment.getInfo();
       grandHelperMean.add(stats, corrected);
       grandHelperStd.add(stats, corrected);
@@ -101,7 +106,7 @@ export default class Pupillometry {
   }
 
   process(): IPupillometryResult {
-    const { resampling, smoothing, measurement } = this.#config;
+    const { resampling, smoothing, measurement, validity } = this.#config;
     const allMarkers: IMarker[] = this.usedMarkers();
     const toOmit: PupilMark[] = ['missing', 'outlier', 'invalid'];
     const isChartContinous = !resampling?.acceptableGap;
@@ -127,7 +132,8 @@ export default class Pupillometry {
           evaluatedBaseline: baseline,
           baselineWindowSize: <number>baselineConfig.param,
         })
-        .calcResultStats(smoothing.on);
+        .calcResultStats(smoothing.on)
+        .validity(validity.missing, validity.correlation, validity.difference);
 
       const { stats, baseline: corrected } = segment.getInfo();
       grandHelperMean.add(stats, corrected);
