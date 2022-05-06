@@ -1,3 +1,4 @@
+/* eslint-disable react/require-default-props */
 import { Table as AntdTable, Button, Space } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
 import React from 'react';

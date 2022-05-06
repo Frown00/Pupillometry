@@ -1,3 +1,4 @@
+/* eslint-disable consistent-return */
 import { useEffect, useState } from 'react';
 import { RouteComponentProps } from 'react-router';
 import { useRecoilState } from 'recoil';
@@ -31,11 +32,11 @@ type MatchProps = RouteComponentProps<MatchParams>;
 export default function Respondent(props: MatchProps) {
   const { match, history } = props;
   const { respondentName } = match.params;
-  const [isLoading, setLoading] = useState(false);
+  const [isLoading, setLoading] = useState(true);
   const [respondent, setRespondent] = useState<IPupillometryResult | null>(
     null
   );
-  const [activeStudy] = useRecoilState(activeStudyState);
+  const [activeStudy, setActiveStudy] = useRecoilState(activeStudyState);
   const [activeGroup] = useRecoilState(activeGroupState);
   const [configs] = useRecoilState(configsState);
 
@@ -72,11 +73,41 @@ export default function Respondent(props: MatchProps) {
     config = configs[respondent?.config];
   }
 
+  const changeValidity = (
+    segmentName: string,
+    classification: SegmentClass
+  ) => {
+    const setClass = classification === 'Valid' ? 'Invalid' : 'Valid';
+    const request: IStudyRequest = {
+      method: 'updateOne',
+      query: {
+        name: activeStudy.name,
+        group: activeGroup.name,
+        respondent: respondentName,
+        update: { segmentName, validity: setClass },
+      },
+    };
+    const responseChannel = IpcService.send('study', request);
+    IpcService.on(responseChannel, (_, response: IStudyResponse) => {
+      if (response.state === State.Done) {
+        if (!respondent) return null;
+        setRespondent(response.result);
+        setActiveStudy((prevState) => {
+          const groups = [...prevState.groups];
+          const index = groups.findIndex((g) => g.name === activeGroup.name);
+          groups[index] = { ...activeGroup };
+          return { ...prevState, groups };
+        });
+      }
+    });
+  };
+
   const chart = config ? (
     <SegmentedLineGraph
       config={config}
       respondentName={respondentName}
       segments={respondent?.segments ?? []}
+      changeValidity={changeValidity}
     />
   ) : (
     <Title level={3}>

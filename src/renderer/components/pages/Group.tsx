@@ -14,6 +14,7 @@ import RespondentTable, {
 } from '../organisms/table/RespondentTable';
 import IpcService from '../../IpcService';
 import { IStudyRequest } from '../../../ipc/channels/StudyChannel';
+import ButtonGroup from '../molecules/ButtonGroup';
 
 interface MatchParams {
   studyName: string;
@@ -92,11 +93,14 @@ export default function Group(props: MatchProps) {
   // const means = segmentRecord.map((s) => s.mean);
   return (
     <ActiveStudy routerProps={props}>
-      <RouteLink
-        to={Routes.AddRespondent(studyName, groupName)}
-        Wrapper={() => <Button type="primary">Add Respondent</Button>}
-      />
+      <ButtonGroup>
+        <RouteLink
+          to={Routes.AddRespondent(studyName, groupName)}
+          Wrapper={() => <Button type="primary">Add Respondent</Button>}
+        />
+      </ButtonGroup>
       <Title level={2}>Overview</Title>
+      <Text>Name: {group?.name ?? ''}</Text>
       <Text>Category: {dependant}</Text>
       {/* <Text>Valid: {validCount}</Text>
       <Text>Invalid: {invalidCount}</Text>

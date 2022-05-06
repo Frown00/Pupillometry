@@ -12,7 +12,13 @@ import {
 } from './PupillometryChannel';
 
 export interface IStudyRequest extends IpcRequest {
-  method: 'create' | 'readOne' | 'readAll' | 'deleteOne' | 'clear';
+  method:
+    | 'create'
+    | 'readOne'
+    | 'readAll'
+    | 'deleteOne'
+    | 'updateOne'
+    | 'clear';
   query: IStudyQuery;
 }
 
@@ -188,6 +194,11 @@ export default class StudyChannel implements IpcChannel {
     if (method === 'clear') {
       response.result = StudyRepository.clear();
       FileStore.removeAll();
+    }
+    if (method === 'updateOne') {
+      response.result = StudyRepository.updateOne(query);
+      const dataPath = FileStore.getDataFolder(query.name, query.group);
+      FileStore.saveFile(response.result, dataPath);
     }
     response.progress = 1;
     response.state = State.Done;

@@ -21,6 +21,10 @@ export interface IStudyQuery {
   group?: string;
   respondent?: string;
   form?: IRequestForm;
+  update?: {
+    segmentName: string;
+    validity: SegmentClass;
+  };
   results?: IPupillometryResult[];
 }
 
@@ -167,6 +171,30 @@ export default abstract class StudyRepository {
     const removed = removeElement(group.respondents, 'name', query.respondent);
     Store.set('studies', studies);
     return removed;
+  }
+
+  static updateOne(query: IStudyQuery) {
+    const studies = <IStudy[]>Store.get('studies');
+    if (!query.name) return null;
+    const study = studies?.find((s) => s.name === query.name);
+    if (!study) return null;
+    if (!query.group) return study;
+    const group = study.groups.find((g) => g.name === query.group);
+    if (!group) return null;
+    if (!query.respondent) return null;
+    const respondent = group.respondents.find(
+      (r) => r.name === query.respondent
+    );
+    if (!respondent) return null;
+    if (!query.update?.segmentName) return null;
+
+    const segment = respondent.segments.find(
+      (s) => s.name === query.update?.segmentName
+    );
+    if (!segment) return null;
+    segment.classification = query.update.validity;
+    Store.set('studies', studies);
+    return respondent;
   }
 
   static clear() {

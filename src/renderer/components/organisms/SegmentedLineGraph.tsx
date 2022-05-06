@@ -1,6 +1,8 @@
-import { Segmented, Tabs } from 'antd';
+/* eslint-disable react/no-unused-prop-types */
+import { Segmented, Space, Tabs } from 'antd';
 import { SegmentedValue } from 'antd/lib/segmented';
 import { useState } from 'react';
+import Button from '../atoms/Button';
 import SlidingTabs from '../molecules/SlidingTabs';
 import LineGraph from './LineGraph';
 import Metrics from './Metrics';
@@ -11,6 +13,7 @@ interface IProps {
   segments: IPupillometry[];
   config: IConfig;
   respondentName: string;
+  changeValidity: (segmentName: string, classification: SegmentClass) => void;
 }
 
 export type ChartOption =
@@ -24,9 +27,10 @@ export type ChartOption =
   | 'PCPD (ERPD)';
 
 export default function SegmentedLineGraph(props: IProps) {
-  const { segments, config, respondentName } = props;
+  const { segments, config, respondentName, changeValidity } = props;
 
   const [chartType, setChartType] = useState<ChartOption>('Mean');
+
   const chartOptions: ChartOption[] = [
     'Mean',
     'Minus Baseline',
@@ -127,28 +131,35 @@ export default function SegmentedLineGraph(props: IProps) {
 
   const panes = segments.map((s) => (
     <TabPane tab={`${s.name}`} key={s.name}>
-      {getChart(chartType, s)}
-      <Metrics
-        respondentName={respondentName}
-        segmentName={s.name}
-        classification={s.classification}
-        duration={s.duration}
-        sampleRate={s.sampleRate}
-        stats={getStats(s)}
-        baseline={s.baseline?.value ?? NaN}
-      />
+      <Space direction="vertical">
+        {getChart(chartType, s)}
+        <Button
+          type="primary"
+          onClick={() => changeValidity(s.name, s.classification)}
+        >
+          Mark as {s.classification === 'Valid' ? 'Invalid' : 'Valid'}
+        </Button>
+        <Metrics
+          respondentName={respondentName}
+          segmentName={s.name}
+          classification={s.classification}
+          duration={s.duration}
+          sampleRate={s.sampleRate}
+          stats={getStats(s)}
+          baseline={s.baseline?.value ?? NaN}
+        />
+      </Space>
     </TabPane>
   ));
-  const width = config.chart.width + 10;
+  const width = Math.max(900, config.chart.width + 10);
   const height = config.chart.height + 250;
   return (
-    <>
+    <Space direction="vertical">
       <Segmented
         options={chartOptions}
         onChange={(v: SegmentedValue) => onChange(v)}
-        block
       />
       <SlidingTabs tabPanes={panes} width={width} height={height} />
-    </>
+    </Space>
   );
 }
