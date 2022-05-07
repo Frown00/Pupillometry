@@ -231,7 +231,9 @@ export default class Segment {
       const sample = this.#samples[i];
 
       // #region MEAN
-      const nextDiff = lefts[lefts.length - 1] - rights[rights.length - 1];
+      const nextDiff =
+        (sample.leftPupil || lefts[lefts.length - 1]) -
+        (sample.rightPupil || rights[rights.length - 1]);
       if (nextDiff) {
         dynamicDiffLP = nextDiff;
       }
