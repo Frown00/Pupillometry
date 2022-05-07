@@ -6,7 +6,8 @@ import EyeTrackerMarker from './markers/EyeTrackerMarker';
 import OutOfRangeMarker from './markers/OutOfRangeMarker';
 import DilatationSpeedMarker from './markers/DilatationSpeedMarker';
 import GrandStatsHelper from './lib/GrandStatsHelper';
-import TrendlineDeviation from './markers/TrendlineDeviation';
+import TrendlineDeviationMarker from './markers/TrendlineDeviationMarker';
+import TemporallyIsolatedMarker from './markers/TemporallyIsolatedMarker';
 
 export default class Pupillometry {
   #name: string;
@@ -44,7 +45,7 @@ export default class Pupillometry {
   test(): IPupillometryResult {
     const { resampling, smoothing, measurement, validity } = this.#config;
     const allMarkers: IMarker[] = this.usedMarkers();
-    const toOmit: PupilMark[] = ['missing'];
+    const toOmit: PupilMark[] = ['missing', 'invalid'];
     const isChartContinous = !resampling.acceptableGap;
     const baselineConfig = measurement.baseline;
     let baseline: number | undefined;
@@ -61,7 +62,7 @@ export default class Pupillometry {
       // skip baseline segment
       // eslint-disable-next-line no-continue
       if (baseOnSegment && baselineConfig.param === segment.name) continue;
-
+      segment.selectData(measurement.eye);
       segment.markOutliers(allMarkers);
       segment.omitMarked(toOmit);
       segment.calcBeforeReshape(isChartContinous);
@@ -162,7 +163,12 @@ export default class Pupillometry {
 
   private usedMarkers() {
     const { markers } = this.#config;
-    const { outOfRange, dilatationSpeed, trendlineDeviation } = markers;
+    const {
+      outOfRange,
+      dilatationSpeed,
+      trendlineDeviation,
+      temporallyIsolatedSamples,
+    } = markers;
     const allMarkers: IMarker[] = [
       new EyeTrackerMarker(),
       new OutOfRangeMarker(outOfRange.min, outOfRange.max),
@@ -206,12 +212,18 @@ export default class Pupillometry {
       };
 
       allMarkers.push(
-        new TrendlineDeviation(
+        new TrendlineDeviationMarker(
           passes,
           thresholdMultiplier,
           gap,
           cutoffFrequency
         )
+      );
+    }
+    if (temporallyIsolatedSamples.on) {
+      const { isolationMinimum, sizeMaximum } = temporallyIsolatedSamples;
+      allMarkers.push(
+        new TemporallyIsolatedMarker(sizeMaximum, isolationMinimum)
       );
     }
     return allMarkers;

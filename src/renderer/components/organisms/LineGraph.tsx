@@ -237,6 +237,8 @@ export default class LineGraph extends React.Component<IProps, IState> {
           }
           if (marker.algorithm === 'Trendline Deviation')
             return Color.chart.outlier.trendlineDeviation;
+          if (marker.algorithm === 'Temporal Isolated Island')
+            return Color.chart.outlier.temporalIsolatedSamples;
           return Color.chart.outlier.dilatationSpeed.speed;
         }
         return color;

@@ -4,7 +4,7 @@ import resampling from '../lib/resampling';
 import type { IGap } from './DilatationSpeedMarker';
 import DilatationSpeedMarker from './DilatationSpeedMarker';
 
-export default class TrendlineDeviation implements IMarker {
+export default class TrendlineDeviationMarker implements IMarker {
   private passes: number;
 
   private cutoff: number;

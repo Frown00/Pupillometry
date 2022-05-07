@@ -48,8 +48,10 @@ export default class GrandStatsHelper {
 
   add(stats: IPupillometryStats, baseline?: IBaselineInfo) {
     const { result, resultSmoothed } = stats;
-    this.#means.normal.push(result[this.#property]);
-    this.#means.smoothed.push(resultSmoothed[this.#property]);
+    if (result[this.#property] && result[this.#property] !== -1) {
+      this.#means.normal.push(result[this.#property]);
+      this.#means.smoothed.push(resultSmoothed[this.#property]);
+    }
     if (baseline) {
       this.#means.baselineMinus.normal.push(
         baseline.minusStats.result[this.#property]

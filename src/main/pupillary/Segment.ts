@@ -87,6 +87,19 @@ export default class Segment {
     };
   }
 
+  selectData(eye: 'left' | 'right' | 'both') {
+    if (eye === 'both') return this;
+    for (let i = 0; i < this.#samples.length; i += 1) {
+      const sample = this.#samples[i];
+      if (eye === 'left') {
+        sample.rightPupil = sample.leftPupil;
+      } else if (eye === 'right') {
+        sample.leftPupil = sample.rightPupil;
+      }
+    }
+    return this;
+  }
+
   markOutliers(markers: IMarker[]) {
     if (this.#classification === 'Wrong') return this;
     for (let i = 0; i < markers.length; i += 1) {
@@ -234,7 +247,7 @@ export default class Segment {
       const nextDiff =
         (sample.leftPupil || lefts[lefts.length - 1]) -
         (sample.rightPupil || rights[rights.length - 1]);
-      if (nextDiff) {
+      if (nextDiff && !sample.leftMark && !sample.rightMark) {
         dynamicDiffLP = nextDiff;
       }
       const sMean = util.calcMean(

@@ -59,8 +59,8 @@
     },
     "temporallyIsolatedSamples": {
       "on": true,
-      "sizeMinimum": 40,
-      "isolationMinimum": 50
+      "sizeMaximum": 50,
+      "isolationMinimum": 40
     }
   },
   "validity": {

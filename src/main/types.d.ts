@@ -56,7 +56,7 @@ interface IConfig {
     };
     temporallyIsolatedSamples: {
       on: boolean;
-      sizeMinimum: number; // time within samples are valid numbers
+      sizeMaximum: number; // time within samples are valid numbers
       isolationMinimum: number; // gap from both sides
     };
   };

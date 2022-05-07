@@ -41,9 +41,10 @@ export default {
     outlier: {
       dilatationSpeed: {
         speed: ColorPallette.okabe.orange,
-        gap: ColorPallette.okabe.black,
+        gap: ColorPallette.okabe.orange,
       },
       trendlineDeviation: ColorPallette.okabe.yellow,
+      temporalIsolatedSamples: 'gray',
     },
   },
 } as const;

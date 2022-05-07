@@ -1,3 +1,4 @@
+/* eslint-disable react/require-default-props */
 /* eslint-disable react/no-unused-prop-types */
 import { Segmented, Space, Tabs } from 'antd';
 import { SegmentedValue } from 'antd/lib/segmented';
@@ -13,7 +14,7 @@ interface IProps {
   segments: IPupillometry[];
   config: IConfig;
   respondentName: string;
-  changeValidity: (segmentName: string, classification: SegmentClass) => void;
+  changeValidity?: (segmentName: string, classification: SegmentClass) => void;
 }
 
 export type ChartOption =
@@ -135,7 +136,9 @@ export default function SegmentedLineGraph(props: IProps) {
         {getChart(chartType, s)}
         <Button
           type="primary"
-          onClick={() => changeValidity(s.name, s.classification)}
+          onClick={() =>
+            changeValidity ? changeValidity(s.name, s.classification) : null
+          }
         >
           Mark as {s.classification === 'Valid' ? 'Invalid' : 'Valid'}
         </Button>
