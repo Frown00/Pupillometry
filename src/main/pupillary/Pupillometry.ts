@@ -6,6 +6,7 @@ import EyeTrackerMarker from './markers/EyeTrackerMarker';
 import OutOfRangeMarker from './markers/OutOfRangeMarker';
 import DilatationSpeedMarker from './markers/DilatationSpeedMarker';
 import GrandStatsHelper from './lib/GrandStatsHelper';
+import TrendlineDeviation from './markers/TrendlineDeviation';
 
 export default class Pupillometry {
   #name: string;
@@ -43,7 +44,7 @@ export default class Pupillometry {
   test(): IPupillometryResult {
     const { resampling, smoothing, measurement, validity } = this.#config;
     const allMarkers: IMarker[] = this.usedMarkers();
-    const toOmit: PupilMark[] = ['missing', 'outlier', 'invalid'];
+    const toOmit: PupilMark[] = ['missing'];
     const isChartContinous = !resampling.acceptableGap;
     const baselineConfig = measurement.baseline;
     let baseline: number | undefined;
@@ -161,21 +162,56 @@ export default class Pupillometry {
 
   private usedMarkers() {
     const { markers } = this.#config;
-    const { outOfRange, dilatationSpeed } = markers;
+    const { outOfRange, dilatationSpeed, trendlineDeviation } = markers;
     const allMarkers: IMarker[] = [
       new EyeTrackerMarker(),
       new OutOfRangeMarker(outOfRange.min, outOfRange.max),
     ];
     if (dilatationSpeed.on) {
+      const {
+        thresholdMultiplier,
+        gapMinimumDuration,
+        gapMaximumDuration,
+        backwardGapPadding,
+        forwardGapPadding,
+      } = dilatationSpeed;
       allMarkers.push(
-        new DilatationSpeedMarker(dilatationSpeed.thresholdMultiplier, {
-          min: dilatationSpeed.gapMinimumDuration,
-          max: dilatationSpeed.gapMaximumDuration,
+        new DilatationSpeedMarker(thresholdMultiplier, {
+          min: gapMinimumDuration,
+          max: gapMaximumDuration,
           padding: {
-            backward: dilatationSpeed.backwardGapPadding,
-            forward: dilatationSpeed.forwardGapPadding,
+            backward: backwardGapPadding,
+            forward: forwardGapPadding,
           },
         })
+      );
+    }
+    if (trendlineDeviation.on) {
+      const {
+        passes,
+        cutoffFrequency,
+        thresholdMultiplier,
+        gapMinimumDuration,
+        gapMaximumDuration,
+        backwardGapPadding,
+        forwardGapPadding,
+      } = trendlineDeviation;
+      const gap = {
+        min: gapMinimumDuration,
+        max: gapMaximumDuration,
+        padding: {
+          backward: backwardGapPadding,
+          forward: forwardGapPadding,
+        },
+      };
+
+      allMarkers.push(
+        new TrendlineDeviation(
+          passes,
+          thresholdMultiplier,
+          gap,
+          cutoffFrequency
+        )
       );
     }
     return allMarkers;

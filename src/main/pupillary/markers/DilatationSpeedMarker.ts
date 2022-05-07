@@ -1,11 +1,11 @@
 import { median } from 'simple-statistics';
 import * as util from '../lib/util';
 
-interface IPupilMarkedWithSpeed extends IPupilMarked {
+export interface IPupilMarkedWithSpeed extends IPupilMarked {
   speed?: { left?: number; right?: number };
 }
 
-interface IGap {
+export interface IGap {
   min: number;
   max: number;
   padding: { backward: number; forward: number };
@@ -14,11 +14,11 @@ interface IGap {
 export default class DilatationSpeedMarker implements IMarker {
   private thresholdMultiplier: number;
 
-  private gap: IGap;
+  private gap: IGap | undefined;
 
   private data: IPupilMarkedWithSpeed[] = [];
 
-  constructor(thresholdMultiplier: number, gap: IGap) {
+  constructor(thresholdMultiplier: number, gap?: IGap) {
     this.thresholdMultiplier = thresholdMultiplier;
     this.gap = gap;
   }
@@ -40,6 +40,7 @@ export default class DilatationSpeedMarker implements IMarker {
     }
 
     // indentify gap
+    if (!this.gap) return;
     const leftGapMarker = this.markBasedOnGap('left');
     const rightGapMarker = this.markBasedOnGap('right');
     for (let i = 0; i < this.data.length; i += 1) {
@@ -51,7 +52,7 @@ export default class DilatationSpeedMarker implements IMarker {
 
   private markBasedOnGap(eye: 'left' | 'right') {
     let potentialGap: IPupilMarked[] = [];
-    const { min, max, padding } = this.gap;
+    const { min, max, padding } = this.gap!;
     const { data } = this;
     const markProperty = eye === 'left' ? 'leftMark' : 'rightMark';
     return function mark(sample: IPupilMarked, isMissing: boolean) {

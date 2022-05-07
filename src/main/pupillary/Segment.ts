@@ -231,8 +231,8 @@ export default class Segment {
       const sample = this.#samples[i];
 
       // #region MEAN
-      const nextDiff = sample.leftPupil - sample.rightPupil;
-      if (nextDiff && !sample.leftMark && !sample.rightMark) {
+      const nextDiff = lefts[lefts.length - 1] - rights[rights.length - 1];
+      if (nextDiff) {
         dynamicDiffLP = nextDiff;
       }
       const sMean = util.calcMean(
@@ -324,12 +324,12 @@ export default class Segment {
       if (sample.baselineDivide && sample.meanMark !== 'binned')
         divideBaseline.push(sample.baselineDivide);
 
-      if (smoothedSample.mean && sample.meanMark !== 'binned') {
+      if (smoothedSample?.mean && sample.meanMark !== 'binned') {
         meansSmoothed.push(smoothedSample.mean);
       }
-      if (smoothedSample.baselineMinus && sample.meanMark !== 'binned')
+      if (smoothedSample?.baselineMinus && sample.meanMark !== 'binned')
         minusBaselineSmoothed.push(smoothedSample.baselineMinus);
-      if (smoothedSample.baselineDivide && sample.meanMark !== 'binned')
+      if (smoothedSample?.baselineDivide && sample.meanMark !== 'binned')
         divideBaselineSmoothed.push(smoothedSample.baselineDivide);
     }
 
@@ -376,13 +376,11 @@ export default class Segment {
       const smoothedSample = this.#smoothedSamples[i];
       // eslint-disable-next-line no-continue
       if (!sample) continue;
-      // eslint-disable-next-line no-continue
-      if (!smoothedSample) continue;
 
       sample.zscore = zscoreFun(
         <number>sample?.mean,
-        meanGrand?.normal,
-        stdGrand?.normal
+        meanGrand.normal,
+        stdGrand.normal
       );
       sample.zscoreMinusBaseline = zscoreFun(
         <number>sample?.mean - this.#baseline.value,
@@ -434,25 +432,25 @@ export default class Segment {
         erpd.push(sample.erpd);
       }
 
-      if (smoothedSample.zscore && smoothedSample.meanMark !== 'binned') {
+      if (smoothedSample?.zscore && smoothedSample.meanMark !== 'binned') {
         zscoreSmoothed.push(smoothedSample.zscore);
       }
       if (
-        smoothedSample.zscoreMinusBaseline &&
+        smoothedSample?.zscoreMinusBaseline &&
         smoothedSample.meanMark !== 'binned'
       ) {
         zscoreMinusSmoothed.push(smoothedSample.zscoreMinusBaseline);
       }
       if (
-        smoothedSample.zscoreDivideBaseline &&
+        smoothedSample?.zscoreDivideBaseline &&
         smoothedSample.meanMark !== 'binned'
       ) {
         zscoreDivideSmoothed.push(smoothedSample.zscoreDivideBaseline);
       }
-      if (smoothedSample.relative && smoothedSample.meanMark !== 'binned') {
+      if (smoothedSample?.relative && smoothedSample.meanMark !== 'binned') {
         relativeSmoothed.push(smoothedSample.relative);
       }
-      if (smoothedSample.erpd && smoothedSample.meanMark !== 'binned') {
+      if (smoothedSample?.erpd && smoothedSample.meanMark !== 'binned') {
         erpdSmoothed.push(smoothedSample.erpd);
       }
     }

@@ -48,6 +48,11 @@ interface IConfig {
       on: boolean;
       thresholdMultiplier: number;
       cutoffFrequency: number;
+      passes: number;
+      gapMinimumDuration: number;
+      gapMaximumDuration: number;
+      backwardGapPadding: number;
+      forwardGapPadding: number;
     };
     temporallyIsolatedSamples: {
       on: boolean;

@@ -43,6 +43,7 @@ export default {
         speed: ColorPallette.okabe.orange,
         gap: ColorPallette.okabe.black,
       },
+      trendlineDeviation: ColorPallette.okabe.yellow,
     },
   },
 } as const;

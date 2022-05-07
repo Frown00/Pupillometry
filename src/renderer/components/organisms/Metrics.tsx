@@ -1,6 +1,6 @@
 import { Col, Row } from 'antd';
 import Statistic from 'antd/lib/statistic';
-import type { ChartOption } from './SegmentedLineGraph';
+import { boolean } from 'yup';
 
 /* eslint-disable react/jsx-no-undef */
 interface IProps {
@@ -11,6 +11,7 @@ interface IProps {
   duration: number;
   sampleRate: number;
   baseline: number;
+  isSmoothed: boolean;
 }
 
 export default function Metrics(props: IProps) {
@@ -22,10 +23,11 @@ export default function Metrics(props: IProps) {
     duration,
     sampleRate,
     baseline,
+    isSmoothed,
   } = props;
   const higherPrecision = 4;
   const lowerPrecision = 2;
-  const preferedResult = stats.resultSmoothed || stats.result;
+  const preferedResult = isSmoothed ? stats.resultSmoothed : stats.result;
   return (
     <div>
       <div

@@ -10,8 +10,8 @@
   "chart": {
     "width": 800,
     "height": 400,
-    "showEyesPlot": false,
-    "showMeanPlot": false,
+    "showEyesPlot": true,
+    "showMeanPlot": true,
     "showSmoothed": true
   },
   "measurement": {
@@ -50,7 +50,12 @@
     "trendlineDeviation": {
       "on": true,
       "thresholdMultiplier": 1,
-      "cutoffFrequency": 4
+      "cutoffFrequency": 4,
+      "passes": 1,
+      "gapMinimumDuration": 50,
+      "gapMaximumDuration": 70,
+      "backwardGapPadding": 100,
+      "forwardGapPadding": 100
     },
     "temporallyIsolatedSamples": {
       "on": true,
@@ -98,16 +103,16 @@
       }
     },
     "resampling": {
-      "on": true,
+      "on": false,
       "rate": 1000,
       "acceptableGap": 250
     },
     "interpolation": {
-      "on": true,
+      "on": false,
       "acceptableGap": 250
     },
     "smoothing": {
-      "on": true,
+      "on": false,
       "cutoffFrequency": 4
     },
     "segmentDivision": true,

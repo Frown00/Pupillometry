@@ -147,6 +147,7 @@ export default function SegmentedLineGraph(props: IProps) {
           sampleRate={s.sampleRate}
           stats={getStats(s)}
           baseline={s.baseline?.value ?? NaN}
+          isSmoothed={config.smoothing.on}
         />
       </Space>
     </TabPane>

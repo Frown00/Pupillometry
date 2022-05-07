@@ -105,7 +105,11 @@ export default class LineGraph extends React.Component<IProps, IState> {
   private getMinDomain(stats?: IPupillometryStats) {
     if (!stats) return -1;
     const { config } = this.props;
-    if (config.chart.showMeanPlot && config.chart.showSmoothed) {
+    if (
+      config.chart.showMeanPlot &&
+      config.chart.showSmoothed &&
+      config.smoothing.on
+    ) {
       const arr = [stats.result.min, stats.resultSmoothed?.min || Infinity];
       return Math.min(...arr);
     }
@@ -117,9 +121,13 @@ export default class LineGraph extends React.Component<IProps, IState> {
   private getMaxDomain(stats?: IPupillometryStats) {
     if (!stats) return 1;
     const { config } = this.props;
-    if (config.chart.showMeanPlot && config.chart.showSmoothed) {
+    if (
+      config.chart.showMeanPlot &&
+      config.chart.showSmoothed &&
+      config.smoothing.on
+    ) {
       const arr = [stats.result.max, stats.resultSmoothed?.max || Infinity];
-      return Math.min(...arr);
+      return Math.max(...arr);
     }
     if (config.chart.showMeanPlot) return stats.result.max;
     return stats.resultSmoothed.max;
@@ -227,6 +235,8 @@ export default class LineGraph extends React.Component<IProps, IState> {
           if (marker.algorithm === 'Dilatation Speed - Gap') {
             return Color.chart.outlier.dilatationSpeed.gap;
           }
+          if (marker.algorithm === 'Trendline Deviation')
+            return Color.chart.outlier.trendlineDeviation;
           return Color.chart.outlier.dilatationSpeed.speed;
         }
         return color;
