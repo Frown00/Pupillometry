@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import { Form as AntdForm, Button } from 'antd';
+import { Form as AntdForm, Button, Space } from 'antd';
 import { useEffect } from 'react';
 import Title from '../atoms/Title';
 
@@ -37,8 +37,12 @@ const Form = (props: IProps) => {
           <Title level={1}>{title}</Title>
         </AntdForm.Item>
         {items}
-        <AntdForm.Item wrapperCol={{ span: 12, offset: 6 }}>
-          <Button type="primary" htmlType="submit" style={{ width: '100%' }}>
+        <AntdForm.Item wrapperCol={{ span: 14, offset: 6 }}>
+          <Button
+            type="primary"
+            htmlType="submit"
+            style={{ width: '100%', marginTop: '30px' }}
+          >
             Submit
           </Button>
         </AntdForm.Item>

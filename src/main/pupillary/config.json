@@ -12,26 +12,19 @@
     "height": 400,
     "showEyesPlot": true,
     "showMeanPlot": true,
-    "showSmoothed": true
+    "showSmoothed": true,
+    "showRejected": ["missing", "invalid", "outliers"]
   },
   "measurement": {
     "eye": "both",
     "baseline": {
-      "type": "fromStart",
+      "type": "from Start",
       "param": 1000
     },
     "segmentation": "scene",
     "windows": [
-      {
-        "name": "Zadanie 1",
-        "start": 0,
-        "end": 30000
-      },
-      {
-        "name": "Zadanie 2",
-        "start": 30000,
-        "end": 60000
-      }
+      "Zadanie 1, 0, 30000",
+      "Zadanie 2, 30000, 60000"
     ]
   },
   "markers": {
@@ -76,60 +69,5 @@
   "smoothing": {
     "on": true,
     "cutoffFrequency": 4
-  },
-
-  "processing": {
-    "pupil": {
-      "eye": "both",
-      "mean": true,
-      "baseline": 3.0,
-      "min": 2,
-      "max": 9,
-      "acceptableDifference": 0.9
-    },
-    "advancedFilters": {
-      "dilatationSpeed": {
-        "on": true,
-        "thresholdMultiplier": 2
-      },
-      "trendLineDeviation": {
-        "on": true,
-        "maxJump": 0.6
-      },
-      "temporallyIsolatedSamples": {
-        "on": true,
-        "range": 50,
-        "gap": 75
-      }
-    },
-    "resampling": {
-      "on": false,
-      "rate": 1000,
-      "acceptableGap": 250
-    },
-    "interpolation": {
-      "on": false,
-      "acceptableGap": 250
-    },
-    "smoothing": {
-      "on": false,
-      "cutoffFrequency": 4
-    },
-    "segmentDivision": true,
-    "timeWindow": {
-      "on": false,
-      "windows": [
-        {
-          "name": "Zadanie 1",
-          "start": 0,
-          "end": 30000
-        },
-        {
-          "name": "Zadanie 2",
-          "start": 30000,
-          "end": 60000
-        }
-      ]
-    }
   }
 }

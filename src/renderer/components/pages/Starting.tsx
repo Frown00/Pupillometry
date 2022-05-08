@@ -106,10 +106,10 @@ export default function StartingPage() {
           Remove All
         </Button>
       </ButtonGroup>
-      <div>
+      {/* <div>
         <Title level={2}>Recent</Title>
         <BlockLink to="/study/Study 1" label="Study 1" />
-      </div>
+      </div> */}
       <div>
         <Title level={2}>All studies</Title>
         <StudyTable studies={studies} handleOnDelete={handleOnDelete} />

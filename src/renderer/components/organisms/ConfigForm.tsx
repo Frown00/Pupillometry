@@ -1,5 +1,6 @@
-import { Collapse } from 'antd';
+import { Collapse, Form as AntForm, Select, Space, Tabs } from 'antd';
 import { flattenObject } from '../../util/flattenObject';
+import Title from '../atoms/Title';
 import NumberItem from '../molecules/form/NumberItem';
 import SelectItem from '../molecules/form/SelectItem';
 import SwitchItem from '../molecules/form/SwitchItem';
@@ -7,8 +8,32 @@ import TextItem from '../molecules/form/TextItem';
 import Form from './Form';
 
 const { Panel } = Collapse;
+const { Option } = Select;
+const { TabPane } = Tabs;
 
 function callback(key: string | string[]) {}
+
+const TabsItems = (
+  <div className="card-container">
+    <Tabs type="card">
+      <TabPane tab="Tab Title 1" key="1">
+        <p>Content of Tab Pane 1</p>
+        <p>Content of Tab Pane 1</p>
+        <p>Content of Tab Pane 1</p>
+      </TabPane>
+      <TabPane tab="Tab Title 2" key="2">
+        <p>Content of Tab Pane 2</p>
+        <p>Content of Tab Pane 2</p>
+        <p>Content of Tab Pane 2</p>
+      </TabPane>
+      <TabPane tab="Tab Title 3" key="3">
+        <p>Content of Tab Pane 3</p>
+        <p>Content of Tab Pane 3</p>
+        <p>Content of Tab Pane 3</p>
+      </TabPane>
+    </Tabs>
+  </div>
+);
 
 export interface IConfigFormValues {
   name: string;
@@ -17,34 +42,52 @@ export interface IConfigFormValues {
   'file.leftPupil': string;
   'file.rightPupil': string;
   'file.segmentActive': string;
+
   'chart.width': number;
   'chart.height': number;
   'chart.showEyesPlot': boolean;
   'chart.showMeanPlot': boolean;
-  'processing.pupil.eye': 'left' | 'right' | 'both';
-  'processing.pupil.mean': boolean;
-  'processing.pupil.min': number;
-  'processing.pupil.max': number;
-  'processing.pupil.baseline': number;
-  'processing.pupil.acceptableDifference': number;
-  'processing.advancedFilters.dilatationSpeed.on': boolean;
-  'processing.advancedFilters.dilatationSpeed.thresholdMultiplier': number;
-  'processing.advancedFilters.trendLineDeviation.on': boolean;
-  'processing.advancedFilters.trendLineDeviation.maxJump': number;
-  'processing.advancedFilters.temporallyIsolatedSamples.on': boolean;
-  'processing.advancedFilters.temporallyIsolatedSamples.range': number;
-  'processing.advancedFilters.temporallyIsolatedSamples.gap': number;
-  'processing.resampling.on': boolean;
-  'processing.resampling.rate': number;
-  'processing.interpolation.on': boolean;
-  'processing.interpolation.acceptableGap': number;
-  'processing.segmentDivision': boolean;
-  'processing.timeWindow.on': boolean;
-  'processing.timeWindow.windows': string;
-  'validity.missing.general': number | undefined;
-  'validity.missing.left': number | undefined;
-  'validity.missing.right': number | undefined;
+  'chart.showSmoothed': boolean;
+  'chart.showRejected': string[];
+
+  'measurement.eye': 'left' | 'right' | 'both';
+  'measurement.baseline.type': string;
+  'measurement.baseline.param': number | string;
+  'measurement.segmentation': string;
+  'measurement.windows': string[];
+
+  'markers.outOfRange.min': number;
+  'markers.outOfRange.max': number;
+
+  'markers.dilatationSpeed.on': boolean;
+  'markers.dilatationSpeed.thresholdMultiplier': number;
+  'markers.dilatationSpeed.gapMinimumDuration': number;
+  'markers.dilatationSpeed.gapMaximumDuration': number;
+  'markers.dilatationSpeed.backwardGapPadding': number;
+  'markers.dilatationSpeed.forwardGapPadding': number;
+
+  'markers.trendLineDeviation.on': boolean;
+  'markers.trendLineDeviation.passes': number;
+  'markers.trendLineDeviation.cutoffFrequency': number;
+  'markers.trendLineDeviation.thresholdMultiplier': number;
+  'markers.trendLineDeviation.gapMinimumDuration': number;
+  'markers.trendLineDeviation.gapMaximumDuration': number;
+  'markers.trendLineDeviation.backwardGapPadding': number;
+  'markers.trendLineDeviation.forwardGapPadding': number;
+
+  'markers.temporallyIsolatedSamples.on': boolean;
+  'markers.temporallyIsolatedSamples.sizeMaximum': number;
+  'markers.temporallyIsolatedSamples.isolationMinimum': number;
+
+  'resampling.on': boolean;
+  'resampling.rate': number;
+  'resampling.acceptableGap': number;
+  'smoothing.on': boolean;
+  'smoothing.cutoffFrequency': number;
+
+  'validity.missing': number | undefined;
   'validity.correlation': number | undefined;
+  'validity.difference': number | undefined;
 }
 
 interface IProps {
@@ -56,6 +99,13 @@ interface IProps {
 const ConfigForm = (props: IProps) => {
   const { title, selectedConfig, action } = props;
   const initialValues: IConfigFormValues = flattenObject(selectedConfig);
+  initialValues['measurement.baseline.param'] =
+    selectedConfig.measurement.baseline.param.toString();
+  initialValues['chart.showRejected'] = selectedConfig.chart.showRejected;
+  initialValues['measurement.windows'] =
+    (selectedConfig.measurement?.windows?.join('; ') as any) ?? '';
+
+  console.log('INITIAL', initialValues);
   const fields = [
     <TextItem
       key="name"
@@ -64,99 +114,158 @@ const ConfigForm = (props: IProps) => {
       required
       reservedValues={['default']}
     />,
-    <Collapse
-      defaultActiveKey={['1']}
-      onChange={callback}
-      key="collapse"
-      accordion
-    >
-      <Panel header="File" key="1">
-        <TextItem
-          name="file.separator"
-          label="Separator"
-          required
-          min={1}
-          reservedValues={[]}
-        />
-        <TextItem
-          name="file.timestamp"
-          label="Timestamp"
-          required
-          reservedValues={[]}
-        />
-        <TextItem
-          name="file.leftPupil"
-          label="Left Pupil"
-          required
-          reservedValues={[]}
-        />
-        <TextItem
-          name="file.rightPupil"
-          label="Right Pupil"
-          required
-          reservedValues={[]}
-        />
-        <TextItem
-          name="file.segmentActive"
-          label="Segment Active"
-          reservedValues={[]}
-        />
-      </Panel>
-      <Panel header="Chart" key="2">
-        <NumberItem
-          name="chart.width"
-          label="Width [px]"
-          min={100}
-          max={2000}
-          step={50}
-          required
-        />
-        <NumberItem
-          name="chart.height"
-          label="Height [px]"
-          min={100}
-          max={2000}
-          step={50}
-          required
-        />
-        <SwitchItem
-          name="chart.showEyesPlot"
-          label="Show Eye Plots"
-          checkedLabel="On"
-          uncheckedLabel="Off"
-        />
-        <SwitchItem
-          name="chart.showMeanPlot"
-          label="Show Mean Plot"
-          checkedLabel="On"
-          uncheckedLabel="Off"
-        />
-      </Panel>
-      <Panel header="Processing" key="3">
-        <Collapse defaultActiveKey="1" accordion>
-          <Panel header="Pupil" key="1">
-            <SelectItem
-              name="processing.pupil.eye"
-              label="Eye"
-              values={['left', 'right', 'both']}
+
+    <Tabs type="card">
+      <TabPane tab="General" key="1">
+        <Collapse onChange={callback} key="collapse" accordion>
+          <Panel header="File" key="11">
+            <TextItem
+              name="file.separator"
+              label="Separator"
+              required
+              min={1}
+              reservedValues={[]}
             />
-            <SwitchItem
-              name="processing.pupil.mean"
-              label="Include Mean"
-              checkedLabel="On"
-              uncheckedLabel="Off"
+            <TextItem
+              name="file.timestamp"
+              label="Timestamp"
+              required
+              reservedValues={[]}
             />
+            <TextItem
+              name="file.leftPupil"
+              label="Left Pupil"
+              required
+              reservedValues={[]}
+            />
+            <TextItem
+              name="file.rightPupil"
+              label="Right Pupil"
+              required
+              reservedValues={[]}
+            />
+            <TextItem
+              name="file.segmentActive"
+              label="Segment Active"
+              reservedValues={[]}
+            />
+          </Panel>
+          <Panel header="Chart" key="12">
             <NumberItem
-              disabled
-              name="processing.pupil.baseline"
-              label="Baseline [mm]"
-              min={0}
-              max={100}
-              step={0.1}
+              name="chart.width"
+              label="Width [px]"
+              min={100}
+              max={4000}
+              step={50}
               required
             />
             <NumberItem
-              name="processing.pupil.min"
+              name="chart.height"
+              label="Height [px]"
+              min={100}
+              max={4000}
+              step={50}
+              required
+            />
+            <SwitchItem
+              name="chart.showEyesPlot"
+              label="Show Eye Plots"
+              checkedLabel="On"
+              uncheckedLabel="Off"
+            />
+            <SwitchItem
+              name="chart.showMeanPlot"
+              label="Show Mean Plot"
+              checkedLabel="On"
+              uncheckedLabel="Off"
+            />
+            <SwitchItem
+              name="chart.showSmoothed"
+              label="Show Smoothed Plot"
+              checkedLabel="On"
+              uncheckedLabel="Off"
+            />
+            <AntForm.Item
+              label="Show rejected"
+              name="chart.showRejected"
+              rules={[]}
+            >
+              <Select
+                mode="multiple"
+                allowClear
+                style={{ width: '100%' }}
+                placeholder="Select to reject"
+              >
+                {[
+                  <Option key="missing">missing</Option>,
+                  <Option key="invalid">invalid</Option>,
+                  <Option key="outliers">outliers</Option>,
+                ]}
+              </Select>
+            </AntForm.Item>
+          </Panel>
+          <Panel header="Measurement" key="13">
+            <SelectItem
+              name="measurement.eye"
+              label="Eye"
+              values={['left', 'right', 'both']}
+              required
+            />
+            <SelectItem
+              name="measurement.baseline.type"
+              label="Baseline"
+              values={['from start', 'selected segment']}
+              required
+            />
+            <TextItem
+              name="measurement.baseline.param"
+              label="Baseline Param"
+              reservedValues={[]}
+              required
+              min={0}
+            />
+            <SelectItem
+              name="measurement.segmentation"
+              label="Segmentation"
+              values={['scene', 'time windows']}
+              required
+            />
+            <TextItem
+              name="measurement.windows"
+              label="Time windows"
+              reservedValues={[]}
+            />
+          </Panel>
+          <Panel header="Validity" key="14">
+            <NumberItem
+              name="validity.missing"
+              label="Missing [%]"
+              min={0}
+              max={100}
+              step={1}
+            />
+            <NumberItem
+              name="validity.correlation"
+              label="Correlation"
+              min={-1}
+              max={1}
+              step={0.1}
+            />
+            <NumberItem
+              name="validity.difference"
+              label="Difference [mm]"
+              min={0}
+              max={10}
+              step={1}
+            />
+          </Panel>
+        </Collapse>
+      </TabPane>
+      <TabPane tab="Markers / Filters" key="2">
+        <Collapse onChange={callback} key="collapse" accordion>
+          <Panel header="Out of range" key="21">
+            <NumberItem
+              name="markers.outOfRange.min"
               label="Min [mm]"
               min={0}
               max={100}
@@ -164,188 +273,191 @@ const ConfigForm = (props: IProps) => {
               required
             />
             <NumberItem
-              name="processing.pupil.max"
+              name="markers.outOfRange.max"
               label="Max [mm]"
               min={0}
               max={100}
               step={0.1}
               required
             />
+          </Panel>
+          <Panel header="Dilatation Speed" key="22">
+            <SwitchItem
+              name="markers.dilatationSpeed.on"
+              label="Use"
+              checkedLabel="On"
+              uncheckedLabel="Off"
+            />
             <NumberItem
-              name="processing.pupil.acceptableDifference"
-              label="Acceptable Difference [mm]"
+              name="markers.dilatationSpeed.thresholdMultiplier"
+              label="Threshold Multipler"
               min={0}
-              max={100}
+              max={1000}
               step={0.1}
               required
             />
+            <NumberItem
+              name="markers.dilatationSpeed.gapMinimumDuration"
+              label="Gap minimum duration"
+              min={0}
+              max={5000}
+              step={0.1}
+            />
+            <NumberItem
+              name="markers.dilatationSpeed.gapMaximumDuration"
+              label="Gap maximum duration"
+              min={0}
+              max={5000}
+              step={0.1}
+            />
+            <NumberItem
+              name="markers.dilatationSpeed.backwardGapPadding"
+              label="Gap backward padding"
+              min={0}
+              max={5000}
+              step={0.1}
+            />
+            <NumberItem
+              name="markers.dilatationSpeed.forwardGapPadding"
+              label="Gap forward padding"
+              min={0}
+              max={5000}
+              step={0.1}
+            />
           </Panel>
-          <Panel header="Advanced Filters" key="2">
-            <Collapse defaultActiveKey="1" accordion>
-              <Panel header="Dilatation Speed" key="1">
-                <SwitchItem
-                  name="processing.advancedFilters.dilatationSpeed.on"
-                  label="Use"
-                  checkedLabel="On"
-                  uncheckedLabel="Off"
-                />
-                <NumberItem
-                  name="processing.advancedFilters.dilatationSpeed.thresholdMultiplier"
-                  label="Threshold Multipler"
-                  min={0}
-                  max={1000}
-                  step={0.1}
-                  required
-                />
-              </Panel>
-              <Panel header="Trendline Deviation" key="2">
-                <SwitchItem
-                  name="processing.advancedFilters.trendLineDeviation.on"
-                  label="Use"
-                  checkedLabel="On"
-                  uncheckedLabel="Off"
-                />
-                <NumberItem
-                  name="processing.advancedFilters.trendLineDeviation.maxJump"
-                  label="Max Jump [mm]"
-                  min={0}
-                  max={100}
-                  step={0.1}
-                  required
-                />
-              </Panel>
-              <Panel header="Temporally Isolated Samples" key="3">
-                <SwitchItem
-                  name="processing.advancedFilters.temporallyIsolatedSamples.on"
-                  label="Use"
-                  checkedLabel="On"
-                  uncheckedLabel="Off"
-                />
-                <NumberItem
-                  name="processing.advancedFilters.temporallyIsolatedSamples.range"
-                  label="Range [ms]"
-                  min={0}
-                  max={10000}
-                  step={1}
-                  required
-                />
-                <NumberItem
-                  name="processing.advancedFilters.temporallyIsolatedSamples.gap"
-                  label="Gap [ms]"
-                  min={0}
-                  max={10000}
-                  step={1}
-                  required
-                />
-              </Panel>
-            </Collapse>
+          <Panel header="Trendline Deviation" key="23">
+            <SwitchItem
+              name="markers.trendlineDeviation.on"
+              label="Use"
+              checkedLabel="On"
+              uncheckedLabel="Off"
+            />
+            <NumberItem
+              name="markers.trendlineDeviation.passes"
+              label="Passes"
+              min={1}
+              max={100}
+              step={1}
+              required
+            />
+            <NumberItem
+              name="markers.trendlineDeviation.cutoffFrequency"
+              label="Cutoff frequency [Hz]"
+              min={1}
+              max={1000}
+              step={1}
+              required
+            />
+            <NumberItem
+              name="markers.trendlineDeviation.thresholdMultiplier"
+              label="Threshold Multipler"
+              min={0}
+              max={1000}
+              step={0.1}
+              required
+            />
+            <NumberItem
+              name="markers.trendlineDeviation.gapMinimumDuration"
+              label="Gap minimum duration"
+              min={0}
+              max={5000}
+              step={0.1}
+            />
+            <NumberItem
+              name="markers.trendlineDeviation.gapMaximumDuration"
+              label="Gap maximum duration"
+              min={0}
+              max={5000}
+              step={0.1}
+            />
+            <NumberItem
+              name="markers.trendlineDeviation.backwardGapPadding"
+              label="Gap backward padding"
+              min={0}
+              max={5000}
+              step={0.1}
+            />
+            <NumberItem
+              name="markers.trendlineDeviation.forwardGapPadding"
+              label="Gap forward padding"
+              min={0}
+              max={5000}
+              step={0.1}
+            />
           </Panel>
-          <Panel header="Other" key="3">
-            <Collapse defaultActiveKey="1" accordion>
-              <Panel header="Resampling" key="1">
-                <SwitchItem
-                  disabled
-                  name="processing.resampling.on"
-                  label="Use"
-                  checkedLabel="On"
-                  uncheckedLabel="Off"
-                />
-                <NumberItem
-                  disabled
-                  name="processing.resampling.rate"
-                  label="Rate [Hz]"
-                  min={1}
-                  max={1000}
-                  step={1}
-                  required
-                />
-              </Panel>
-              <Panel header="Interpolation" key="2">
-                <SwitchItem
-                  disabled
-                  name="processing.interpolation.on"
-                  label="Use"
-                  checkedLabel="On"
-                  uncheckedLabel="Off"
-                />
-                <NumberItem
-                  disabled
-                  name="processing.interpolation.acceptableGap"
-                  label="Acceptable Gap [ms]"
-                  min={0}
-                  max={100000}
-                  step={1}
-                  required
-                />
-              </Panel>
-              <Panel header="Segmentation" key="3">
-                <SwitchItem
-                  name="processing.segmentDivision"
-                  label="Divide By Scene/Task"
-                  checkedLabel="On"
-                  uncheckedLabel="Off"
-                />
-                <SwitchItem
-                  disabled
-                  name="processing.timeWindow.on"
-                  label="Use Time Windows"
-                  checkedLabel="On"
-                  uncheckedLabel="Off"
-                />
-                <TextItem
-                  disabled
-                  name="processing.timeWindow.windows"
-                  label="Windows"
-                  reservedValues={[]}
-                  placeholder="[name, start, end] e.g. [W1, 0, 1000],[W2, 2000, 3000]"
-                />
-              </Panel>
-            </Collapse>
+          <Panel header="Temporally Isolated Samples" key="24">
+            <SwitchItem
+              name="markers.temporallyIsolatedSamples.on"
+              label="Use"
+              checkedLabel="On"
+              uncheckedLabel="Off"
+            />
+            <NumberItem
+              name="markers.temporallyIsolatedSamples.isolationMinimum"
+              label="Min Isolation Gap [ms]"
+              min={0}
+              max={10000}
+              step={1}
+              required
+            />
+            <NumberItem
+              name="markers.temporallyIsolatedSamples.sizeMaximum"
+              label="Max Island Size [ms]"
+              min={0}
+              max={10000}
+              step={1}
+              required
+            />
           </Panel>
         </Collapse>
-      </Panel>
-      <Panel header="Validity" key="4">
-        <NumberItem
-          name="validity.correlation"
-          label="Pupil Correlation (more than)"
-          min={-1}
-          max={1}
-          step={0.1}
-          required
-        />
-        <h4>
-          <b>Missing (less than)</b>
-        </h4>
-        <NumberItem
-          name="validity.missing.general"
-          label="Both [%]"
-          min={0}
-          max={100}
-          step={1}
-          required
-        />
-        <NumberItem
-          name="validity.missing.left"
-          label="Left [%]"
-          min={0}
-          max={100}
-          step={1}
-          required
-        />
-        <NumberItem
-          name="validity.missing.right"
-          label="Right [%]"
-          min={0}
-          max={100}
-          step={1}
-          required
-        />
-      </Panel>
-    </Collapse>,
+      </TabPane>
+      <TabPane tab="Estimation Improvement" key="3">
+        <Collapse onChange={callback} key="collapse" accordion>
+          <Panel header="Resampling" key="31">
+            <SwitchItem
+              name="resampling.on"
+              label="Use"
+              checkedLabel="On"
+              uncheckedLabel="Off"
+            />
+            <NumberItem
+              name="resampling.rate"
+              label="Rate [Hz]"
+              min={0}
+              max={1000}
+              step={1}
+              required
+            />
+          </Panel>
+          <Panel header="Smoothing" key="32">
+            <SwitchItem
+              name="smoothing.on"
+              label="Use"
+              checkedLabel="On"
+              uncheckedLabel="Off"
+            />
+            <NumberItem
+              name="smoothing.cutoffFrequency"
+              label="Cuttoff Frequency [Hz]"
+              min={0}
+              max={1000}
+              step={1}
+              required
+            />
+          </Panel>
+        </Collapse>
+      </TabPane>
+    </Tabs>,
   ];
 
   const onFinish = (values: IConfigFormValues) => {
     const update = { ...initialValues, ...values };
+    update['chart.showRejected'] = values['chart.showRejected'];
+    update['measurement.windows'] = (
+      values['measurement.windows'] as any
+    )?.split(';');
+
+    console.log('INI', update);
     action(update);
   };
 

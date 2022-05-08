@@ -84,7 +84,7 @@ export default class DilatationSpeedMarker implements IMarker {
           if (s.timestamp >= startRange[0] && s.timestamp < startRange[1]) {
             if (!s[markProperty]) {
               s[markProperty] = {
-                type: 'outlier',
+                type: 'outliers',
                 algorithm: 'Dilatation Speed - Gap',
               };
             }
@@ -93,7 +93,7 @@ export default class DilatationSpeedMarker implements IMarker {
           if (s.timestamp <= endRange[1] && s.timestamp > endRange[0]) {
             if (!s[markProperty]) {
               s[markProperty] = {
-                type: 'outlier',
+                type: 'outliers',
                 algorithm: 'Dilatation Speed - Gap',
               };
             }
@@ -108,7 +108,7 @@ export default class DilatationSpeedMarker implements IMarker {
     if (!this.isDilatationSpeedInThreshold(sample.speed?.left, threshold)) {
       if (!sample.leftMark) {
         sample.leftMark = {
-          type: 'outlier',
+          type: 'outliers',
           algorithm: 'Dilatation Speed',
         };
       }
@@ -119,7 +119,7 @@ export default class DilatationSpeedMarker implements IMarker {
     if (!this.isDilatationSpeedInThreshold(sample.speed?.right, threshold)) {
       if (!sample.rightMark) {
         sample.rightMark = {
-          type: 'outlier',
+          type: 'outliers',
           algorithm: 'Dilatation Speed',
         };
       }

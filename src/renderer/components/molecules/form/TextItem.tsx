@@ -21,11 +21,14 @@ const TextItem = (props: IProps) => {
       label={label}
       rules={[
         { required, message: 'Name is required!' },
-        { min: min ?? 2, message: 'Required more than 2 characters!' },
+        {
+          min: min === undefined ? 2 : min,
+          message: 'Required more than 2 characters!',
+        },
         { max: 200, message: 'Required less than 200 characters!' },
         ({ getFieldValue }) => ({
           validator(_, value) {
-            const unique = !reservedValues.includes(value.trim());
+            const unique = !reservedValues.includes(value?.trim());
             if (unique) {
               return Promise.resolve();
             }

@@ -109,7 +109,7 @@ export default class Segment {
     return this;
   }
 
-  validity(missing: number, correlation?: number, pupilDiff?: number) {
+  validity(missing?: number, correlation?: number, pupilDiff?: number) {
     if (this.#classification === 'Wrong') return this;
     if (!missing) return this;
     const missingPercent =

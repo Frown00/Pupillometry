@@ -5,17 +5,23 @@ type SegmentationType = 'No' | 'Window' | 'By Scene';
 function timeWindows(samples: IPupilSampleParsed[], config: IConfig) {
   const { measurement } = config;
   const segments: Segment[] = [];
-  const { windows = [] } = measurement;
+  const { windows } = measurement;
+
+  if (!windows) throw Error('No passed time windows');
   for (let w = 0; w < windows.length; w += 1) {
-    const fragment = windows[w];
+    const fragment = windows[w].split(',');
+    const name = fragment?.[0] ?? 'Some name';
+    const start = Number(fragment?.[1]) ?? 0;
+    const end = Number(fragment?.[2]) ?? 1000;
     const data = [];
     for (let i = 0; i < samples.length; i += 1) {
-      if (samples[i].timestamp >= fragment.end) break;
-      if (samples[i].timestamp >= fragment.start) {
+      if (samples[i].timestamp >= end) break;
+      if (samples[i].timestamp >= start) {
+        samples[i].timestamp -= start;
         data.push(samples[i]);
       }
     }
-    segments.push(new Segment(fragment.name, data));
+    segments.push(new Segment(name, data));
   }
   return segments;
 }

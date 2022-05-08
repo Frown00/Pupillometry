@@ -28,7 +28,7 @@ export default class Pupillometry {
   private calcBaselineBasedOnSegment(name: string) {
     const { resampling } = this.#config;
     const allMarkers: IMarker[] = this.usedMarkers();
-    const toOmit: PupilMark[] = ['missing', 'outlier', 'invalid'];
+    const toOmit: PupilMark[] = ['missing', 'outliers', 'invalid'];
     const baselineSegmentName = name;
     const isChartContinous = !resampling.acceptableGap;
     const baselineSegment = this.segments.find(
@@ -43,9 +43,14 @@ export default class Pupillometry {
   }
 
   test(): IPupillometryResult {
-    const { resampling, smoothing, measurement, validity } = this.#config;
+    const { resampling, smoothing, measurement, validity, chart } =
+      this.#config;
     const allMarkers: IMarker[] = this.usedMarkers();
-    const toOmit: PupilMark[] = ['missing', 'invalid'];
+    const toOmit: PupilMark[] = <PupilMark[]>(
+      ['missing', 'outliers', 'invalid'].filter(
+        (m: any) => !chart.showRejected.includes(m)
+      )
+    );
     const isChartContinous = !resampling.acceptableGap;
     const baselineConfig = measurement.baseline;
     let baseline: number | undefined;
@@ -74,7 +79,7 @@ export default class Pupillometry {
       segment.smoothing(smoothing.on, smoothing.cutoffFrequency);
       segment.setBaseline({
         evaluatedBaseline: baseline,
-        baselineWindowSize: <number>baselineConfig.param,
+        baselineWindowSize: Number(baselineConfig.param),
       });
       segment.calcResultStats(smoothing.on);
       segment.validity(
@@ -108,9 +113,14 @@ export default class Pupillometry {
   }
 
   process(): IPupillometryResult {
-    const { resampling, smoothing, measurement, validity } = this.#config;
+    const { resampling, smoothing, measurement, validity, chart } =
+      this.#config;
     const allMarkers: IMarker[] = this.usedMarkers();
-    const toOmit: PupilMark[] = ['missing', 'outlier', 'invalid'];
+    const toOmit: PupilMark[] = <PupilMark[]>(
+      ['missing', 'outliers', 'invalid'].filter(
+        (m: any) => !chart.showRejected.includes(m)
+      )
+    );
     const isChartContinous = !resampling?.acceptableGap;
     const baselineConfig = measurement.baseline;
     let baseline: number | undefined;

@@ -13,29 +13,31 @@ interface IConfig {
     showEyesPlot: boolean;
     showMeanPlot: boolean;
     showSmoothed: boolean;
+    showRejected: PupilMark[];
   };
   measurement: {
     eye: 'left' | 'right' | 'both';
     baseline: {
-      type: 'fromStart' | 'selected segment';
+      type: 'from Start' | 'selected segment';
       param: number | string;
     };
     segmentation: 'scene' | 'time windows';
-    windows?: {
-      name: string;
-      start: number;
-      end: number;
-    }[];
+    windows?: string[];
+  };
+  validity: {
+    missing?: number;
+    correlation?: number;
+    difference?: number;
   };
   markers: {
     outOfRange: {
       min: number;
       max: number;
     };
-    outOfDifference?: {
-      max: number;
-      fluctuation: number;
-    };
+    // outOfDifference?: {
+    //   max: number;
+    //   fluctuation: number;
+    // };
     dilatationSpeed: {
       on: boolean;
       thresholdMultiplier: number;
@@ -59,11 +61,6 @@ interface IConfig {
       sizeMaximum: number; // time within samples are valid numbers
       isolationMinimum: number; // gap from both sides
     };
-  };
-  validity: {
-    missing: number;
-    correlation?: number;
-    difference?: number;
   };
   resampling: {
     on: boolean;
@@ -131,7 +128,7 @@ interface IPupillometryStats {
  * missing - sample marked as missed by eyetracker
  * outlier - filter out by algorithms
  */
-type PupilMark = 'missing' | 'invalid' | 'outlier';
+type PupilMark = 'missing' | 'invalid' | 'outliers';
 
 type OutlierAlghorithm =
   | 'Dilatation Speed'

@@ -47,9 +47,9 @@ export default class TrendlineDeviationMarker implements IMarker {
   private tryMarkLeft(orginalSample: IPupilMarked, sample?: IPupilSample) {
     if (!sample) return;
     if (orginalSample.leftMark) return;
-    if (sample.leftMark?.type === 'outlier') {
+    if (sample.leftMark?.type === 'outliers') {
       orginalSample.leftMark = {
-        type: 'outlier',
+        type: 'outliers',
         algorithm: 'Trendline Deviation',
       };
     }
@@ -59,9 +59,9 @@ export default class TrendlineDeviationMarker implements IMarker {
   private tryMarkRight(orginalSample: IPupilMarked, sample?: IPupilSample) {
     if (!sample) return;
     if (orginalSample.rightMark) return;
-    if (sample.rightMark?.type === 'outlier') {
+    if (sample.rightMark?.type === 'outliers') {
       orginalSample.rightMark = {
-        type: 'outlier',
+        type: 'outliers',
         algorithm: 'Trendline Deviation',
       };
     }

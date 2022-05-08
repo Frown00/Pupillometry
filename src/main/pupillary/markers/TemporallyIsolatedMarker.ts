@@ -55,7 +55,7 @@ export default class TemporallyIsolatedMarker implements IMarker {
     if (!sample) return;
     if (sample.leftMark) return;
     sample.leftMark = {
-      type: 'outlier',
+      type: 'outliers',
       algorithm: 'Temporal Isolated Island',
     };
   }
@@ -65,7 +65,7 @@ export default class TemporallyIsolatedMarker implements IMarker {
     if (!sample) return;
     if (sample.rightMark) return;
     sample.rightMark = {
-      type: 'outlier',
+      type: 'outliers',
       algorithm: 'Temporal Isolated Island',
     };
   }

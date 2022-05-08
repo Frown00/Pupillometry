@@ -1,4 +1,4 @@
-import { Button } from 'antd';
+import { Button, Select } from 'antd';
 import { useEffect, useState } from 'react';
 import { useRecoilState } from 'recoil';
 import { State } from '../../../ipc/interfaces';
@@ -15,12 +15,15 @@ import {
   IPupillometryResponse,
 } from '../../../ipc/channels/PupillometryChannel';
 
+const { Option } = Select;
+
 export default function Test() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isConfigMode, setIsConfigMode] = useState<boolean>(false);
   const [pupilData, setPuilData] = useState<IPupillometryResult>();
   const [configs] = useRecoilState(configsState);
   const [config, setConfig] = useState<IConfig>(configs.default);
+
   const responseChannel = 'pupillometry_response';
 
   useEffect(() => {
@@ -42,11 +45,26 @@ export default function Test() {
   };
   const onConfigChange = (values: IConfigFormValues) => {
     const testConfig = unflattenObject(values) as IConfig;
+    if (values['measurement.windows']) {
+      testConfig.measurement.windows = values['measurement.windows'];
+    }
+    if (values['chart.showRejected']) {
+      testConfig.chart.showRejected = values['chart.showRejected'] as any;
+    }
     setConfig(testConfig);
     setIsConfigMode(false);
   };
 
+  const onChange = (configName: string) => {
+    const cfg = configs[configName];
+    setConfig(cfg);
+  };
+
   const loader = isLoading ? <DefaultLoader /> : undefined;
+  const options = Object.keys(configs).map((configName) => (
+    <Option key={configName}>{configName}</Option>
+  ));
+
   return (
     <General Loader={loader}>
       <Title level={1}>Test your samples</Title>
@@ -82,11 +100,21 @@ export default function Test() {
         </Button>
       </div>
       {isConfigMode ? (
-        <ConfigForm
-          title="Create / Edit Config"
-          selectedConfig={config}
-          action={onConfigChange}
-        />
+        <>
+          {' '}
+          <Select
+            placeholder="Select a base config"
+            onChange={onChange}
+            style={{ marginBottom: '20px', width: '200px' }}
+          >
+            {options}
+          </Select>
+          <ConfigForm
+            title="Create / Edit Config"
+            selectedConfig={config}
+            action={onConfigChange}
+          />
+        </>
       ) : (
         <SegmentedLineGraph
           config={config}

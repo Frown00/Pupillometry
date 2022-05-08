@@ -22,6 +22,14 @@ export default function Config(props: any) {
 
   const action = (values: IConfigFormValues) => {
     const newConfig = unflattenObject(values) as IConfig;
+    if (values['measurement.windows']) {
+      newConfig.measurement.windows = values['measurement.windows'];
+    }
+    if (values['chart.showRejected']) {
+      newConfig.chart.showRejected = values['chart.showRejected'] as any;
+    }
+
+    console.log('NEW', newConfig);
     const request: IConfigRequest = {
       method: 'create',
       query: {
@@ -32,7 +40,6 @@ export default function Config(props: any) {
     IpcService.on(responseChannel, (e, response: IConfigResponse) => {
       console.log('CREATE CONFIG', e);
       if (response.state === State.Loading) {
-        // setLoading(true);
         return;
       }
       if (response.state === State.Done) {

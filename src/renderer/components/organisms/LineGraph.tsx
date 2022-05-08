@@ -221,7 +221,7 @@ export default class LineGraph extends React.Component<IProps, IState> {
       .attr('cx', (d: IPupilSample) => xScale(xAccessor(d)))
       .attr('cy', (d: IPupilSample) => yScale(yAccessor(d)))
       .attr('r', (d: any) => {
-        const biggerSize = ['invalid', 'outlier'];
+        const biggerSize = ['invalid', 'outliers'];
         if (biggerSize.includes(d[markProperty]?.type)) return 1.5;
         return 1;
       })
@@ -231,7 +231,7 @@ export default class LineGraph extends React.Component<IProps, IState> {
         if (marker?.type === 'invalid') {
           return Color.chart.invalid;
         }
-        if (marker?.type === 'outlier') {
+        if (marker?.type === 'outliers') {
           if (marker.algorithm === 'Dilatation Speed - Gap') {
             return Color.chart.outlier.dilatationSpeed.gap;
           }
@@ -244,7 +244,7 @@ export default class LineGraph extends React.Component<IProps, IState> {
         return color;
       })
       .attr('stroke-width', (d: any) => {
-        const biggerSize = ['invalid', 'outlier'];
+        const biggerSize = ['invalid', 'outliers'];
         if (biggerSize.includes(d[markProperty]?.type)) return 1.5;
         return 1;
       })
