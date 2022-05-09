@@ -1,6 +1,5 @@
 import { Collapse, Form as AntForm, Select, Space, Tabs } from 'antd';
 import { flattenObject } from '../../util/flattenObject';
-import Title from '../atoms/Title';
 import NumberItem from '../molecules/form/NumberItem';
 import SelectItem from '../molecules/form/SelectItem';
 import SwitchItem from '../molecules/form/SwitchItem';
@@ -12,28 +11,6 @@ const { Option } = Select;
 const { TabPane } = Tabs;
 
 function callback(key: string | string[]) {}
-
-const TabsItems = (
-  <div className="card-container">
-    <Tabs type="card">
-      <TabPane tab="Tab Title 1" key="1">
-        <p>Content of Tab Pane 1</p>
-        <p>Content of Tab Pane 1</p>
-        <p>Content of Tab Pane 1</p>
-      </TabPane>
-      <TabPane tab="Tab Title 2" key="2">
-        <p>Content of Tab Pane 2</p>
-        <p>Content of Tab Pane 2</p>
-        <p>Content of Tab Pane 2</p>
-      </TabPane>
-      <TabPane tab="Tab Title 3" key="3">
-        <p>Content of Tab Pane 3</p>
-        <p>Content of Tab Pane 3</p>
-        <p>Content of Tab Pane 3</p>
-      </TabPane>
-    </Tabs>
-  </div>
-);
 
 export interface IConfigFormValues {
   name: string;
@@ -298,28 +275,28 @@ const ConfigForm = (props: IProps) => {
             />
             <NumberItem
               name="markers.dilatationSpeed.gapMinimumDuration"
-              label="Gap minimum duration"
+              label="Gap minimum duration [ms]"
               min={0}
               max={5000}
               step={0.1}
             />
             <NumberItem
               name="markers.dilatationSpeed.gapMaximumDuration"
-              label="Gap maximum duration"
+              label="Gap maximum duration [ms]"
               min={0}
               max={5000}
               step={0.1}
             />
             <NumberItem
               name="markers.dilatationSpeed.backwardGapPadding"
-              label="Gap backward padding"
+              label="Gap backward padding [ms]"
               min={0}
               max={5000}
               step={0.1}
             />
             <NumberItem
               name="markers.dilatationSpeed.forwardGapPadding"
-              label="Gap forward padding"
+              label="Gap forward padding [ms]"
               min={0}
               max={5000}
               step={0.1}
@@ -358,28 +335,28 @@ const ConfigForm = (props: IProps) => {
             />
             <NumberItem
               name="markers.trendlineDeviation.gapMinimumDuration"
-              label="Gap minimum duration"
+              label="Gap minimum duration [ms]"
               min={0}
               max={5000}
               step={0.1}
             />
             <NumberItem
               name="markers.trendlineDeviation.gapMaximumDuration"
-              label="Gap maximum duration"
+              label="Gap maximum duration [ms]"
               min={0}
               max={5000}
               step={0.1}
             />
             <NumberItem
               name="markers.trendlineDeviation.backwardGapPadding"
-              label="Gap backward padding"
+              label="Gap backward padding [ms]"
               min={0}
               max={5000}
               step={0.1}
             />
             <NumberItem
               name="markers.trendlineDeviation.forwardGapPadding"
-              label="Gap forward padding"
+              label="Gap forward padding [ms]"
               min={0}
               max={5000}
               step={0.1}
@@ -425,6 +402,14 @@ const ConfigForm = (props: IProps) => {
               label="Rate [Hz]"
               min={0}
               max={1000}
+              step={1}
+              required
+            />
+            <NumberItem
+              name="resampling.acceptableGap"
+              label="Acceptable Gap [ms]"
+              min={0}
+              max={1000000}
               step={1}
               required
             />

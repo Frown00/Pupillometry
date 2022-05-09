@@ -221,7 +221,11 @@ export default class Segment {
     const windowSize = Math.max(0, baselineWindowSize || 1000);
     for (let i = 0; i < this.#samples.length; i += 1) {
       if (this.#samples[i].timestamp > windowSize) break;
-      baselineWindow.push(this.#samples[i].mean ?? NaN);
+      const sample = this.#samples[i];
+      if (sample.mean) {
+        const bmean = sample.mean > 0 ? sample.mean : NaN;
+        baselineWindow.push(bmean);
+      }
     }
     const correctValues = baselineWindow.filter(
       (b) => !Number.isNaN(b) && b > 0
@@ -322,6 +326,10 @@ export default class Segment {
     for (let i = 0; i < this.#samples.length; i += 1) {
       const sample = this.#samples[i];
       const smoothedSample = this.#smoothedSamples[i];
+      if (!sample.mean || sample.mean <= 0) sample.mean = NaN;
+      if (!smoothedSample.mean || smoothedSample.mean <= 0)
+        smoothedSample.mean = NaN;
+
       sample.baselineMinus = <number>sample.mean - this.#baseline.value || NaN;
       sample.baselineDivide = <number>sample.mean / this.#baseline.value || NaN;
       if (smoothing) {
@@ -391,42 +399,45 @@ export default class Segment {
       const smoothedSample = this.#smoothedSamples[i];
       // eslint-disable-next-line no-continue
       if (!sample) continue;
+      if (!sample.mean || sample.mean <= 0) sample.mean = NaN;
+      if (!smoothedSample.mean || smoothedSample.mean <= 0)
+        smoothedSample.mean = NaN;
 
       sample.zscore = zscoreFun(
-        <number>sample?.mean,
+        <number>sample.mean,
         meanGrand.normal,
         stdGrand.normal
       );
       sample.zscoreMinusBaseline = zscoreFun(
-        <number>sample?.mean - this.#baseline.value,
+        <number>sample.mean - this.#baseline.value,
         meanGrand.corrected.minus.normal,
         stdGrand.corrected.minus.normal
       );
       sample.zscoreDivideBaseline = zscoreFun(
-        <number>sample?.mean / this.#baseline.value,
+        <number>sample.mean / this.#baseline.value,
         meanGrand.corrected.divide.normal,
         stdGrand.corrected.divide.normal
       );
-      sample.relative = relativeFun(<number>sample?.mean, meanGrand.normal);
+      sample.relative = relativeFun(<number>sample.mean, meanGrand.normal);
       sample.erpd = erpdFun(<number>sample?.mean);
       if (smoothing) {
         smoothedSample.zscore = zscoreFun(
-          <number>smoothedSample?.mean,
+          <number>smoothedSample.mean,
           meanGrand.smoothed,
           stdGrand.smoothed
         );
         smoothedSample.zscoreMinusBaseline = zscoreFun(
-          <number>smoothedSample?.mean - this.#baseline.value,
+          <number>smoothedSample.mean - this.#baseline.value,
           meanGrand.corrected.minus.smoothed,
           stdGrand.corrected.minus.smoothed
         );
         smoothedSample.zscoreDivideBaseline = zscoreFun(
-          <number>smoothedSample?.mean / this.#baseline.value,
+          <number>smoothedSample.mean / this.#baseline.value,
           meanGrand.corrected.divide.smoothed,
           stdGrand.corrected.divide.smoothed
         );
         smoothedSample.relative = relativeFun(
-          <number>smoothedSample?.mean,
+          <number>smoothedSample.mean,
           meanGrand.normal
         );
         smoothedSample.erpd = erpdFun(<number>smoothedSample.mean);
