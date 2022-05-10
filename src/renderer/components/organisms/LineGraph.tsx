@@ -101,6 +101,28 @@ export default class LineGraph extends React.Component<IProps, IState> {
     return (d: IPupilSample) => (d?.baselineDivide ? d.baselineDivide : NaN);
   }
 
+  private getDomainBasedOnRejected(
+    dataset: IPupilSample[],
+    yAccessorLeft: (d: IPupilSample) => number,
+    yAccessorMean: (d: IPupilSample) => number,
+    yAccessorRight: (d: IPupilSample) => number
+  ) {
+    const { config } = this.props;
+    const min = Math.min(
+      d3.min(dataset, yAccessorLeft) || Infinity,
+      d3.min(dataset, yAccessorMean) || Infinity,
+      d3.min(dataset, yAccessorRight) || Infinity,
+      config.markers.outOfRange.max
+    );
+    const max = Math.max(
+      d3.max(dataset, yAccessorLeft) || -Infinity,
+      d3.max(dataset, yAccessorMean) || -Infinity,
+      d3.max(dataset, yAccessorRight) || -Infinity,
+      config.markers.outOfRange.min
+    );
+    return [min, max];
+  }
+
   // eslint-disable-next-line class-methods-use-this
   private getMinDomain(stats?: IPupillometryStats) {
     if (!stats) return -1;
@@ -326,9 +348,18 @@ export default class LineGraph extends React.Component<IProps, IState> {
       .domain([min, max])
       .rangeRound([0, dimensions.ctrWidth]);
 
+    const domain =
+      config.chart.showRejected.length === 0
+        ? this.getDomain()
+        : this.getDomainBasedOnRejected(
+            dataset,
+            yAccessorLeft,
+            yAccessorResult,
+            yAccessorRight
+          );
     const yScale = d3
       .scaleLinear()
-      .domain(this.getDomain())
+      .domain(domain)
       .rangeRound([dimensions.ctrHeight, 0])
       .nice();
     // #endregion
@@ -389,7 +420,7 @@ export default class LineGraph extends React.Component<IProps, IState> {
 
     // container
     if (config.chart.showMeanPlot || config.chart.showSmoothed) {
-      if (dataset.length > 0) {
+      if (config.chart.showMeanPlot && dataset.length > 0) {
         this.drawLine({
           container,
           dataset,
