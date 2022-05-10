@@ -471,20 +471,11 @@ export default class LineGraph extends React.Component<IProps, IState> {
       });
     }
     // #endregion
-    // eslint-disable-next-line promise/catch-or-return
-    // eslint-disable-next-line promise/always-return
-    // d3ToPng('.container', 'some-name')
-    //   .then((fileData) => {
-    //     // eslint-disable-next-line no-console
-    //     console.log(fileData);
-    //     return fileData;
-    //   })
-    //   .catch((err) => console.log(err));
   }
 
   render() {
     const { isLoading } = this.state;
-    const { samples } = this.props;
+    const { samples, chartType, name } = this.props;
     return (
       <div>
         {isLoading ? (
