@@ -63,6 +63,7 @@ export default function Study(props: MatchProps) {
       query: {
         name: studyName,
         group: record.name,
+        select: 'group',
       },
     };
     const responseChannel = IpcService.send('study', request);

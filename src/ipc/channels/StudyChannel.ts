@@ -189,8 +189,22 @@ export default class StudyChannel implements IpcChannel {
       }
     }
     if (method === 'readAll') response.result = StudyRepository.readAll(query);
-    if (method === 'deleteOne')
+    if (method === 'deleteOne') {
+      if (!query.name) return;
+      if (query.select === 'study') {
+        FileStore.removeStudy(query.name);
+      }
+      if (query.select === 'group') {
+        if (!query.group) return;
+        FileStore.removeGroup(query.name, query.group);
+      }
+      if (query.select === 'respondent') {
+        if (!query.group) return;
+        if (!query.respondent) return;
+        FileStore.removeRespondent(query.name, query.group, query.respondent);
+      }
       response.result = StudyRepository.deleteOne(query);
+    }
     if (method === 'clear') {
       response.result = StudyRepository.clear();
       FileStore.removeAll();

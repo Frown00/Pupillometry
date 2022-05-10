@@ -75,6 +75,7 @@ export default function StartingPage() {
       method: 'deleteOne',
       query: {
         name: record.name,
+        select: 'study',
       },
     };
     const responseChannel = IpcService.send('study', request);
