@@ -116,7 +116,7 @@ const NewGroup = (props: MatchProps) => {
     <FileSelectItem key="file-select" />,
   ];
   const initialValues: IInitialValues = {
-    config: 'default',
+    config: 'Recommended',
     isDependant: 'Dependant',
   };
 

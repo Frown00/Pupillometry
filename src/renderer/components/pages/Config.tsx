@@ -16,7 +16,7 @@ const { Option } = Select;
 
 export default function Config(props: any) {
   const { history } = props;
-  const [selectedConfigName, setSelectedConfigName] = useState('default');
+  const [selectedConfigName, setSelectedConfigName] = useState('Recommended');
   const [configs] = useRecoilState(configsState);
   const config = configs[selectedConfigName];
 

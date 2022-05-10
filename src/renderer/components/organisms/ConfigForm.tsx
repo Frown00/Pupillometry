@@ -82,14 +82,13 @@ const ConfigForm = (props: IProps) => {
   initialValues['measurement.windows'] =
     (selectedConfig.measurement?.windows?.join('; ') as any) ?? '';
 
-  console.log('INITIAL', initialValues);
   const fields = [
     <TextItem
       key="name"
       name="name"
       label="Name"
       required
-      reservedValues={['default']}
+      reservedValues={['recommended', 'Just testing']}
     />,
 
     <Tabs type="card">

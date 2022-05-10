@@ -22,7 +22,7 @@ export default function Test() {
   const [isConfigMode, setIsConfigMode] = useState<boolean>(false);
   const [pupilData, setPuilData] = useState<IPupillometryResult>();
   const [configs] = useRecoilState(configsState);
-  const [config, setConfig] = useState<IConfig>(configs.default);
+  const [config, setConfig] = useState<IConfig>(configs['Just testing']);
 
   const responseChannel = 'pupillometry_response';
 

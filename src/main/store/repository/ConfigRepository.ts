@@ -1,7 +1,9 @@
 import Store from '../Store';
-import configJSON from '../../pupillary/config.json';
+import configJSON from '../../pupillary/configs/recommended.json';
+import testConfigJSON from '../../pupillary/configs/just-testing.json';
 
-const DEFAULT_CONFIG = configJSON as IConfig;
+const RECOMMENDED_CONFIG = configJSON as IConfig;
+const TESTING_CONFIG = testConfigJSON as IConfig;
 
 export interface IConfigQuery {
   name?: string;
@@ -12,8 +14,10 @@ export default abstract class ConfigRepository {
   static create(newConfig?: IConfig) {
     const configs = <IConfigMap>Store.get('configs') ?? {};
     if (!newConfig) return null;
-    if (newConfig.name === DEFAULT_CONFIG.name)
-      throw new Error(`${DEFAULT_CONFIG.name} is reserved`);
+    if (newConfig.name === RECOMMENDED_CONFIG.name)
+      throw new Error(`${RECOMMENDED_CONFIG.name} is reserved`);
+    if (newConfig.name === TESTING_CONFIG.name)
+      throw new Error(`${TESTING_CONFIG.name} is reserved`);
     configs[newConfig.name] = newConfig;
     Store.set('configs', configs);
     return configs[newConfig.name];
@@ -21,7 +25,7 @@ export default abstract class ConfigRepository {
 
   static readOne(name?: string): IConfig {
     const configs = ConfigRepository.readAll();
-    if (!name) return DEFAULT_CONFIG;
+    if (!name) return RECOMMENDED_CONFIG;
     return configs[name];
   }
 
@@ -29,7 +33,8 @@ export default abstract class ConfigRepository {
     const configs = <IConfigMap>Store.get('configs') ?? {};
     return {
       ...configs,
-      [DEFAULT_CONFIG.name]: DEFAULT_CONFIG,
+      [RECOMMENDED_CONFIG.name]: RECOMMENDED_CONFIG,
+      [TESTING_CONFIG.name]: TESTING_CONFIG,
     };
   }
 

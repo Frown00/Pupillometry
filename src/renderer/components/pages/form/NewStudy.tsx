@@ -54,16 +54,9 @@ const NewStudy = (props: IProps) => {
       required
       reservedValues={studies.map((s) => s.name)}
     />,
-    <SelectItem
-      key="config"
-      name="config"
-      label="Config"
-      required
-      values={Object.keys(configs)}
-    />,
   ];
   const initialValues: IInitialValues = {
-    config: 'default',
+    config: 'Recommended',
   };
   return (
     <General>

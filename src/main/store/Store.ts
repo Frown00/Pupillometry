@@ -1,7 +1,4 @@
 import ElectronStore from 'electron-store';
-import configJSON from '../pupillary/config.json';
-
-const DEFAULT_CONFIG = configJSON as IConfig;
 
 type StoreKey = keyof IStore;
 type ValueOf<T> = T[keyof T];

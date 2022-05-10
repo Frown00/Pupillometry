@@ -1,5 +1,5 @@
 {
-  "name": "default",
+  "name": "Just testing",
   "file": {
     "separator": ",",
     "timestamp": "Timestamp",
@@ -8,12 +8,12 @@
     "segmentActive": "Scene active"
   },
   "chart": {
-    "width": 800,
-    "height": 400,
+    "width": 1000,
+    "height": 500,
     "showEyesPlot": true,
     "showMeanPlot": true,
     "showSmoothed": true,
-    "showRejected": ["missing", "invalid", "outliers"]
+    "showRejected": ["invalid", "outliers"]
   },
   "measurement": {
     "eye": "both",
@@ -22,10 +22,7 @@
       "param": 1000
     },
     "segmentation": "scene",
-    "windows": [
-      "Zadanie 1, 0, 30000",
-      "Zadanie 2, 30000, 60000"
-    ]
+    "windows": []
   },
   "markers": {
     "outOfRange": {
@@ -37,8 +34,8 @@
       "thresholdMultiplier": 3,
       "gapMinimumDuration": 50,
       "gapMaximumDuration": 70,
-      "backwardGapPadding": 100,
-      "forwardGapPadding": 100
+      "backwardGapPadding": 50,
+      "forwardGapPadding": 50
     },
     "trendlineDeviation": {
       "on": true,
@@ -47,8 +44,8 @@
       "passes": 1,
       "gapMinimumDuration": 50,
       "gapMaximumDuration": 70,
-      "backwardGapPadding": 100,
-      "forwardGapPadding": 100
+      "backwardGapPadding": 50,
+      "forwardGapPadding": 50
     },
     "temporallyIsolatedSamples": {
       "on": true,
@@ -57,12 +54,12 @@
     }
   },
   "validity": {
-    "missing": 30,
-    "correlation": 0,
+    "missing": 40,
+    "correlation": 0.5,
     "difference": 1
   },
   "resampling": {
-    "on": true,
+    "on": false,
     "rate": 1000,
     "acceptableGap": 250
   },

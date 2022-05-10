@@ -34,8 +34,9 @@ export default class Pupillometry {
     const baselineSegment = this.segments.find(
       (s) => s.name.toLowerCase() === baselineSegmentName.toLowerCase()
     );
+    if (!baselineSegment) return NaN;
     return baselineSegment
-      ?.markOutliers(allMarkers)
+      .markOutliers(allMarkers)
       .omitMarked(toOmit)
       .calcBeforeReshape(isChartContinous)
       .calcResultStats()

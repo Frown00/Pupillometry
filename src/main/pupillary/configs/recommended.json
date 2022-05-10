@@ -1,0 +1,70 @@
+{
+  "name": "Recommended",
+  "file": {
+    "separator": ",",
+    "timestamp": "Timestamp",
+    "leftPupil": "ET_PupilLeft",
+    "rightPupil": "ET_PupilRight",
+    "segmentActive": "Scene active"
+  },
+  "chart": {
+    "width": 1000,
+    "height": 500,
+    "showEyesPlot": false,
+    "showMeanPlot": false,
+    "showSmoothed": true,
+    "showRejected": []
+  },
+  "measurement": {
+    "eye": "both",
+    "baseline": {
+      "type": "from Start",
+      "param": 1000
+    },
+    "segmentation": "scene",
+    "windows": []
+  },
+  "markers": {
+    "outOfRange": {
+      "min": 2,
+      "max": 9
+    },
+    "dilatationSpeed": {
+      "on": true,
+      "thresholdMultiplier": 3,
+      "gapMinimumDuration": 50,
+      "gapMaximumDuration": 70,
+      "backwardGapPadding": 50,
+      "forwardGapPadding": 50
+    },
+    "trendlineDeviation": {
+      "on": true,
+      "thresholdMultiplier": 1,
+      "cutoffFrequency": 4,
+      "passes": 1,
+      "gapMinimumDuration": 50,
+      "gapMaximumDuration": 70,
+      "backwardGapPadding": 50,
+      "forwardGapPadding": 50
+    },
+    "temporallyIsolatedSamples": {
+      "on": true,
+      "sizeMaximum": 50,
+      "isolationMinimum": 40
+    }
+  },
+  "validity": {
+    "missing": 40,
+    "correlation": 0.5,
+    "difference": 1
+  },
+  "resampling": {
+    "on": true,
+    "rate": 1000,
+    "acceptableGap": 250
+  },
+  "smoothing": {
+    "on": true,
+    "cutoffFrequency": 4
+  }
+}
