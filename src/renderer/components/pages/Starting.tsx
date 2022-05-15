@@ -15,7 +15,6 @@ import General from '../templates/General';
 import RouteLink from '../atoms/RouteLink';
 import Button from '../atoms/Button';
 import Title from '../atoms/Title';
-import BlockLink from '../molecules/BlockLink';
 import ButtonGroup from '../molecules/ButtonGroup';
 import StudyTable, { IStudyRecord } from '../organisms/table/StudyTable';
 import { configsState, studiesState } from '../../assets/state';
@@ -61,7 +60,6 @@ export default function StartingPage() {
         return;
       }
       setLoading(false);
-      console.log('CONFIG', response);
       setConfigs(response.result);
     });
     return () => {
@@ -107,10 +105,6 @@ export default function StartingPage() {
           Remove All
         </Button>
       </ButtonGroup>
-      {/* <div>
-        <Title level={2}>Recent</Title>
-        <BlockLink to="/study/Study 1" label="Study 1" />
-      </div> */}
       <div>
         <Title level={2}>All studies</Title>
         <StudyTable studies={studies} handleOnDelete={handleOnDelete} />

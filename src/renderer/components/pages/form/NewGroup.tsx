@@ -63,7 +63,6 @@ const NewGroup = (props: MatchProps) => {
     const responseChannel = IpcService.send('study', request);
     IpcService.on(responseChannel, (_, response: IStudyResponse) => {
       if (response.state === State.Loading) {
-        console.log('RESPONSE LOADING', response);
         const progressPercent = Math.round(response.progress * 100);
         setLoading(true);
         setProgress(progressPercent);
@@ -73,8 +72,6 @@ const NewGroup = (props: MatchProps) => {
         const { groups } = activeStudy;
         const updated = [...groups];
         updated.push(response.result);
-        console.log(response.result);
-        console.log(updated);
         setActiveStudy((prev) => ({
           ...prev,
           groups: updated,

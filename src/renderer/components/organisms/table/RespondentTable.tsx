@@ -50,8 +50,7 @@ function createRecords(respondents: IPupillometryResult[]) {
         std: -1,
       };
       if (!respondent.segments[idx]) {
-        console.log('SOME WRONG', respondents[r].name);
-        // eslint-disable-next-line no-continue
+        //
       } else {
         const { classification, stats } = respondents[r].segments[idx];
 

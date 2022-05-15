@@ -441,7 +441,6 @@ const ConfigForm = (props: IProps) => {
       values['measurement.windows'] as any
     )?.split(';');
 
-    console.log('INI', update);
     action(update);
   };
 

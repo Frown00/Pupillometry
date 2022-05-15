@@ -30,7 +30,6 @@ export default function Test() {
     setConfig((prev) => ({ ...prev, name: 'test' }));
     IpcService.on(responseChannel, (_, response: IPupillometryResponse) => {
       if (response.state === State.Done) {
-        console.log('RESPONSE', response);
         setIsLoading(false);
         setPuilData(response.result[0] ?? null);
       }

@@ -1,6 +1,6 @@
 {
   "name": "pupillometry",
-  "version": "0.1.1",
+  "version": "1.0.0",
   "description": "App for preprocessing, visualize and analysis of pupil size",
   "main": "./dist/main/main.js",
   "author": {

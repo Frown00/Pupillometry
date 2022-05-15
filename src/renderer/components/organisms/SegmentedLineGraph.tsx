@@ -154,7 +154,9 @@ export default function SegmentedLineGraph(props: IProps) {
                 format: 'png',
                 quality: 1,
               }
-            ).catch((err) => console.log(err));
+            ).catch((err) => {
+              throw new Error('Cannot save file', err);
+            });
           }}
         >
           Save as PNG
