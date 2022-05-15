@@ -26,7 +26,8 @@ export default function Config(props: any) {
       newConfig.measurement.windows = values['measurement.windows'];
     }
     if (values['chart.showRejected']) {
-      newConfig.chart.showRejected = values['chart.showRejected'] as any;
+      newConfig.chart.showRejected =
+        (values['chart.showRejected'] as PupilMark[]) ?? [];
     }
 
     console.log('NEW', newConfig);

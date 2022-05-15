@@ -47,11 +47,13 @@ export default class Pupillometry {
     const { resampling, smoothing, measurement, validity, chart } =
       this.#config;
     const allMarkers: IMarker[] = this.usedMarkers();
-    const toOmit: PupilMark[] = <PupilMark[]>(
-      ['missing', 'outliers', 'invalid'].filter(
-        (m: any) => !chart.showRejected.includes(m)
-      )
-    );
+    const toOmit: PupilMark[] = chart.showRejected
+      ? <PupilMark[]>(
+          ['missing', 'outliers', 'invalid'].filter(
+            (m: any) => !chart.showRejected.includes(m)
+          )
+        )
+      : ['missing', 'outliers', 'invalid'];
     const isChartContinous = !resampling.acceptableGap;
     const baselineConfig = measurement.baseline;
     let baseline: number | undefined;
@@ -117,11 +119,13 @@ export default class Pupillometry {
     const { resampling, smoothing, measurement, validity, chart } =
       this.#config;
     const allMarkers: IMarker[] = this.usedMarkers();
-    const toOmit: PupilMark[] = <PupilMark[]>(
-      ['missing', 'outliers', 'invalid'].filter(
-        (m: any) => !chart.showRejected.includes(m)
-      )
-    );
+    const toOmit: PupilMark[] = chart.showRejected
+      ? <PupilMark[]>(
+          ['missing', 'outliers', 'invalid'].filter(
+            (m: any) => !chart.showRejected.includes(m)
+          )
+        )
+      : ['missing', 'outliers', 'invalid'];
     const isChartContinous = !resampling?.acceptableGap;
     const baselineConfig = measurement.baseline;
     let baseline: number | undefined;

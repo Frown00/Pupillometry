@@ -49,7 +49,8 @@ export default function Test() {
       testConfig.measurement.windows = values['measurement.windows'];
     }
     if (values['chart.showRejected']) {
-      testConfig.chart.showRejected = values['chart.showRejected'] as any;
+      testConfig.chart.showRejected =
+        (values['chart.showRejected'] as PupilMark[]) ?? [];
     }
     setConfig(testConfig);
     setIsConfigMode(false);

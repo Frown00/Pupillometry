@@ -349,7 +349,7 @@ export default class LineGraph extends React.Component<IProps, IState> {
       .rangeRound([0, dimensions.ctrWidth]);
 
     const domain =
-      config.chart.showRejected.length === 0
+      config.chart.showRejected?.length === 0
         ? this.getDomain()
         : this.getDomainBasedOnRejected(
             dataset,
