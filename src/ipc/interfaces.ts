@@ -15,9 +15,10 @@ export const ChannelNames = {
   CONFIG: 'config',
   PUPILLOMETRY: 'pupillometry',
   SESSION: 'session',
+  SHELL: 'shell',
 } as const;
 
-export type Channel = 'study' | 'config' | 'pupillometry' | 'session';
+export type Channel = 'study' | 'config' | 'pupillometry' | 'session' | 'shell';
 
 export enum State {
   Loading = 'loading',

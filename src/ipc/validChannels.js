@@ -4,4 +4,5 @@ module.exports = {
   CONFIG: 'config',
   PUPILLOMETRY: 'pupillometry',
   SESSION: 'session',
+  SHELL: 'shell',
 };
