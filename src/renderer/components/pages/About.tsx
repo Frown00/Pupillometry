@@ -45,7 +45,7 @@ export default function About() {
           content={
             <ExternalButton
               title="Link to PDF"
-              href="https://github.com/Frown00/Pupillometry/blob/main/Pupillometry_PL.pdf"
+              href="https://github.com/Frown00/Pupillometry/blob/main/assets/docs/Pupillometry_PL.pdf"
             />
           }
         />
@@ -54,7 +54,7 @@ export default function About() {
           content={
             <ExternalButton
               title="Link to PDF"
-              href="https://github.com/Frown00/Pupillometry/blob/main/Pupillometry_EN.pdf"
+              href="https://github.com/Frown00/Pupillometry/blob/main/assets/docs/Pupillometry_EN.pdf"
             />
           }
         />
