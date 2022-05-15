@@ -34,8 +34,8 @@ if (process.env.NODE_ENV === 'production') {
   sourceMapSupport.install();
 }
 
-const isDevelopment = true;
-// process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true';
+const isDevelopment =
+  process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true';
 
 if (isDevelopment) {
   require('electron-debug')();
@@ -69,14 +69,14 @@ const createWindow = async () => {
 
   const getDataPath = (): string => {
     return app.isPackaged
-      ? path.join(process.resourcesPath, 'daa')
+      ? path.join(process.resourcesPath, 'data')
       : path.join(__dirname, '../../data');
   };
 
   mainWindow = new BrowserWindow({
     show: false,
-    width: 1024,
-    height: 728,
+    width: 1200,
+    height: 800,
     icon: getAssetPath('icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -103,11 +103,11 @@ const createWindow = async () => {
 
   const menuBuilder = new MenuBuilder(mainWindow);
   menuBuilder.buildMenu();
-  mainWindow.webContents.openDevTools();
   // Open urls in the user's browser
-  mainWindow.webContents.on('new-window', (event, url) => {
-    event.preventDefault();
-    shell.openExternal(url);
+  mainWindow.webContents.setWindowOpenHandler((details) => {
+    // details..preventDefault();
+    shell.openExternal(details.url);
+    return { action: 'allow' };
   });
 
   // Init
