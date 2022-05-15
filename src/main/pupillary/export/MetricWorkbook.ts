@@ -20,7 +20,7 @@ export default class MetricWorkbook {
     const info = this.workbook.addWorksheet('Info');
     const h1 = ['Group Name:', this.group.name];
     const h2 = ['Is Dependent:', this.group.isDependant];
-    const h3 = ['Participants:', this.group.respondents.length];
+    const h3 = ['Respondents:', this.group.respondents.length];
     const h4 = [''];
     const h5 = ['METRICS'];
 

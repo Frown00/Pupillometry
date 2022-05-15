@@ -173,6 +173,8 @@ export default class Pupillometry {
       name: this.#name,
       segments: this.#segments.map((s) => s.getInfo()),
       config: this.#config.name,
+      meanGrand,
+      stdGrand,
     };
   }
 

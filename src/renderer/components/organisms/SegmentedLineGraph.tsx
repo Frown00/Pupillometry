@@ -14,7 +14,7 @@ const { TabPane } = Tabs;
 interface IProps {
   segments: IPupillometry[];
   config: IConfig;
-  respondentName: string;
+  respondent: IPupillometryResult | null;
   changeValidity?: (segmentName: string, classification: SegmentClass) => void;
 }
 
@@ -29,7 +29,7 @@ export type ChartOption =
   | 'PCPD (ERPD)';
 
 export default function SegmentedLineGraph(props: IProps) {
-  const { segments, config, respondentName, changeValidity } = props;
+  const { segments, config, respondent, changeValidity } = props;
 
   const [chartType, setChartType] = useState<ChartOption>('Mean');
 
@@ -60,6 +60,7 @@ export default function SegmentedLineGraph(props: IProps) {
     if (chartType === 'PCPD (ERPD)') return s.percent?.erpd ?? s.stats;
     return s.stats;
   };
+  const respondentName = respondent?.name ?? '';
   const charts = {
     Mean: (s: IPupillometry) => (
       <LineGraph
@@ -134,7 +135,6 @@ export default function SegmentedLineGraph(props: IProps) {
   const panes = segments.map((s) => (
     <TabPane tab={`${s.name}`} key={s.name}>
       <Space direction="vertical">
-        {getChart(chartType, s)}
         <Button
           onClick={() => {
             // React master race developers would hate me for that
@@ -167,14 +167,11 @@ export default function SegmentedLineGraph(props: IProps) {
         >
           Mark as {s.classification === 'Valid' ? 'Invalid' : 'Valid'}
         </Button>
+        {getChart(chartType, s)}
         <Metrics
-          respondentName={respondentName}
-          segmentName={s.name}
-          classification={s.classification}
-          duration={s.duration}
-          sampleRate={s.sampleRate}
           stats={getStats(s)}
-          baseline={s.baseline?.value ?? NaN}
+          respondent={respondent}
+          segment={s}
           isSmoothed={config.smoothing.on}
         />
       </Space>

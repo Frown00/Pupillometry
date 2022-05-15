@@ -105,7 +105,7 @@ export default function Respondent(props: MatchProps) {
   const chart = config ? (
     <SegmentedLineGraph
       config={config}
-      respondentName={respondentName}
+      respondent={respondent}
       segments={respondent?.segments ?? []}
       changeValidity={changeValidity}
     />

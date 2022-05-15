@@ -11,8 +11,8 @@
     "width": 1000,
     "height": 500,
     "showEyesPlot": false,
-    "showMeanPlot": false,
-    "showSmoothed": true,
+    "showMeanPlot": true,
+    "showSmoothed": false,
     "showRejected": []
   },
   "measurement": {

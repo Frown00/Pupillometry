@@ -45,7 +45,7 @@ export default class Worksheet {
   private addHeaders(taskGroup: ITaskGroup[], summary: string[]) {
     const h1 = [''];
     const h2 = ['Tasks'];
-    const h3 = ['#participant'];
+    const h3 = ['#respondent'];
     const merges: [number, number][] = [];
     for (let i = 0; i < taskGroup.length; i += 1) {
       const group = taskGroup[i];

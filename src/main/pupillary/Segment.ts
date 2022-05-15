@@ -119,7 +119,7 @@ export default class Segment {
       return this;
     }
     if (!correlation) return this;
-    if (this.#stats.sample.correlation > correlation) {
+    if (this.#stats.sample.correlation < correlation) {
       this.#classification = 'Invalid';
       return this;
     }
@@ -155,7 +155,6 @@ export default class Segment {
 
   reduce(replaceBySmoothed = true, removeEyePupil = true) {
     if (this.#classification === 'Wrong') return this;
-    // if (!replaceBySmoothed) return this;
     for (let i = 0; i < this.#samples.length; i += 1) {
       if (replaceBySmoothed) {
         this.#samples[i].mean = this.#smoothedSamples[i].mean;

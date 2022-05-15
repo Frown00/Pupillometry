@@ -1,43 +1,37 @@
-import { Col, Row } from 'antd';
+import { Col, Row, Space, Tabs } from 'antd';
 import Statistic from 'antd/lib/statistic';
-import { boolean } from 'yup';
+
+const { TabPane } = Tabs;
 
 /* eslint-disable react/jsx-no-undef */
 interface IProps {
-  respondentName: string;
-  segmentName: string;
-  classification: string;
-  stats: IPupillometryStats;
-  duration: number;
-  sampleRate: number;
-  baseline: number;
+  respondent: IPupillometryResult | null;
+  segment: IPupillometry;
   isSmoothed: boolean;
+  stats: IPupillometryStats;
 }
 
 export default function Metrics(props: IProps) {
-  const {
-    respondentName,
-    segmentName,
-    stats,
-    classification,
-    duration,
-    sampleRate,
-    baseline,
-    isSmoothed,
-  } = props;
+  const { respondent, segment, isSmoothed, stats } = props;
   const higherPrecision = 4;
   const lowerPrecision = 2;
+  const {
+    meanGrand = null,
+    stdGrand = null,
+    name: respondentName = '',
+  } = respondent as IPupillometryResult;
+  const {
+    classification,
+    sampleRate,
+    duration,
+    name: segmentName,
+    baseline,
+  } = segment;
   const preferedResult = isSmoothed ? stats.resultSmoothed : stats.result;
   return (
-    <div>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          width: '600px',
-        }}
-      >
-        <div>
+    <>
+      <Space direction="horizontal" size="large">
+        <Space>
           {classification === 'Valid' ? (
             <h2 style={{ color: '#a0d911' }}>
               <b>VALID</b>
@@ -47,153 +41,168 @@ export default function Metrics(props: IProps) {
               <b>INVALID</b>
             </h2>
           )}
-        </div>
-        <p style={{ display: 'flex' }}>
+        </Space>
+        <Space>
           <span className="pupil-label">Respondent:</span>{' '}
           <b>{respondentName}</b>
-        </p>
-        <p style={{ display: 'flex' }}>
+        </Space>
+        <Space>
           <span className="pupil-label">Segment:</span>{' '}
           <b>{segmentName ?? ''}</b>
-        </p>
-      </div>
-
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          width: '1000px',
-          marginBottom: '50px',
-        }}
+        </Space>
+      </Space>
+      <Tabs
+        defaultActiveKey="1"
+        type="card"
+        size="large"
+        style={{ height: '350px' }}
       >
-        <div>
-          <h3>
-            <b>Metrics</b>
-          </h3>
-          <Row gutter={[24, 16]}>
-            <Col span={12}>
+        <TabPane tab="Metrics" key="1">
+          <Row gutter={[100, 40]}>
+            <Col>
               <Statistic
                 title="Mean"
                 value={preferedResult.mean}
                 precision={higherPrecision}
               />
-            </Col>
-            <Col span={12}>
-              {' '}
               <Statistic
                 title="Std"
                 value={preferedResult.std}
                 precision={higherPrecision}
               />
             </Col>
-            <Col span={12}>
-              {' '}
+            <Col>
               <Statistic
                 title="Min"
                 value={preferedResult.min}
                 precision={higherPrecision}
               />
-            </Col>
-            <Col span={12}>
               <Statistic
                 title="Max"
                 value={preferedResult.max}
                 precision={higherPrecision}
               />
             </Col>
+            <Col>
+              <Statistic
+                title="Baseline"
+                value={baseline?.value}
+                precision={higherPrecision}
+              />
+            </Col>
           </Row>
-        </div>
-
-        <div>
-          <h3>
-            <b>Samples</b>
-          </h3>
-          <Row gutter={[24, 16]}>
-            <Col span={12}>
+        </TabPane>
+        <TabPane tab="Sample" key="2">
+          <Row gutter={[100, 100]}>
+            <Col>
+              <Statistic title="Raw" value={stats.sample.raw} />
               <Statistic title="Valid" value={stats.sample.valid} />
             </Col>
-            <Col span={12}>
-              <Statistic title="Raw" value={stats.sample.raw} />
-            </Col>
-            <Col span={12}>
+            <Col>
+              <Statistic title="Rate [Hz]" value={sampleRate} />
               <Statistic
-                title="Pupil Correlation"
-                value={stats.sample.correlation}
+                title="Duration [s]"
+                value={duration / 1000}
                 precision={lowerPrecision}
               />
             </Col>
-            <Col span={12}>
+            <Col>
               <Statistic
-                title="Eye difference [mm]"
-                value={stats.sample.difference}
-                precision={lowerPrecision}
-              />
-            </Col>
-          </Row>
-          <div
-            style={{
-              display: 'flex',
-              width: '220px',
-              flexWrap: 'wrap',
-              justifyContent: 'space-between',
-            }}
-          />
-        </div>
-        <div>
-          <h3>
-            <b>Missing [%] </b>
-          </h3>
-          <Row gutter={[24, 16]}>
-            <Col span={12}>
-              <Statistic
-                title="Both"
+                title="Missing [%]"
                 value={(stats.sample.missing / stats.sample.raw) * 100}
                 precision={lowerPrecision}
               />
-            </Col>
-            <Col span={12} />
-            <Col span={12}>
               <Statistic
-                title="Left"
+                title="Left [%]"
                 value={(stats.left.missing / stats.sample.raw) * 100}
                 precision={lowerPrecision}
               />
-            </Col>
-            <Col span={12}>
               <Statistic
-                title="Right"
+                title="Right [%]"
                 value={(stats.right.missing / stats.sample.raw) * 100}
                 precision={lowerPrecision}
               />
             </Col>
-          </Row>
-        </div>
-        <div>
-          <h3>
-            <b>Info </b>
-          </h3>
-          <Row gutter={[24, 16]}>
-            <Col span={12}>
-              <Statistic title="Sample Rate" value={sampleRate} />
-            </Col>
-            <Col span={12} />
-            <Col span={12}>
+            <Col>
               <Statistic
-                title="Duration [s]"
-                value={`${duration / 1000}`}
-                precision={1}
+                title="Difference [mm]"
+                value={stats.sample.difference}
+                precision={lowerPrecision}
+              />
+              <Statistic
+                title="Correlation"
+                value={stats.sample.correlation}
+                precision={lowerPrecision}
               />
             </Col>
-            <Col span={12}>
+            <Col />
+          </Row>
+        </TabPane>
+        <TabPane tab="Extra" key="3">
+          <Row gutter={[100, 100]}>
+            <Col>
               <Statistic
-                title="Baseline"
-                value={baseline}
+                title="Mean Grand"
+                value={isSmoothed ? meanGrand?.smoothed : meanGrand?.normal}
+                precision={higherPrecision}
+              />
+              <Statistic
+                title="Std Grand"
+                value={isSmoothed ? stdGrand?.smoothed : stdGrand?.normal}
+                precision={higherPrecision}
+              />
+            </Col>
+            <Col>
+              <Statistic
+                title="Left mean"
+                value={stats.left.mean}
+                precision={lowerPrecision}
+              />
+              <Statistic
+                title="Std"
+                value={stats.left.std}
+                precision={lowerPrecision}
+              />
+            </Col>
+            <Col>
+              <Statistic
+                title="Min"
+                value={stats.left.min}
+                precision={lowerPrecision}
+              />
+              <Statistic
+                title="Max"
+                value={stats.left.max}
+                precision={lowerPrecision}
+              />
+            </Col>
+            <Col>
+              <Statistic
+                title="Right mean"
+                value={stats.right.mean}
+                precision={lowerPrecision}
+              />
+              <Statistic
+                title="Std"
+                value={stats.right.std}
+                precision={lowerPrecision}
+              />
+            </Col>
+            <Col>
+              <Statistic
+                title="Min"
+                value={stats.right.min}
+                precision={lowerPrecision}
+              />
+              <Statistic
+                title="Max"
+                value={stats.right.max}
                 precision={lowerPrecision}
               />
             </Col>
           </Row>
-        </div>
-      </div>
-    </div>
+        </TabPane>
+      </Tabs>
+    </>
   );
 }

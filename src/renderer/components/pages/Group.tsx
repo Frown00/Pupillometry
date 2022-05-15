@@ -1,4 +1,4 @@
-import { Button, Select, Space } from 'antd';
+import { Button, Col, Row, Select, Space } from 'antd';
 import { useEffect, useState } from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import { useRecoilState } from 'recoil';
@@ -124,11 +124,24 @@ export default function Group(props: MatchProps) {
       >
         {options}
       </Select>
+
       <Space direction="vertical" size="large">
-        <Space direction="vertical">
-          <Text>Valid: {validCount}</Text>
-          <Text>Invalid: {invalidCount}</Text>
-        </Space>
+        <Row gutter={190}>
+          <Col>
+            <Text>Valid</Text>
+          </Col>
+          <Col>
+            <Text strong>{validCount}</Text>
+          </Col>
+        </Row>
+        <Row gutter={180}>
+          <Col>
+            <Text>Invalid</Text>
+          </Col>
+          <Col>
+            <Text strong>{invalidCount}</Text>
+          </Col>
+        </Row>
         <RespondentTable
           segmentName={selectedSegment || segmentNames[0] || ''}
           handleOnDelete={handleOnDelete}

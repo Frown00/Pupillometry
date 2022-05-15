@@ -349,14 +349,14 @@ export default class LineGraph extends React.Component<IProps, IState> {
       .rangeRound([0, dimensions.ctrWidth]);
 
     const domain =
-      config.chart.showRejected?.length === 0
-        ? this.getDomain()
-        : this.getDomainBasedOnRejected(
+      chartType === 'Mean'
+        ? this.getDomainBasedOnRejected(
             dataset,
             yAccessorLeft,
             yAccessorResult,
             yAccessorRight
-          );
+          )
+        : this.getDomain();
     const yScale = d3
       .scaleLinear()
       .domain(domain)
@@ -475,7 +475,7 @@ export default class LineGraph extends React.Component<IProps, IState> {
 
   render() {
     const { isLoading } = this.state;
-    const { samples, chartType, name } = this.props;
+    const { samples } = this.props;
     return (
       <div>
         {isLoading ? (

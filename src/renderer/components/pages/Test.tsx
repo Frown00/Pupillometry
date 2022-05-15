@@ -102,7 +102,6 @@ export default function Test() {
       </div>
       {isConfigMode ? (
         <>
-          {' '}
           <Select
             placeholder="Select a base config"
             onChange={onChange}
@@ -119,7 +118,7 @@ export default function Test() {
       ) : (
         <SegmentedLineGraph
           config={config}
-          respondentName={pupilData?.name ?? ''}
+          respondent={pupilData ?? null}
           segments={pupilData?.segments ?? []}
         />
       )}
