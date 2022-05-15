@@ -91,7 +91,7 @@ const ConfigForm = (props: IProps) => {
       reservedValues={['recommended', 'Just testing']}
     />,
 
-    <Tabs type="card">
+    <Tabs key="options" type="card">
       <TabPane tab="General" key="1">
         <Collapse onChange={callback} key="collapse" accordion>
           <Panel header="File" key="11">

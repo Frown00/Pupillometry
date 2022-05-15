@@ -1,4 +1,4 @@
-import { Button, Select } from 'antd';
+import { Button, Select, Space } from 'antd';
 import { useEffect, useState } from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import { useRecoilState } from 'recoil';
@@ -46,6 +46,7 @@ export default function Group(props: MatchProps) {
     if (group) {
       setActiveGroup(group);
       setRespondents(group.respondents ?? []);
+      setSelectedSegment(group.respondents[0]?.segments[0]?.name);
     }
   }, [setActiveGroup, group]);
 
@@ -82,14 +83,26 @@ export default function Group(props: MatchProps) {
   const options = segmentNames.map((name) => (
     <Select.Option key={name}>{name}</Select.Option>
   ));
-  // const validCount = segmentRecord.reduce(
-  //   (p, c) => p + (c.validity.toLowerCase() === 'valid' ? 1 : 0),
-  //   0
-  // );
-  // const invalidCount = segmentRecord.reduce(
-  //   (p, c) => p + (c.validity.toLowerCase() === 'invalid' ? 1 : 0),
-  //   0
-  // );
+  const validCount = respondents.reduce(
+    (p, c) =>
+      p +
+      (c.segments
+        .find((s) => s.name === selectedSegment)
+        ?.classification.toLowerCase() === 'valid'
+        ? 1
+        : 0),
+    0
+  );
+  const invalidCount = respondents.reduce(
+    (p, c) =>
+      p +
+      (c.segments
+        .find((s) => s.name === selectedSegment)
+        ?.classification.toLowerCase() !== 'valid'
+        ? 1
+        : 0),
+    0
+  );
   // const means = segmentRecord.map((s) => s.mean);
   return (
     <ActiveStudy routerProps={props}>
@@ -102,11 +115,6 @@ export default function Group(props: MatchProps) {
       <Title level={2}>Overview</Title>
       <Text>Name: {group?.name ?? ''}</Text>
       <Text>Category: {dependant}</Text>
-      {/* <Text>Valid: {validCount}</Text>
-      <Text>Invalid: {invalidCount}</Text>
-      <Text>
-        T-Test: {means.length > 0 ? tTest(means, 3.2).toFixed(2) : ''}
-      </Text> */}
       <Title level={2}>All Respondents</Title>
       <Select
         style={{ minWidth: '100px', marginBottom: '30px' }}
@@ -116,11 +124,17 @@ export default function Group(props: MatchProps) {
       >
         {options}
       </Select>
-      <RespondentTable
-        segmentName={selectedSegment || segmentNames[0] || ''}
-        handleOnDelete={handleOnDelete}
-        respondents={respondents ?? []}
-      />
+      <Space direction="vertical" size="large">
+        <Space direction="vertical">
+          <Text>Valid: {validCount}</Text>
+          <Text>Invalid: {invalidCount}</Text>
+        </Space>
+        <RespondentTable
+          segmentName={selectedSegment || segmentNames[0] || ''}
+          handleOnDelete={handleOnDelete}
+          respondents={respondents ?? []}
+        />
+      </Space>
     </ActiveStudy>
   );
 }
