@@ -2,6 +2,7 @@
 /* eslint-disable react/no-unused-prop-types */
 import { Segmented, Space, Tabs } from 'antd';
 import { SegmentedValue } from 'antd/lib/segmented';
+import d3ToPng from 'd3-svg-to-png';
 import { useState } from 'react';
 import Button from '../atoms/Button';
 import SlidingTabs from '../molecules/SlidingTabs';
@@ -134,6 +135,30 @@ export default function SegmentedLineGraph(props: IProps) {
     <TabPane tab={`${s.name}`} key={s.name}>
       <Space direction="vertical">
         {getChart(chartType, s)}
+        <Button
+          onClick={() => {
+            // React master race developers would hate me for that
+            const d = document.querySelector(
+              '.ant-tabs-content.ant-tabs-content-top'
+            );
+            const tabId = (d?.childNodes[0] as any).getAttribute('id');
+            const temp = tabId.split('-');
+            temp.pop();
+            temp.push(s.name);
+            const selelectorId = temp.join('-');
+            d3ToPng(
+              `div[id="${selelectorId}"] svg.container`,
+              `${respondentName}-${s.name}-${chartType}`,
+              {
+                scale: 3,
+                format: 'png',
+                quality: 1,
+              }
+            ).catch((err) => console.log(err));
+          }}
+        >
+          Save as PNG
+        </Button>
         <Button
           type="primary"
           onClick={() =>
