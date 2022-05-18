@@ -36,8 +36,8 @@ export default function Respondent(props: MatchProps) {
   const [respondent, setRespondent] = useState<IPupillometryResult | null>(
     null
   );
-  const [activeStudy, setActiveStudy] = useRecoilState(activeStudyState);
-  const [activeGroup] = useRecoilState(activeGroupState);
+  const [activeStudy] = useRecoilState(activeStudyState);
+  const [activeGroup, setActiveGroup] = useRecoilState(activeGroupState);
   const [configs] = useRecoilState(configsState);
 
   useEffect(() => {
@@ -91,12 +91,28 @@ export default function Respondent(props: MatchProps) {
     IpcService.on(responseChannel, (_, response: IStudyResponse) => {
       if (response.state === State.Done) {
         if (!respondent) return null;
-        setRespondent(response.result);
-        setActiveStudy((prevState) => {
-          const groups = [...prevState.groups];
-          const index = groups.findIndex((g) => g.name === activeGroup.name);
-          groups[index] = { ...activeGroup };
-          return { ...prevState, groups };
+
+        setRespondent((prevState: any) => {
+          const copyRespondent = { ...prevState };
+          const copySegments = [...prevState.segments];
+          const responseSegment = response.result.segments.find(
+            (s: IPupillometry) => s.name === segmentName
+          );
+          const segmentUpdate = copySegments.findIndex(
+            (s: IPupillometry) => s.name === segmentName
+          );
+          copySegments[segmentUpdate].classification =
+            responseSegment.classification;
+          copyRespondent.segments = copySegments;
+          return copyRespondent;
+        });
+        setActiveGroup((prevState) => {
+          const copyRespondents = [...prevState.respondents];
+          const resIndex = copyRespondents.findIndex(
+            (r) => r.name === respondent.name
+          );
+          copyRespondents[resIndex] = respondent;
+          return { ...prevState, respondents: copyRespondents };
         });
       }
     });

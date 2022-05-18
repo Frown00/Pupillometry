@@ -185,7 +185,15 @@ export default class StudyChannel implements IpcChannel {
           query.group,
           query.respondent
         );
-        response.result = FileStore.readFile(dataPath) || result;
+        const data = <IPupillometryResult>FileStore.readFile(dataPath);
+        result.segments.map((s) => {
+          s.samples =
+            data.segments.find((s2) => s2.name === s.name)?.samples ?? [];
+          s.smoothed =
+            data.segments.find((s2) => s2.name === s.name)?.smoothed ?? [];
+          return s;
+        });
+        response.result = result;
       }
     }
     if (method === 'readAll') response.result = StudyRepository.readAll(query);
@@ -210,9 +218,8 @@ export default class StudyChannel implements IpcChannel {
       FileStore.removeAll();
     }
     if (method === 'updateOne') {
-      response.result = StudyRepository.updateOne(query);
-      const dataPath = FileStore.getDataFolder(query.name, query.group);
-      FileStore.saveFile(response.result, dataPath);
+      const result = <IPupillometryResult>StudyRepository.updateOne(query);
+      response.result = result;
     }
     response.progress = 1;
     response.state = State.Done;
