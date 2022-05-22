@@ -44,7 +44,7 @@ export default {
         gap: ColorPallette.okabe.orange,
       },
       trendlineDeviation: ColorPallette.okabe.yellow,
-      temporalIsolatedSamples: 'gray',
+      temporalIsolatedSamples: ColorPallette.okabe.black,
     },
   },
 } as const;
