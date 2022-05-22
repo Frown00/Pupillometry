@@ -21,7 +21,7 @@ interface IConfig {
       type: 'from Start' | 'selected segment';
       param: number | string;
     };
-    segmentation: 'scene' | 'time windows';
+    segmentation: 'no' | 'scene' | 'time windows';
     windows?: string[];
   };
   validity: {

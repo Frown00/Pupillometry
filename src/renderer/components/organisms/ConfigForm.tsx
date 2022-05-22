@@ -203,7 +203,7 @@ const ConfigForm = (props: IProps) => {
             <SelectItem
               name="measurement.segmentation"
               label="Segmentation"
-              values={['scene', 'time windows']}
+              values={['no', 'scene', 'time windows']}
               required
             />
             <TextItem

@@ -35,7 +35,7 @@ function byScene(samples: IPupilSampleParsed[]) {
   const segments: Segment[] = [];
   for (let i = 0; i < samples.length; i += 1) {
     const row = samples[i];
-    const segmentActive = row.segmentActive.trim();
+    const segmentActive = row.segmentActive?.trim() || '';
     // Remove transitions
     const splitted = segmentActive.split(';');
     if (segmentActive && splitted.length === 1) {
