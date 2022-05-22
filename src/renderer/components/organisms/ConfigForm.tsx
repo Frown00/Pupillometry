@@ -257,7 +257,7 @@ const ConfigForm = (props: IProps) => {
               required
             />
           </Panel>
-          <Panel header="Dilatation Speed" key="22">
+          <Panel header="Dilation Speed" key="22">
             <SwitchItem
               name="markers.dilatationSpeed.on"
               label="Use"

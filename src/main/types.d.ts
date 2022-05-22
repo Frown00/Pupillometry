@@ -131,8 +131,8 @@ interface IPupillometryStats {
 type PupilMark = 'missing' | 'invalid' | 'outliers';
 
 type OutlierAlghorithm =
-  | 'Dilatation Speed'
-  | 'Dilatation Speed - Gap'
+  | 'Dilation Speed'
+  | 'Dilation Speed - Gap'
   | 'Trendline Deviation'
   | 'Temporal Isolated Island';
 interface IPupilSample extends IPupilMarked {

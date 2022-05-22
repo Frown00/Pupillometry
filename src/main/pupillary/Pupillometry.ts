@@ -4,7 +4,7 @@ import Segment from './Segment';
 import segmentation from './lib/segmentation';
 import EyeTrackerMarker from './markers/EyeTrackerMarker';
 import OutOfRangeMarker from './markers/OutOfRangeMarker';
-import DilatationSpeedMarker from './markers/DilatationSpeedMarker';
+import DilationSpeedMarker from './markers/DilationSpeedMarker';
 import GrandStatsHelper from './lib/GrandStatsHelper';
 import TrendlineDeviationMarker from './markers/TrendlineDeviationMarker';
 import TemporallyIsolatedMarker from './markers/TemporallyIsolatedMarker';
@@ -199,7 +199,7 @@ export default class Pupillometry {
         forwardGapPadding,
       } = dilatationSpeed;
       allMarkers.push(
-        new DilatationSpeedMarker(thresholdMultiplier, {
+        new DilationSpeedMarker(thresholdMultiplier, {
           min: gapMinimumDuration,
           max: gapMaximumDuration,
           padding: {

@@ -254,7 +254,7 @@ export default class LineGraph extends React.Component<IProps, IState> {
           return Color.chart.invalid;
         }
         if (marker?.type === 'outliers') {
-          if (marker.algorithm === 'Dilatation Speed - Gap') {
+          if (marker.algorithm === 'Dilation Speed - Gap') {
             return Color.chart.outlier.dilatationSpeed.gap;
           }
           if (marker.algorithm === 'Trendline Deviation')
