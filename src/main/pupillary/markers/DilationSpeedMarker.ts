@@ -11,7 +11,7 @@ export interface IGap {
   padding: { backward: number; forward: number };
 }
 
-export default class DilatationSpeedMarker implements IMarker {
+export default class DilationSpeedMarker implements IMarker {
   private thresholdMultiplier: number;
 
   private gap: IGap | undefined;
@@ -23,11 +23,13 @@ export default class DilatationSpeedMarker implements IMarker {
     this.gap = gap;
   }
 
+  name = 'Dilation Speed';
+
   run(data: IPupilMarked[]): void {
     const multipler = this.thresholdMultiplier;
     // side effects
     this.data = data;
-    const dilatations = this.setDilatationSpeed();
+    const dilatations = this.setDilationSpeed();
     const threshold = {
       left: this.calcThreshold(multipler, dilatations.left),
       right: this.calcThreshold(multipler, dilatations.right),
@@ -85,7 +87,7 @@ export default class DilatationSpeedMarker implements IMarker {
             if (!s[markProperty]) {
               s[markProperty] = {
                 type: 'outliers',
-                algorithm: 'Dilatation Speed - Gap',
+                algorithm: 'Dilation Speed - Gap',
               };
             }
           }
@@ -94,7 +96,7 @@ export default class DilatationSpeedMarker implements IMarker {
             if (!s[markProperty]) {
               s[markProperty] = {
                 type: 'outliers',
-                algorithm: 'Dilatation Speed - Gap',
+                algorithm: 'Dilation Speed - Gap',
               };
             }
           }
@@ -105,29 +107,29 @@ export default class DilatationSpeedMarker implements IMarker {
   }
 
   private tryMarkLeft(sample: IPupilMarkedWithSpeed, threshold: number) {
-    if (!this.isDilatationSpeedInThreshold(sample.speed?.left, threshold)) {
+    if (!this.isDilationSpeedInThreshold(sample.speed?.left, threshold)) {
       if (!sample.leftMark) {
         sample.leftMark = {
           type: 'outliers',
-          algorithm: 'Dilatation Speed',
+          algorithm: 'Dilation Speed',
         };
       }
     }
   }
 
   private tryMarkRight(sample: IPupilMarkedWithSpeed, threshold: number) {
-    if (!this.isDilatationSpeedInThreshold(sample.speed?.right, threshold)) {
+    if (!this.isDilationSpeedInThreshold(sample.speed?.right, threshold)) {
       if (!sample.rightMark) {
         sample.rightMark = {
           type: 'outliers',
-          algorithm: 'Dilatation Speed',
+          algorithm: 'Dilation Speed',
         };
       }
     }
   }
 
   // eslint-disable-next-line class-methods-use-this
-  private isDilatationSpeedInThreshold(
+  private isDilationSpeedInThreshold(
     sampleSpeed: number | undefined,
     threshold: number
   ) {
@@ -137,7 +139,7 @@ export default class DilatationSpeedMarker implements IMarker {
     return true;
   }
 
-  private setDilatationSpeed() {
+  private setDilationSpeed() {
     const dilatationSpeed: { left: number[]; right: number[] } = {
       left: [],
       right: [],
@@ -177,11 +179,11 @@ export default class DilatationSpeedMarker implements IMarker {
       value: eye === 'left' ? row.leftPupil : row.rightPupil,
     };
     if (Number.isNaN(sample.value)) return NaN;
-    return this.calcDilatationSpeed(sample, preSamples, sucSamples);
+    return this.calcDilationSpeed(sample, preSamples, sucSamples);
   }
 
   // eslint-disable-next-line class-methods-use-this
-  private calcDilatationSpeed(
+  private calcDilationSpeed(
     sample: { timestamp: number; value: number },
     precedingSample: { timestamp: number; value: number }[],
     succeedingSample: { timestamp: number; value: number }[]

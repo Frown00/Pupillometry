@@ -8,6 +8,8 @@ export default class OutOfRangeMarker implements IMarker {
     this.#max = max;
   }
 
+  name = 'Out Of Range Marker';
+
   run(data: IPupilMarked[]): void {
     for (let i = 0; i < data.length; i += 1) {
       const sample = data[i];

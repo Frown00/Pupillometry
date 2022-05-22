@@ -8,6 +8,8 @@ export default class TemporallyIsolatedMarker implements IMarker {
     this.isolationMinimum = isolationMinimum;
   }
 
+  name = 'Temporally Isolated Marker';
+
   // eslint-disable-next-line class-methods-use-this
   run(data: IPupilMarked[]): void {
     const temporalIsolationLeft = this.temporalIsolation('left');

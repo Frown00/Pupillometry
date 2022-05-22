@@ -1,5 +1,7 @@
 /* eslint-disable class-methods-use-this */
 export default class EyeTrackerMarker implements IMarker {
+  name = 'Eye Tracker Marker';
+
   run(data: IPupilMarked[]) {
     for (let i = 0; i < data.length; i += 1) {
       const sample = data[i];

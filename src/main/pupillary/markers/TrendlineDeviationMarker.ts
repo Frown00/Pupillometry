@@ -1,15 +1,15 @@
 import _ from 'lodash';
 import lowPassFilter from '../lib/lowPassfilter';
 import resampling from '../lib/resampling';
-import type { IGap } from './DilatationSpeedMarker';
-import DilatationSpeedMarker from './DilatationSpeedMarker';
+import type { IGap } from './DilationSpeedMarker';
+import DilationSpeedMarker from './DilationSpeedMarker';
 
 export default class TrendlineDeviationMarker implements IMarker {
   private passes: number;
 
   private cutoff: number;
 
-  private dilatationMarker: DilatationSpeedMarker;
+  private dilatationMarker: DilationSpeedMarker;
 
   constructor(
     passes: number,
@@ -19,8 +19,10 @@ export default class TrendlineDeviationMarker implements IMarker {
   ) {
     this.passes = passes;
     this.cutoff = cutoff;
-    this.dilatationMarker = new DilatationSpeedMarker(thresholdMultiplier, gap);
+    this.dilatationMarker = new DilationSpeedMarker(thresholdMultiplier, gap);
   }
+
+  name = 'Trendline Deviation';
 
   run(data: IPupilMarked[]): void {
     for (let i = 0; i < this.passes; i += 1) {
