@@ -71,9 +71,9 @@ export default class PupillometryChannel implements IpcChannel {
         .catch((err) => {
           throw new Error(`Error while selecting file: ${err.stack}`);
         });
-      response.result = [result];
       event.sender.send(request.responseChannel, {
         ...response,
+        result: [result],
         progress: 1,
         state: State.Done,
       });
@@ -89,8 +89,12 @@ export default class PupillometryChannel implements IpcChannel {
         config,
         saveCallback
       );
-      response.result = data;
-      saveCallback({ ...response, progress: 1, state: State.Done });
+      saveCallback({
+        ...response,
+        result: data,
+        progress: 1,
+        state: State.Done,
+      });
     }
 
     if (method === 'export') {

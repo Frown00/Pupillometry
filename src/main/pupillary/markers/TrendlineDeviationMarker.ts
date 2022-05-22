@@ -4,6 +4,29 @@ import resampling from '../lib/resampling';
 import type { IGap } from './DilationSpeedMarker';
 import DilationSpeedMarker from './DilationSpeedMarker';
 
+function getNextValid(samples: IPupilSample[]) {
+  return function* generate() {
+    for (let i = 0; i < samples.length; i += 1) {
+      yield samples[i];
+    }
+  };
+}
+
+function getSameTimePoint(
+  sampleGenerator: Generator<IPupilSample, void, unknown>,
+  timestamp: number
+) {
+  let value = null;
+  while (true) {
+    value = <IPupilSample>sampleGenerator.next().value;
+    if (!value) break;
+    const sample =
+      Math.round(value.timestamp) === Math.round(timestamp) ? value : null;
+    if (sample !== null) return sample;
+  }
+  return value;
+}
+
 export default class TrendlineDeviationMarker implements IMarker {
   private passes: number;
 
@@ -34,11 +57,10 @@ export default class TrendlineDeviationMarker implements IMarker {
       });
       const smoothed = lowPassFilter(interpolated, this.cutoff, 1000);
       this.dilatationMarker.run(smoothed);
+      const valid = getNextValid(smoothed)();
       for (let s = 0; s < data.length; s += 1) {
         const orignalSample = data[s];
-        const sample = smoothed.find(
-          (d) => Math.round(d.timestamp) === Math.round(orignalSample.timestamp)
-        );
+        const sample = getSameTimePoint(valid, orignalSample.timestamp);
         this.tryMarkLeft(orignalSample, sample);
         this.tryMarkRight(orignalSample, sample);
       }
@@ -46,7 +68,10 @@ export default class TrendlineDeviationMarker implements IMarker {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  private tryMarkLeft(orginalSample: IPupilMarked, sample?: IPupilSample) {
+  private tryMarkLeft(
+    orginalSample: IPupilMarked,
+    sample?: IPupilSample | null
+  ) {
     if (!sample) return;
     if (orginalSample.leftMark) return;
     if (sample.leftMark?.type === 'outliers') {
@@ -58,7 +83,10 @@ export default class TrendlineDeviationMarker implements IMarker {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  private tryMarkRight(orginalSample: IPupilMarked, sample?: IPupilSample) {
+  private tryMarkRight(
+    orginalSample: IPupilMarked,
+    sample?: IPupilSample | null
+  ) {
     if (!sample) return;
     if (orginalSample.rightMark) return;
     if (sample.rightMark?.type === 'outliers') {
