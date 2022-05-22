@@ -217,7 +217,8 @@ export default class Segment {
       return this;
     }
     const baselineWindow = [];
-    const windowSize = Math.max(0, baselineWindowSize || 1000);
+    const startTimestamp = this.#samples[0]?.timestamp ?? 0;
+    const windowSize = startTimestamp + Math.max(0, baselineWindowSize || 1000);
     for (let i = 0; i < this.#samples.length; i += 1) {
       if (this.#samples[i].timestamp > windowSize) break;
       const sample = this.#samples[i];
