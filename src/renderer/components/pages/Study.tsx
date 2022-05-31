@@ -46,8 +46,7 @@ export default function Study(props: MatchProps) {
       }
       setLoading(false);
       setActiveStudy(response.result);
-      if (!activeGroup?.name)
-        setActiveGroup(response.result.groups?.[0] ?? ({} as IGroup));
+      setActiveGroup(response.result.groups?.[0] ?? ({} as IGroup));
     });
     return () => {
       IpcService.removeAllListeners(responseChannel);

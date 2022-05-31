@@ -39,10 +39,7 @@ export default function Group(props: MatchProps) {
   const [selectedSegment, setSelectedSegment] = useState<string>('');
   const { match } = props;
   const { groupName } = match.params;
-  const group =
-    activeGroup.name === groupName
-      ? activeGroup
-      : activeStudy.groups.find((g) => g.name === groupName);
+  const group = activeStudy.groups.find((g) => g.name === groupName);
   const studyName = activeStudy.name ?? '';
 
   useEffect(() => {
@@ -72,6 +69,9 @@ export default function Group(props: MatchProps) {
         const index = groups.findIndex((g) => g.name === groupName);
         groups[index] = { ...activeGroup, respondents: respondentsCopy };
         return { ...prevState, groups };
+      });
+      setActiveGroup((prevState) => {
+        return { ...prevState, respondents: respondentsCopy };
       });
       setRespondents(respondentsCopy);
     });
