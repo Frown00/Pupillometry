@@ -61,7 +61,7 @@ const createWindow = async () => {
 
   const RESOURCES_PATH = app.isPackaged
     ? path.join(process.resourcesPath, 'assets')
-    : path.join(__dirname, '../../assets');
+    : path.join(__dirname, '..', '..', 'assets');
 
   const getAssetPath = (...paths: string[]): string => {
     return path.join(RESOURCES_PATH, ...paths);
@@ -70,7 +70,7 @@ const createWindow = async () => {
   const getDataPath = (): string => {
     return app.isPackaged
       ? path.join(process.resourcesPath, 'data')
-      : path.join(__dirname, '../../data');
+      : path.join(__dirname, '..', '..', 'data');
   };
 
   mainWindow = new BrowserWindow({
