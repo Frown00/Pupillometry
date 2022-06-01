@@ -396,7 +396,7 @@ export default class Segment {
       ((value - this.#baseline.value) / this.#baseline.value) * 100 || NaN;
     for (let i = 0; i < this.#samples.length; i += 1) {
       const sample = this.#samples[i];
-      const smoothedSample = this.#smoothedSamples[i];
+      const smoothedSample = this.#smoothedSamples[i] ?? {};
       // eslint-disable-next-line no-continue
       if (!sample) continue;
       if (!sample.mean || sample.mean <= 0) sample.mean = NaN;

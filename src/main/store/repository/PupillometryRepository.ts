@@ -57,7 +57,8 @@ export default abstract class PupillometryRepository {
       paths,
       config,
       runCallback,
-      saveCallback
+      saveCallback,
+      true
     );
   }
 
@@ -70,13 +71,13 @@ export default abstract class PupillometryRepository {
       rawData: IPupilSampleRaw[],
       config: IConfig
     ) => IPupillometryResult,
-    saveCallback?: (response: IPupillometryResponse) => void
+    saveCallback?: (response: IPupillometryResponse) => void,
+    isReduce = false
   ) {
     const results: IPupillometryResult[] = [];
     for (const path of paths) {
       const samples = await sampleLoader(path, config);
       const p = funName(samples.name, samples.rawData, config);
-      results.push(p);
       if (saveCallback) {
         saveCallback({
           result: [p],
@@ -84,6 +85,22 @@ export default abstract class PupillometryRepository {
           progress: 0,
         });
       }
+
+      const segments = isReduce
+        ? p.segments.map((s) => {
+            s.samples = [];
+            s.smoothed = [];
+            return s;
+          })
+        : p.segments;
+      results.push({
+        name: p.name,
+        config: p.config,
+        dataPath: p.dataPath,
+        meanGrand: p.meanGrand,
+        stdGrand: p.stdGrand,
+        segments,
+      });
     }
     return results;
   }
