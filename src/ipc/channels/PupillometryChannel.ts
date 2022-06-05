@@ -7,7 +7,7 @@ import PupillometryRepository, {
 import { ChannelNames, IpcChannel, IpcRequest, State } from '../interfaces';
 
 export interface IPupillometryRequest extends IpcRequest {
-  method: 'test' | 'process' | 'export';
+  method: 'test' | 'process' | 'export' | 'export-samples';
   query: IPupillometryQuery;
 }
 
@@ -103,6 +103,15 @@ export default class PupillometryChannel implements IpcChannel {
       if (!taskGroups) throw new Error('No task groups');
 
       const dir = await ExportFasade.saveGroupedMetrics(study, taskGroups);
+      if (dir) {
+        shell.openPath(dir);
+      }
+    }
+
+    if (method === 'export-samples') {
+      const { study } = query?.export ?? {};
+      if (!study) throw new Error('No study');
+      const dir = await ExportFasade.saveSamples(study);
       if (dir) {
         shell.openPath(dir);
       }

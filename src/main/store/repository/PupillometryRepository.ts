@@ -12,7 +12,7 @@ export interface IPupillometryQuery {
   };
   export?: {
     study: IStudy;
-    taskGroups: {
+    taskGroups?: {
       [groupName: string]: ITaskGroup[];
     };
   };

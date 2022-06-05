@@ -89,7 +89,6 @@ const TaskGroupList = () => {
 };
 
 export default function Export(props: MatchProps) {
-  const { history } = props;
   const [taskGroups, setTaskGroupsState] = useRecoilState(taskGroupsState);
   const [activeStudy] = useRecoilState(activeStudyState);
   const [selectedGroupId, setSelectedGroupId] = useState<number>(0);

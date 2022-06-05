@@ -96,14 +96,17 @@ export default class FileStore {
   static saveFile(data: IPupillometryResult, dataPath: string) {
     try {
       const toSave = stringify(data);
+      const filePath = path.join(dataPath, data.name);
       FsUtil.createFile(path.join(dataPath, data.name), toSave);
+      return filePath;
     } catch (err) {
       throw new Error(`${err}`);
     }
   }
 
-  static readFile(dataPath: string) {
+  static readFile(dataPath?: string) {
     try {
+      if (!dataPath) return false;
       const data = FsUtil.readFile(dataPath);
       if (data) return parse(data);
       return false;

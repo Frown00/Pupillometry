@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import { useRecoilState } from 'recoil';
+import { IPupillometryRequest } from '../../../ipc/channels/PupillometryChannel';
 import {
   IStudyRequest,
   IStudyResponse,
@@ -16,7 +17,7 @@ import Title from '../atoms/Title';
 import ActiveStudy from '../templates/ActiveStudy';
 import DefaultLoader from '../atoms/Loader';
 import IpcService from '../../IpcService';
-import { State } from '../../../ipc/interfaces';
+import { ChannelNames, State } from '../../../ipc/interfaces';
 
 interface MatchParams {
   studyName: string;
@@ -77,19 +78,28 @@ export default function Study(props: MatchProps) {
   const { studyName } = match.params;
   const loader = isLoading ? <DefaultLoader /> : undefined;
 
+  const exportSamples = () => {
+    const request: IPupillometryRequest = {
+      method: 'export-samples',
+      query: { export: { study: activeStudy } },
+    };
+    IpcService.send(ChannelNames.PUPILLOMETRY, request);
+  };
+
   return (
     <ActiveStudy routerProps={props} Loader={loader}>
+      <RouteLink
+        to={Routes.NewGroup(studyName)}
+        Wrapper={() => <Button type="primary">New Group</Button>}
+      />
       <ButtonGroup>
-        <RouteLink
-          to={Routes.NewGroup(studyName)}
-          Wrapper={() => <Button type="primary">New Group</Button>}
-        />
         <Button
           onClick={() => history.push(Routes.Export(activeStudy.name))}
           type="default"
         >
-          Export
+          Export Metrics
         </Button>
+        <Button onClick={exportSamples}>Export Samples</Button>
       </ButtonGroup>
       <Title level={2}>All Groups</Title>
       <GroupTable

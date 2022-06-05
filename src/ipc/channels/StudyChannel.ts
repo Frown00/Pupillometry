@@ -74,7 +74,8 @@ export default class StudyChannel implements IpcChannel {
     ipcMain.on(responseChannel, (_, res: IPupillometryResponse) => {
       if (res.state === State.Loading) {
         doneCounter += 1;
-        FileStore.saveFile(res.result[0], dataPath);
+        const filePath = FileStore.saveFile(res.result[0], dataPath);
+        res.result[0].dataPath = filePath;
         res.progress = doneCounter / files.length;
         event.sender.send(responseChannel, res);
         return;
