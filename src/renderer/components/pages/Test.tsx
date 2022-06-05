@@ -96,7 +96,7 @@ export default function Test() {
           Process
         </Button>
         <Button style={{ minWidth: 150 }} onClick={toggleConfig}>
-          {isConfigMode ? 'Show Metrics' : 'Change Config'}
+          {isConfigMode ? 'Show Stats' : 'Change Config'}
         </Button>
       </div>
       {isConfigMode ? (

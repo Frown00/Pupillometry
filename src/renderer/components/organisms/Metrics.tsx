@@ -57,7 +57,7 @@ export default function Metrics(props: IProps) {
         size="large"
         style={{ height: '350px' }}
       >
-        <TabPane tab="Metrics" key="1">
+        <TabPane tab="General" key="1">
           <Row gutter={[100, 40]}>
             <Col>
               <Statistic
