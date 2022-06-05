@@ -136,7 +136,7 @@ export default function SegmentedLineGraph(props: IProps) {
     <TabPane tab={`${s.name}`} key={s.name}>
       <Space direction="vertical">
         <Button
-          onClick={() => {
+          onClick={async () => {
             // React master race developers would hate me for that
             const d = document.querySelector(
               '.ant-tabs-content.ant-tabs-content-top'
@@ -146,20 +146,21 @@ export default function SegmentedLineGraph(props: IProps) {
             temp.pop();
             temp.push(s.name);
             const selelectorId = temp.join('-');
-            d3ToPng(
-              `div[id="${selelectorId}"] svg.container`,
-              `${respondentName}-${s.name}-${chartType}`,
-              {
-                scale: 3,
-                format: 'png',
-                quality: 1,
-              }
-            ).catch((err) => {
-              throw new Error('Cannot save file', err);
-            });
+            try {
+              await d3ToPng(
+                `div[id="${selelectorId}"] svg.container`,
+                `${respondentName}-${s.name}-${chartType}`,
+                {
+                  scale: 3,
+                  format: 'png',
+                }
+              );
+            } catch (err) {
+              throw new Error(`Cannot save file ${err}`);
+            }
           }}
         >
-          Save as PNG
+          Generate PNG
         </Button>
         <Button
           type="primary"

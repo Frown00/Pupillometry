@@ -8,8 +8,8 @@
     "segmentActive": "Scene active"
   },
   "chart": {
-    "width": 1000,
-    "height": 500,
+    "width": 1200,
+    "height": 600,
     "showEyesPlot": false,
     "showMeanPlot": true,
     "showSmoothed": false,
