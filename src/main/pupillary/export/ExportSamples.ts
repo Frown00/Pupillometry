@@ -13,6 +13,7 @@ export default class ExportSamples {
   async processAndSave() {
     const studyPath = FileStore.getDataFolder(this.study.name);
     const exportDirBase = path.join(studyPath, '_samples');
+    FsUtil.createFolder(exportDirBase);
     const savePromises = [];
     for (let g = 0; g < this.study.groups.length; g += 1) {
       const group = this.study.groups[g];
