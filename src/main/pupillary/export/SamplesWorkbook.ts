@@ -17,19 +17,23 @@ export default class SamplesWorkbook {
       state: 'frozen',
       ySplit: 1,
     };
-    worksheet.addRow(['TIMESTAMP', 'PUPIL']);
+    worksheet.addRow(['TIMESTAMP', 'PUPIL', 'SEGMENT']);
     worksheet.columns.forEach((column) => {
       column.width = 20;
     });
     const { segments } = this.respondent;
-    let timestamp = 0;
+    let addTime = 0;
     for (let i = 0; i < segments.length; i += 1) {
       const segment = segments[i];
       for (let s = 0; s < segment.samples.length; s += 1) {
         const sample = segment.samples[s];
-        timestamp += sample.timestamp;
-        worksheet.addRow([timestamp, sample.mean ? sample.mean : -1]);
+        worksheet.addRow([
+          sample.timestamp + addTime,
+          sample.mean ? sample.mean : -1,
+          segment.name,
+        ]);
       }
+      addTime += segment.samples[segment.samples.length - 1].timestamp + 1;
     }
     return this;
   }
