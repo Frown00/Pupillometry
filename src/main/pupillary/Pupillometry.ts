@@ -26,103 +26,42 @@ export default class Pupillometry {
   }
 
   private calcBaselineBasedOnSegment(name: string) {
-    const { resampling } = this.#config;
+    const { resampling, smoothing } = this.#config;
     const allMarkers: IMarker[] = this.usedMarkers();
     const toOmit: PupilMark[] = ['missing', 'outliers', 'invalid'];
     const baselineSegmentName = name;
     const isChartContinous = !resampling.acceptableGap;
-    const baselineSegment = this.segments.find(
-      (s) => s.name.toLowerCase() === baselineSegmentName.toLowerCase()
+    const baselineSegment = this.#segments.find(
+      (s) =>
+        s.name.toLowerCase().trim() === baselineSegmentName.toLowerCase().trim()
     );
     if (!baselineSegment) return NaN;
     return baselineSegment
       .markOutliers(allMarkers)
       .omitMarked(toOmit)
       .calcBeforeReshape(isChartContinous)
+      .resampling(resampling.on, resampling.rate, resampling.acceptableGap)
+      .smoothing(smoothing.on, smoothing.cutoffFrequency)
       .calcResultStats()
       .getInfo().stats.result.mean;
   }
 
   test(): IPupillometryResult {
-    const { resampling, smoothing, measurement, validity, chart } =
-      this.#config;
-    const allMarkers: IMarker[] = this.usedMarkers();
-    const toOmit: PupilMark[] = chart.showRejected
-      ? <PupilMark[]>(
-          ['missing', 'outliers', 'invalid'].filter(
-            (m: any) => !chart.showRejected.includes(m)
-          )
-        )
-      : ['missing', 'outliers', 'invalid'];
-    const isChartContinous = !resampling.acceptableGap;
-    const baselineConfig = measurement.baseline;
-    let baseline: number | undefined;
-    const baseOnSegment = baselineConfig.type === 'selected segment';
-    if (baseOnSegment) {
-      baseline = this.calcBaselineBasedOnSegment(<string>baselineConfig.param);
-    }
-
-    const grandHelperMean = new GrandStatsHelper('mean');
-    const grandHelperStd = new GrandStatsHelper('std');
-
-    for (let i = 0; i < this.#segments.length; i += 1) {
-      const segment = this.#segments[i];
-      // skip baseline segment
-      // eslint-disable-next-line no-continue
-      if (baseOnSegment && baselineConfig.param === segment.name) continue;
-      segment.selectData(measurement.eye);
-      segment.markOutliers(allMarkers);
-      segment.omitMarked(toOmit);
-      segment.calcBeforeReshape(isChartContinous);
-      segment.resampling(
-        resampling.on,
-        resampling.rate,
-        resampling.acceptableGap
-      );
-      segment.smoothing(smoothing.on, smoothing.cutoffFrequency);
-      segment.setBaseline({
-        evaluatedBaseline: baseline,
-        baselineWindowSize: Number(baselineConfig.param),
-      });
-      segment.calcResultStats(smoothing.on);
-      segment.validity(
-        validity.missing,
-        validity.correlation,
-        validity.difference
-      );
-      const { stats, baseline: corrected } = segment.getInfo();
-      grandHelperMean.add(stats, corrected);
-      grandHelperStd.add(stats, corrected);
-    }
-
-    const meanGrand: IGrandValue = grandHelperMean.calc();
-    const stdGrand: IGrandValue = grandHelperStd.calc();
-
-    for (let i = 0; i < this.#segments.length; i += 1) {
-      const segment = this.#segments[i];
-      // skip baseline segment
-      // eslint-disable-next-line no-continue
-      if (baseOnSegment && baselineConfig.param === segment.name) continue;
-      segment.calcAdvancedMeasures(smoothing.on, meanGrand, stdGrand);
-    }
-
-    return {
-      name: this.#name,
-      segments: this.#segments.map((s) => s.getInfo()),
-      config: this.#config.name,
-      meanGrand,
-      stdGrand,
-    };
+    return this.cleanAndCount(false);
   }
 
   process(): IPupillometryResult {
+    return this.cleanAndCount(true);
+  }
+
+  private cleanAndCount(isReducedToOneLineGraph: boolean) {
     const { resampling, smoothing, measurement, validity, chart } =
       this.#config;
     const allMarkers: IMarker[] = this.usedMarkers();
     const toOmit: PupilMark[] = chart.showRejected
       ? <PupilMark[]>(
           ['missing', 'outliers', 'invalid'].filter(
-            (m: any) => !chart.showRejected.includes(m)
+            (m) => !chart.showRejected.includes(m as PupilMark)
           )
         )
       : ['missing', 'outliers', 'invalid'];
@@ -133,13 +72,17 @@ export default class Pupillometry {
     if (baseOnSegment) {
       baseline = this.calcBaselineBasedOnSegment(<string>baselineConfig.param);
     }
+
     const grandHelperMean = new GrandStatsHelper('mean');
     const grandHelperStd = new GrandStatsHelper('std');
 
     for (let i = 0; i < this.#segments.length; i += 1) {
       const segment = this.#segments[i];
-
+      // skip baseline segment
+      // eslint-disable-next-line no-continue
+      if (baseOnSegment && baselineConfig.param === segment.name) continue;
       segment
+        .selectData(measurement.eye)
         .markOutliers(allMarkers)
         .omitMarked(toOmit)
         .calcBeforeReshape(isChartContinous)
@@ -147,7 +90,7 @@ export default class Pupillometry {
         .smoothing(smoothing.on, smoothing.cutoffFrequency)
         .setBaseline({
           evaluatedBaseline: baseline,
-          baselineWindowSize: <number>baselineConfig.param,
+          baselineWindowSize: Number(baselineConfig.param),
         })
         .calcResultStats(smoothing.on)
         .validity(validity.missing, validity.correlation, validity.difference);
@@ -162,11 +105,8 @@ export default class Pupillometry {
 
     for (let i = 0; i < this.#segments.length; i += 1) {
       const segment = this.#segments[i];
-      // skip baseline segment
-      // eslint-disable-next-line no-continue
-      if (baseOnSegment && baselineConfig.param === segment.name) continue;
       segment.calcAdvancedMeasures(smoothing.on, meanGrand, stdGrand);
-      segment.reduce(smoothing.on, true);
+      if (isReducedToOneLineGraph) segment.reduce(smoothing.on, true);
     }
 
     return {
