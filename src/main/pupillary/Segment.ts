@@ -322,17 +322,16 @@ export default class Segment {
     const divideBaseline: number[] = [];
     const divideBaselineSmoothed: number[] = [];
 
-    // const samples = baseOnSmoothed ? this.#smoothedSamples : this.#samples;
     for (let i = 0; i < this.#samples.length; i += 1) {
       const sample = this.#samples[i];
       const smoothedSample = this.#smoothedSamples[i];
       if (!sample.mean || sample.mean <= 0) sample.mean = NaN;
-      if (!smoothedSample.mean || smoothedSample.mean <= 0)
-        smoothedSample.mean = NaN;
 
       sample.baselineMinus = <number>sample.mean - this.#baseline.value || NaN;
       sample.baselineDivide = <number>sample.mean / this.#baseline.value || NaN;
       if (smoothing) {
+        if (!smoothedSample.mean || smoothedSample.mean <= 0)
+          smoothedSample.mean = NaN;
         smoothedSample.baselineMinus =
           <number>smoothedSample.mean - this.#baseline.value || NaN;
         smoothedSample.baselineDivide =
