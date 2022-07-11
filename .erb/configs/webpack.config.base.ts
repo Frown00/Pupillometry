@@ -46,6 +46,7 @@ export default {
   plugins: [
     new webpack.EnvironmentPlugin({
       NODE_ENV: 'production',
+      NODE_OPTIONS: '--max-old-space-size=8192'
     }),
   ],
 };

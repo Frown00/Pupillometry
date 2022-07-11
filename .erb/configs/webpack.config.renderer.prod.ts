@@ -106,6 +106,7 @@ export default merge(baseConfig, {
     new webpack.EnvironmentPlugin({
       NODE_ENV: 'production',
       DEBUG_PROD: false,
+      NODE_OPTIONS: '--max-old-space-size=8192'
     }),
 
     new MiniCssExtractPlugin({

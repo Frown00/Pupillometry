@@ -65,6 +65,7 @@ export default merge(baseConfig, {
       NODE_ENV: 'production',
       DEBUG_PROD: false,
       START_MINIMIZED: false,
+      NODE_OPTIONS: '--max-old-space-size=8192'
     }),
   ],
 
