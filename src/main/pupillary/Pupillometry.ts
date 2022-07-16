@@ -36,14 +36,15 @@ export default class Pupillometry {
         s.name.toLowerCase().trim() === baselineSegmentName.toLowerCase().trim()
     );
     if (!baselineSegment) return NaN;
-    return baselineSegment
+    const { stats } = baselineSegment
       .markOutliers(allMarkers)
       .omitMarked(toOmit)
       .calcBeforeReshape(isChartContinous)
       .resampling(resampling.on, resampling.rate, resampling.acceptableGap)
       .smoothing(smoothing.on, smoothing.cutoffFrequency)
       .calcResultStats()
-      .getInfo().stats.result.mean;
+      .getInfo();
+    return smoothing.on ? stats.resultSmoothed.mean : stats.result.mean;
   }
 
   test(): IPupillometryResult {
