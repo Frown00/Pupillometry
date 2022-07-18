@@ -41,20 +41,11 @@ export default function About() {
           }
         />
         <ShortInformation
-          title="Documentation PL"
+          title="Documentation"
           content={
             <ExternalButton
-              title="Link to PDF"
-              href="https://github.com/Frown00/Pupillometry/blob/main/assets/docs/Pupillometry_PL.pdf"
-            />
-          }
-        />
-        <ShortInformation
-          title="Documentation EN"
-          content={
-            <ExternalButton
-              title="Link to PDF"
-              href="https://github.com/Frown00/Pupillometry/blob/main/assets/docs/Pupillometry_EN.pdf"
+              title="Link to PDFs"
+              href="https://drive.google.com/drive/folders/1-fu6QABpgHgjlhiHFkqN9tR0VsDOiCRx"
             />
           }
         />
