@@ -112,24 +112,24 @@ export default class Worksheet {
       let value: number | string = '';
       let isCalculating = false;
       for (let i = startFrom; i < taskRow.length; i += 1) {
-        const taskName = taskRow[i];
-        const wantedResult = data.segments.find((s) => s.name === taskName);
-        const calculation = summary.find((s) => s === taskName);
+        const columnName = taskRow[i];
+        const wantedResult = data.segments.find((s) => s.name === columnName);
+        const summaryCalculation = summary.find((s) => s === columnName);
 
-        if (calculation) {
-          value = this.getCalculation(calculation, values, baselines);
+        if (summaryCalculation) {
+          value = this.getCalculation(summaryCalculation, values, baselines);
           isCalculating = true;
         } else {
           value = this.getValue(wantedResult) || '';
-          if (value !== '' && value !== 'INVALID') {
-            values.push(<number>value);
-            if (wantedResult?.baseline?.value)
-              baselines.push(wantedResult?.baseline?.value);
-          }
           if (isCalculating) {
             isCalculating = false;
             values = [];
             baselines = [];
+          }
+          if (value !== '' && value !== 'INVALID') {
+            values.push(<number>value);
+            if (wantedResult?.baseline?.value)
+              baselines.push(wantedResult?.baseline?.value);
           }
         }
         if (value === 'INVALID') {
