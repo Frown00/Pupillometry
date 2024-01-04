@@ -1,18 +1,24 @@
 import fs from 'fs';
 
+type Options = {
+  dataHeaderKeyword: string;
+  commentChar: string;
+  encoding: BufferEncoding;
+};
+
 /**
  *
  * @param {string}  filePath  - system file path
- * @param {Object}  options
+ * @param {Options}  options - object with config options
  * @param {string}  options.encoding  - character encoding
  * @param {char}    options.commentChar - in csv usually is '#'
  * @param {string}  options.dataHeaderKeyword - keyword pointing to data headers starts
  * @returns
  */
-export default function loadData(filePath: any, options: any) {
+export default function loadData(filePath: string, options: Options) {
   let buffer = null;
   try {
-    buffer = fs.readFileSync(filePath);
+    buffer = fs.readFileSync(filePath, { encoding: options.encoding });
   } catch (err: any) {
     if (err.code === 'ENOENT') {
       throw new Error('File not found');

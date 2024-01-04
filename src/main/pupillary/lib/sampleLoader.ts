@@ -10,7 +10,7 @@ interface ISampleLoader {
 /**
  *
  * @param {string} filePath - system file path
- * @param {char} separator - character to seperate columns
+ * @param {IConfig} config - object with config options
  */
 export default async function sampleLoader(
   filePath: string,

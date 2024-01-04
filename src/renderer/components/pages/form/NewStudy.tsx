@@ -1,7 +1,6 @@
 import { useRecoilState } from 'recoil';
 import { IStudyRequest } from '../../../../ipc/channels/StudyChannel';
 import IpcService from '../../../IpcService';
-import SelectItem from '../../molecules/form/SelectItem';
 import TextItem from '../../molecules/form/TextItem';
 import { configsState, studiesState } from '../../../assets/state';
 import General from '../../templates/General';
