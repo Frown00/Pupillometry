@@ -78,6 +78,8 @@ const AddRespondent = (props: MatchProps) => {
         setProgress(100);
         IpcService.removeAllListeners(responseChannel);
         history.push(`/study/${activeStudy.name}/${activeGroup.name}`);
+        return;
+      }
       if (response.state === State.Error) {
         setLoading(false);
         message.error(response.error || 'Cannot add the respondent');
