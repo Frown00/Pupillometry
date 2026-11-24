@@ -15,6 +15,7 @@ const FileSelectItem = () => {
         name="files"
         valuePropName="fileList"
         getValueFromEvent={normFile}
+        rules={[{ required: true, message: 'Select at least one CSV file' }]}
         noStyle
       >
         <Upload.Dragger name="files" beforeUpload={() => false} multiple>

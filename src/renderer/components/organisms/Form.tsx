@@ -13,10 +13,11 @@ interface IProps {
   onFinish: (values: any) => void;
   initialValues: any;
   items: JSX.Element[];
+  isLoading?: boolean;
 }
 
 const Form = (props: IProps) => {
-  const { onFinish, items, initialValues, title } = props;
+  const { onFinish, items, initialValues, title, isLoading = false } = props;
   const [form] = AntdForm.useForm();
   useEffect(() => {
     form.setFieldsValue(initialValues);
@@ -41,6 +42,7 @@ const Form = (props: IProps) => {
           <Button
             type="primary"
             htmlType="submit"
+            loading={isLoading}
             style={{ width: '100%', marginTop: '30px' }}
           >
             Submit

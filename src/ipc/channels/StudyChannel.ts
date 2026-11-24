@@ -26,6 +26,7 @@ export interface IStudyResponse {
   state: State;
   progress: number;
   result: any;
+  error?: string;
 }
 
 export default class StudyChannel implements IpcChannel {
@@ -108,6 +109,21 @@ export default class StudyChannel implements IpcChannel {
   }
 
   handle(event: IpcMainEvent, request: IStudyRequest): void {
+    try {
+      this.handleRequest(event, request);
+    } catch (err: any) {
+      if (request.responseChannel) {
+        event.sender.send(request.responseChannel, {
+          state: State.Error,
+          progress: 0,
+          result: null,
+          error: err.message || 'Cannot complete the study operation',
+        } as IStudyResponse);
+      }
+    }
+  }
+
+  private handleRequest(event: IpcMainEvent, request: IStudyRequest): void {
     if (!request.responseChannel) {
       request.responseChannel = `${this.getName()}_response`;
     }

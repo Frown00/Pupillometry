@@ -10,6 +10,7 @@ import {
   IStudyResponse,
 } from '../../../ipc/channels/StudyChannel';
 import { removeElement } from '../../../util';
+import { Modal } from 'antd';
 import { Routes } from '../../routes';
 import General from '../templates/General';
 import RouteLink from '../atoms/RouteLink';
@@ -68,18 +69,28 @@ export default function StartingPage() {
   }, [setLoading, setConfigs]);
 
   const handleOnDelete = (record: IStudyRecord) => {
-    const studiesCopy = [...studies];
-    const request: IStudyRequest = {
-      method: 'deleteOne',
-      query: {
-        name: record.name,
-        select: 'study',
+    Modal.confirm({
+      title: 'Delete study?',
+      content: `This will permanently remove "${record.name}" and all of its data.`,
+      okText: 'Delete',
+      okType: 'danger',
+      onOk: () => {
+        const studiesCopy = [...studies];
+        const request: IStudyRequest = {
+          method: 'deleteOne',
+          query: {
+            name: record.name,
+            select: 'study',
+          },
+        };
+        const responseChannel = IpcService.send('study', request);
+        IpcService.on(responseChannel, (_, response: IStudyResponse) => {
+          if (response.state === State.Error) return;
+          removeElement(studiesCopy, 'name', record.name);
+          setStudies(studiesCopy);
+          IpcService.removeAllListeners(responseChannel);
+        });
       },
-    };
-    const responseChannel = IpcService.send('study', request);
-    IpcService.on(responseChannel, () => {
-      removeElement(studiesCopy, 'name', record.name);
-      setStudies(studiesCopy);
     });
   };
 
@@ -94,12 +105,20 @@ export default function StartingPage() {
         />
         <Button
           onClick={() => {
-            const request: IStudyRequest = {
-              method: 'clear',
-              query: {},
-            };
-            IpcService.send('study', request);
-            window.location.reload();
+            Modal.confirm({
+              title: 'Remove all studies?',
+              content: 'This permanently removes every study and processed file.',
+              okText: 'Remove all',
+              okType: 'danger',
+              onOk: () => {
+                const request: IStudyRequest = {
+                  method: 'clear',
+                  query: {},
+                };
+                IpcService.send('study', request);
+                window.location.reload();
+              },
+            });
           }}
         >
           Remove All

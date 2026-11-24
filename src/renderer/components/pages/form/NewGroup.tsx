@@ -16,6 +16,7 @@ import Form from '../../organisms/Form';
 import { ProgressLoader } from '../../atoms/Loader';
 import { Routes } from '../../../routes';
 import { State } from '../../../../ipc/interfaces';
+import { message } from 'antd';
 
 interface IInitialValues {
   config: string;
@@ -82,7 +83,11 @@ const NewGroup = (props: MatchProps) => {
         history.push(Routes.Group(activeStudy.name, values.name));
         return;
       }
-      throw new Error('Something went wrong');
+      if (response.state === State.Error) {
+        setLoading(false);
+        message.error(response.error || 'Cannot create the group');
+        IpcService.removeAllListeners(responseChannel);
+      }
     });
   };
 

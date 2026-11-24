@@ -17,6 +17,7 @@ import {
   IStudyResponse,
 } from '../../../../ipc/channels/StudyChannel';
 import IpcService from '../../../IpcService';
+import { message } from 'antd';
 
 interface IInitialValues {
   config: string;
@@ -77,7 +78,11 @@ const AddRespondent = (props: MatchProps) => {
         setProgress(100);
         IpcService.removeAllListeners(responseChannel);
         history.push(`/study/${activeStudy.name}/${activeGroup.name}`);
-      } else throw new Error('Something went wrong');
+      if (response.state === State.Error) {
+        setLoading(false);
+        message.error(response.error || 'Cannot add the respondent');
+        IpcService.removeAllListeners(responseChannel);
+      }
     });
   };
 
