@@ -248,8 +248,16 @@
     "zipson": "^0.2.12"
   },
   "devEngines": {
-    "node": ">=14.x",
-    "npm": ">=7.x"
+    "runtime": {
+      "name": "node",
+      "version": ">=26.x",
+      "onFail": "error"
+    },
+    "packageManager": {
+      "name": "npm",
+      "version": ">=11.x",
+      "onFail": "error"
+    }
   },
   "browserslist": [],
   "prettier": {
