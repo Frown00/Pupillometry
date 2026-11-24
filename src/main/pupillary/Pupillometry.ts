@@ -73,6 +73,10 @@ export default class Pupillometry {
     if (baseOnSegment) {
       baseline = this.calcBaselineBasedOnSegment(<string>baselineConfig.param);
     }
+    const normalizedBaselineName =
+      typeof baselineConfig.param === 'string'
+        ? baselineConfig.param.toLowerCase().trim()
+        : '';
 
     const grandHelperMean = new GrandStatsHelper('mean');
     const grandHelperStd = new GrandStatsHelper('std');
@@ -81,7 +85,11 @@ export default class Pupillometry {
       const segment = this.#segments[i];
       // skip baseline segment
       // eslint-disable-next-line no-continue
-      if (baseOnSegment && baselineConfig.param === segment.name) continue;
+      if (
+        baseOnSegment &&
+        segment.name.toLowerCase().trim() === normalizedBaselineName
+      )
+        continue;
       segment
         .selectData(measurement.eye)
         .markOutliers(allMarkers)

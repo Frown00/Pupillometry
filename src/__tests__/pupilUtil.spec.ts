@@ -1,4 +1,5 @@
 import * as util from '../main/pupillary/lib/util';
+import segmentation from '../main/pupillary/lib/segmentation';
 
 describe('Calc mean', () => {
   describe('Both pupil is valid number', () => {
@@ -240,5 +241,31 @@ describe('Find Samples', () => {
       expect(previous[0]).toEqual(samples[index + 2]);
       expect(previous[1]).toEqual(samples[index + 3]);
     });
+  });
+});
+
+describe('Time-window segmentation', () => {
+  test('uses relative timestamps without mutating parsed samples', () => {
+    const samples: IPupilSampleParsed[] = [
+      { timestamp: 1000, leftPupil: 4, rightPupil: 4, segmentActive: '' },
+      { timestamp: 1500, leftPupil: 5, rightPupil: 5, segmentActive: '' },
+      { timestamp: 2500, leftPupil: 6, rightPupil: 6, segmentActive: '' },
+    ];
+    const config = {
+      measurement: {
+        segmentation: 'time windows',
+        windows: ['Baseline,1000,2000', 'Task,2000,3000'],
+      },
+    } as IConfig;
+
+    const segments = segmentation(samples, config);
+
+    expect(segments[0].samples.map((sample) => sample.timestamp)).toEqual([
+      0, 500,
+    ]);
+    expect(segments[1].samples.map((sample) => sample.timestamp)).toEqual([500]);
+    expect(samples.map((sample) => sample.timestamp)).toEqual([
+      1000, 1500, 2500,
+    ]);
   });
 });
