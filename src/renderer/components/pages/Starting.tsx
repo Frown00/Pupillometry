@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useRecoilState } from 'recoil';
+import { Modal } from 'antd';
 import {
   IConfigRequest,
   IConfigResponse,
@@ -10,7 +11,6 @@ import {
   IStudyResponse,
 } from '../../../ipc/channels/StudyChannel';
 import { removeElement } from '../../../util';
-import { Modal } from 'antd';
 import { Routes } from '../../routes';
 import General from '../templates/General';
 import RouteLink from '../atoms/RouteLink';
@@ -35,13 +35,15 @@ export default function StartingPage() {
       },
     };
     const responseChannel = IpcService.send('study', request);
-    IpcService.on(responseChannel, (_, response: IStudyResponse) => {
+    IpcService.on(responseChannel, (_, response: IStudyResponse<IStudy[]>) => {
       if (response.state === State.Loading) {
         setLoading(true);
         return;
       }
       setLoading(false);
-      setStudies(response.result);
+      if (response.state === State.Done && response.result) {
+        setStudies(response.result);
+      }
     });
     return () => {
       IpcService.removeAllListeners('study');
@@ -55,14 +57,19 @@ export default function StartingPage() {
       query: {},
     };
     const responseChannel = IpcService.send('config', request);
-    IpcService.on(responseChannel, (_, response: IConfigResponse) => {
-      if (response.state === State.Loading) {
-        setLoading(true);
-        return;
+    IpcService.on(
+      responseChannel,
+      (_, response: IConfigResponse<IConfigMap>) => {
+        if (response.state === State.Loading) {
+          setLoading(true);
+          return;
+        }
+        setLoading(false);
+        if (response.state === State.Done && response.result) {
+          setConfigs(response.result);
+        }
       }
-      setLoading(false);
-      setConfigs(response.result);
-    });
+    );
     return () => {
       IpcService.removeAllListeners(responseChannel);
     };
@@ -107,7 +114,8 @@ export default function StartingPage() {
           onClick={() => {
             Modal.confirm({
               title: 'Remove all studies?',
-              content: 'This permanently removes every study and processed file.',
+              content:
+                'This permanently removes every study and processed file.',
               okText: 'Remove all',
               okType: 'danger',
               onOk: () => {

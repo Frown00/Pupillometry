@@ -1,5 +1,6 @@
-import { Collapse, Form as AntForm, Select, Space, Tabs } from 'antd';
+import { Collapse, Form as AntForm, Select, Tabs } from 'antd';
 import { flattenObject } from '../../util/flattenObject';
+import type { FlattenedValue } from '../../util/flattenObject';
 import NumberItem from '../molecules/form/NumberItem';
 import SelectItem from '../molecules/form/SelectItem';
 import SwitchItem from '../molecules/form/SwitchItem';
@@ -10,9 +11,7 @@ const { Panel } = Collapse;
 const { Option } = Select;
 const { TabPane } = Tabs;
 
-function callback(key: string | string[]) {}
-
-export interface IConfigFormValues {
+export interface IConfigFormValues extends Record<string, FlattenedValue> {
   name: string;
   'file.separator': string;
   'file.timestamp': string;
@@ -31,7 +30,7 @@ export interface IConfigFormValues {
   'measurement.baseline.type': string;
   'measurement.baseline.param': number | string;
   'measurement.segmentation': string;
-  'measurement.windows': string[];
+  'measurement.windows': string | string[];
 
   'markers.outOfRange.min': number;
   'markers.outOfRange.max': number;
@@ -75,12 +74,12 @@ interface IProps {
 
 const ConfigForm = (props: IProps) => {
   const { title, selectedConfig, action } = props;
-  const initialValues: IConfigFormValues = flattenObject(selectedConfig);
+  const initialValues = flattenObject(selectedConfig) as IConfigFormValues;
   initialValues['measurement.baseline.param'] =
     selectedConfig.measurement.baseline.param.toString();
   initialValues['chart.showRejected'] = selectedConfig.chart.showRejected;
   initialValues['measurement.windows'] =
-    (selectedConfig.measurement?.windows?.join('; ') as any) ?? '';
+    selectedConfig.measurement?.windows?.join('; ') ?? '';
 
   const fields = [
     <TextItem
@@ -93,7 +92,7 @@ const ConfigForm = (props: IProps) => {
 
     <Tabs key="options" type="card">
       <TabPane tab="General" key="1">
-        <Collapse onChange={callback} key="collapse" accordion>
+        <Collapse key="collapse" accordion>
           <Panel header="File" key="11">
             <TextItem
               name="file.separator"
@@ -238,7 +237,7 @@ const ConfigForm = (props: IProps) => {
         </Collapse>
       </TabPane>
       <TabPane tab="Markers / Filters" key="2">
-        <Collapse onChange={callback} key="collapse" accordion>
+        <Collapse key="collapse" accordion>
           <Panel header="Out of range" key="21">
             <NumberItem
               name="markers.outOfRange.min"
@@ -388,7 +387,7 @@ const ConfigForm = (props: IProps) => {
         </Collapse>
       </TabPane>
       <TabPane tab="Estimation Improvement" key="3">
-        <Collapse onChange={callback} key="collapse" accordion>
+        <Collapse key="collapse" accordion>
           <Panel header="Resampling" key="31">
             <SwitchItem
               name="resampling.on"
@@ -437,9 +436,13 @@ const ConfigForm = (props: IProps) => {
   const onFinish = (values: IConfigFormValues) => {
     const update = { ...initialValues, ...values };
     update['chart.showRejected'] = values['chart.showRejected'];
-    update['measurement.windows'] = (
-      values['measurement.windows'] as any
-    )?.split(';');
+    const windows = values['measurement.windows'];
+    update['measurement.windows'] = Array.isArray(windows)
+      ? windows
+      : windows
+          .split(';')
+          .map((window) => window.trim())
+          .filter(Boolean);
 
     action(update);
   };

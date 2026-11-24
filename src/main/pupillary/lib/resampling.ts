@@ -1,13 +1,3 @@
-function getNextValid(samples: IPupilSample[]) {
-  return function* generate() {
-    for (let i = 0; i < samples.length; i += 1) {
-      if (samples[i].mean) {
-        yield samples[i];
-      }
-    }
-  };
-}
-
 type Point = { x: number; y: number };
 
 function interpolate(x: number, p1: Point, p2: Point) {
@@ -19,14 +9,12 @@ function interpolate(x: number, p1: Point, p2: Point) {
  */
 function upsampling(samples: IPupilSample[], sampleRate: number, gap = 0) {
   const step = 1000 / sampleRate;
-  const getValid = getNextValid(samples)();
-  const start = <IPupilSample>getValid.next().value;
+  const validSamples = samples.filter((sample) => sample.mean);
+  const start = validSamples[0];
   if (!start) return samples;
   const sampled = [{ ...start, timestamp: Math.round(start.timestamp) }];
-  while (true) {
+  validSamples.slice(1).forEach((s2) => {
     const s1 = sampled[sampled.length - 1];
-    const s2 = getValid.next().value;
-    if (!s1 || !s2) break;
 
     const steps = (Math.round(s2.timestamp) - Math.round(s1.timestamp)) / step;
     const t1 = Math.round(s1.timestamp);
@@ -58,7 +46,7 @@ function upsampling(samples: IPupilSample[], sampleRate: number, gap = 0) {
       mean: isGap ? NaN : s2.mean,
       meanMark: 'upsampled',
     });
-  }
+  });
   return sampled;
 }
 

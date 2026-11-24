@@ -1,43 +1,35 @@
-import { State } from './interfaces';
+import type { IpcRequest, IpcResponseMessage } from './interfaces';
 
-interface IMessage {
-  state: State;
-  progress: number;
-  response:
-    | IStudy[]
-    | IStudy
-    | IGroup
-    | IPupillometryResult
-    | IConfigMap
-    | null
-    | undefined
-    | string;
+export interface IIpcRendererApi {
+  send(channel: string, value: IpcRequest): void;
+  on(
+    channel: string,
+    listener: (
+      event: Electron.IpcRendererEvent,
+      response: IpcResponseMessage
+    ) => void
+  ): void;
+  once(
+    channel: string,
+    listener: (
+      event: Electron.IpcRendererEvent,
+      response: IpcResponseMessage
+    ) => void
+  ): void;
+  removeAllListeners(channel: string): void;
+  removeEventListener(
+    channel: string,
+    listener: (
+      event: Electron.IpcRendererEvent,
+      response: IpcResponseMessage
+    ) => void
+  ): void;
 }
 
-interface IResponseGetStudies extends IMessage {
-  response: IStudy[];
-}
-
-interface IResponseGetStudy extends IMessage {
-  response: IStudy;
-}
-
-interface IResponseCreateStudy extends IMessage {
-  response: string;
-}
-
-interface IResponseCreateGroup extends IMessage {
-  response: IGroup;
-}
-
-interface IResponseAddRespondent extends IMessage {
-  response: IGroup;
-}
-
-interface IResponseRespondentPupilData extends IMessage {
-  response: IPupillometryResult;
-}
-
-interface IResponseGetConfigs extends IMessage {
-  response: IConfigMap;
+declare global {
+  interface Window {
+    api: {
+      ipcRenderer: IIpcRendererApi;
+    };
+  }
 }

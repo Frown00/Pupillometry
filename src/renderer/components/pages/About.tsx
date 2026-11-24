@@ -1,5 +1,4 @@
 import { Space } from 'antd';
-import { StringSchema } from 'yup';
 import IpcService from '../../IpcService';
 import { IShellRequest } from '../../../ipc/channels/ShellChannel';
 import { ChannelNames } from '../../../ipc/interfaces';

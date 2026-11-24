@@ -1,11 +1,12 @@
 import { Form, Upload } from 'antd';
 import { InboxOutlined } from '@ant-design/icons';
+import type { UploadChangeParam, UploadFile } from 'antd/lib/upload/interface';
 
-const normFile = (e: any) => {
-  if (Array.isArray(e)) {
-    return e;
+const normFile = (event: UploadChangeParam<UploadFile> | UploadFile[]) => {
+  if (Array.isArray(event)) {
+    return event;
   }
-  return e && e.fileList;
+  return event.fileList;
 };
 
 const FileSelectItem = () => {

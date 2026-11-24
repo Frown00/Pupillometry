@@ -3,7 +3,7 @@ import { activeGroupState, activeStudyState } from '../../../assets/state';
 import { Routes } from '../../../routes';
 import Table, { IRecord } from '../../molecules/Table';
 
-export interface IRespondentRecord {
+export interface IRespondentRecord extends IRecord {
   key: string;
   name: string;
   validity: string;
@@ -30,11 +30,11 @@ function getAllUniqueSegments(respondents: IPupillometryResult[]) {
 
 function createRecords(respondents: IPupillometryResult[]) {
   if (respondents.length === 0) return [];
-  const records: any[] = [];
-  let segmentRecords: any[] = [];
+  const records: IRespondentRecord[][] = [];
+  let segmentRecords: IRespondentRecord[] = [];
   const segments = getAllUniqueSegments(respondents);
   // eslint-disable-next-line no-restricted-syntax
-  Object.keys(segments).forEach((key, idx) => {
+  Object.keys(segments).forEach((_key, idx) => {
     for (let r = 0; r < respondents.length; r += 1) {
       const respondent = respondents[r];
       let res: IRespondentRecord = {
@@ -74,13 +74,13 @@ function createRecords(respondents: IPupillometryResult[]) {
     records.push(segmentRecords);
     segmentRecords = [];
   });
-  return records as unknown as IRecord[][];
+  return records;
 }
 
 interface IProps {
   respondents: IPupillometryResult[];
   segmentName: string;
-  handleOnDelete: (record: any) => void;
+  handleOnDelete: (record: IRespondentRecord) => void;
 }
 
 export default function RespondentTable(props: IProps) {
@@ -99,7 +99,7 @@ export default function RespondentTable(props: IProps) {
   return (
     <Table
       baseRoute={baseRoute}
-      records={records[segmentId]}
+      records={records[segmentId] ?? []}
       pageSize={size}
       handleOnDelete={handleOnDelete}
     />

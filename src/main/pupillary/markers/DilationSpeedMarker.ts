@@ -52,9 +52,13 @@ export default class DilationSpeedMarker implements IMarker {
     }
   }
 
-  private markBasedOnGap(eye: 'left' | 'right') {
+  private markBasedOnGap(
+    eye: 'left' | 'right'
+  ): (sample: IPupilMarked, isMissing: boolean) => void {
     let potentialGap: IPupilMarked[] = [];
-    const { min, max, padding } = this.gap!;
+    const { gap } = this;
+    if (!gap) return () => undefined;
+    const { min, max, padding } = gap;
     const { data } = this;
     const markProperty = eye === 'left' ? 'leftMark' : 'rightMark';
     return function mark(sample: IPupilMarked, isMissing: boolean) {

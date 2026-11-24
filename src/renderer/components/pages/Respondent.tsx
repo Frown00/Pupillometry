@@ -51,16 +51,19 @@ export default function Respondent(props: MatchProps) {
       },
     };
     const responseChannel = IpcService.send('study', request);
-    IpcService.on(responseChannel, (e, response: IStudyResponse) => {
-      if (response.state === State.Loading) {
-        setLoading(true);
-        return;
+    IpcService.on(
+      responseChannel,
+      (_, response: IStudyResponse<IPupillometryResult | null>) => {
+        if (response.state === State.Loading) {
+          setLoading(true);
+          return;
+        }
+        if (response.state === State.Done) {
+          setRespondent(response.result);
+          setLoading(false);
+        }
       }
-      if (response.state === State.Done) {
-        setRespondent(response.result);
-        setLoading(false);
-      }
-    });
+    );
     return () => {
       IpcService.removeAllListeners(responseChannel);
     };
@@ -88,34 +91,25 @@ export default function Respondent(props: MatchProps) {
       },
     };
     const responseChannel = IpcService.send('study', request);
-    IpcService.on(responseChannel, (_, response: IStudyResponse) => {
-      if (response.state === State.Done) {
-        if (!respondent) return null;
-
-        setRespondent((prevState: any) => {
-          const copyRespondent = { ...prevState };
-          const copySegments = [...prevState.segments];
-          const responseSegment = response.result.segments.find(
-            (s: IPupillometry) => s.name === segmentName
-          );
-          const segmentUpdate = copySegments.findIndex(
-            (s: IPupillometry) => s.name === segmentName
-          );
-          copySegments[segmentUpdate].classification =
-            responseSegment.classification;
-          copyRespondent.segments = copySegments;
-          return copyRespondent;
-        });
-        setActiveGroup((prevState) => {
-          const copyRespondents = [...prevState.respondents];
-          const resIndex = copyRespondents.findIndex(
-            (r) => r.name === respondent.name
-          );
-          copyRespondents[resIndex] = respondent;
-          return { ...prevState, respondents: copyRespondents };
-        });
+    IpcService.on(
+      responseChannel,
+      (_, response: IStudyResponse<IPupillometryResult | null>) => {
+        if (response.state === State.Done) {
+          const updatedRespondent = response.result;
+          if (!updatedRespondent) return;
+          setRespondent(updatedRespondent);
+          setActiveGroup((prevState) => {
+            const copyRespondents = [...prevState.respondents];
+            const resIndex = copyRespondents.findIndex(
+              (r) => r.name === updatedRespondent.name
+            );
+            if (resIndex === -1) return prevState;
+            copyRespondents[resIndex] = updatedRespondent;
+            return { ...prevState, respondents: copyRespondents };
+          });
+        }
       }
-    });
+    );
   };
 
   const chart = config ? (

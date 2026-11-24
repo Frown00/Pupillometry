@@ -110,7 +110,7 @@ const createWindow = async () => {
   });
 
   // Init
-  const fileStore = new FileStore({ data: { location: getDataPath() } });
+  FileStore.initialize({ data: { location: getDataPath() } });
   registerIpcChannels(<BrowserWindow>mainWindow);
 };
 

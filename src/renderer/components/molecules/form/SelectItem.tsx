@@ -1,5 +1,6 @@
 /* eslint-disable react/require-default-props */
 import { Form, Select } from 'antd';
+import { SelectValue } from 'antd/lib/select';
 
 const { Option } = Select;
 
@@ -8,7 +9,7 @@ interface IProps {
   label: string;
   required?: boolean;
   values: string[];
-  onChange?: (e: any) => void;
+  onChange?: (value: SelectValue) => void;
 }
 
 const SelectItem = (props: IProps) => {

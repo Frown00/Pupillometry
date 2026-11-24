@@ -11,7 +11,7 @@ interface IProps {
 
 export default function Text(props: IProps) {
   const { type, children, strong, color, size } = props;
-  const style: any = {};
+  const style: React.CSSProperties = {};
   if (color) style.color = color;
   if (size) style.fontSize = size;
   return (

@@ -36,17 +36,17 @@ export default class PupillometryChannel implements IpcChannel {
     event: IpcMainEvent,
     request: IPupillometryRequest
   ): Promise<void> {
-    if (!request.responseChannel) {
-      request.responseChannel = `${this.getName()}_response`;
-    }
+    const responseChannel =
+      request.responseChannel ?? `${this.getName()}_response`;
+    request.responseChannel = responseChannel;
     const response: IPupillometryResponse = {
       progress: 0,
       state: State.Loading,
       result: [],
     };
-    event.sender.send(request.responseChannel, response);
+    event.sender.send(responseChannel, response);
     // Process
-    const { query, method, responseChannel, internal } = request;
+    const { query, method, internal } = request;
     const { files = [], config = null } = query.form ?? {};
     const saveCallback = (res: IPupillometryResponse) => {
       if (internal) {
@@ -58,7 +58,7 @@ export default class PupillometryChannel implements IpcChannel {
 
     if (method === 'test') {
       if (!config) {
-        event.sender.send(request.responseChannel, {
+        event.sender.send(responseChannel, {
           ...response,
           state: State.Error,
           error: 'No configuration selected',
@@ -81,15 +81,16 @@ export default class PupillometryChannel implements IpcChannel {
           return data[0];
         })
         .catch((err) => {
-          event.sender.send(request.responseChannel, {
+          const errorMessage = err instanceof Error ? err.message : String(err);
+          event.sender.send(responseChannel, {
             ...response,
             state: State.Error,
-            error: `Cannot read the selected file: ${err.message ?? err}`,
+            error: `Cannot read the selected file: ${errorMessage}`,
           });
           return null;
         });
       if (!result) return;
-      event.sender.send(request.responseChannel, {
+      event.sender.send(responseChannel, {
         ...response,
         result: [result],
         progress: 1,
@@ -119,11 +120,12 @@ export default class PupillometryChannel implements IpcChannel {
           progress: 1,
           state: State.Done,
         });
-      } catch (err: any) {
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : String(err);
         saveCallback({
           ...response,
           state: State.Error,
-          error: `Cannot process the selected files: ${err.message ?? err}`,
+          error: `Cannot process the selected files: ${errorMessage}`,
         });
       }
     }

@@ -1,21 +1,24 @@
 import { useRecoilState } from 'recoil';
+import { useState } from 'react';
+import { message } from 'antd';
+import type { RouteComponentProps } from 'react-router';
 import { IStudyRequest } from '../../../../ipc/channels/StudyChannel';
 import IpcService from '../../../IpcService';
-import SelectItem from '../../molecules/form/SelectItem';
 import TextItem from '../../molecules/form/TextItem';
 import { configsState, studiesState } from '../../../assets/state';
 import General from '../../templates/General';
 import Form from '../../organisms/Form';
 import { State } from '../../../../ipc/interfaces';
-import { useState } from 'react';
-import { message } from 'antd';
 
-interface IInitialValues {
+interface IStudyFormValues {
+  name: string;
   config: string;
 }
 
-interface IProps {
-  history: any;
+type IProps = RouteComponentProps;
+
+interface IInitialValues {
+  config: string;
 }
 
 const NewStudy = (props: IProps) => {
@@ -24,7 +27,7 @@ const NewStudy = (props: IProps) => {
   const [studies] = useRecoilState(studiesState);
   const [isLoading, setLoading] = useState(false);
 
-  const onFinish = (values: any) => {
+  const onFinish = (values: IStudyFormValues) => {
     setLoading(true);
     const request: IStudyRequest = {
       method: 'create',

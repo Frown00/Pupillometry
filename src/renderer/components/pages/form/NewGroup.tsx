@@ -1,6 +1,7 @@
 import { useRecoilState } from 'recoil';
 import { useState } from 'react';
 import { RouteComponentProps } from 'react-router';
+import { message } from 'antd';
 import IpcService from '../../../IpcService';
 import {
   IStudyRequest,
@@ -16,11 +17,17 @@ import Form from '../../organisms/Form';
 import { ProgressLoader } from '../../atoms/Loader';
 import { Routes } from '../../../routes';
 import { State } from '../../../../ipc/interfaces';
-import { message } from 'antd';
 
 interface IInitialValues {
   config: string;
   isDependant: 'Dependant' | 'Independant';
+}
+
+interface IGroupFormValues {
+  name: string;
+  isDependant: string;
+  files: { name: string; originFileObj: File & { path: string } }[];
+  config: string;
 }
 
 interface MatchParams {
@@ -37,12 +44,7 @@ const NewGroup = (props: MatchProps) => {
   const [activeStudy, setActiveStudy] = useRecoilState(activeStudyState);
   const [configs] = useRecoilState(configsState);
 
-  const onFinish = (values: {
-    name: string;
-    isDependant: string;
-    files: any[];
-    config: string;
-  }) => {
+  const onFinish = (values: IGroupFormValues) => {
     const files = [];
     for (let i = 0; i < values.files.length; i += 1) {
       const { path, name } = values.files[i].originFileObj;
@@ -62,7 +64,7 @@ const NewGroup = (props: MatchProps) => {
       },
     };
     const responseChannel = IpcService.send('study', request);
-    IpcService.on(responseChannel, (_, response: IStudyResponse) => {
+    IpcService.on(responseChannel, (_, response: IStudyResponse<IGroup>) => {
       if (response.state === State.Loading) {
         const progressPercent = Math.round(response.progress * 100);
         setLoading(true);
@@ -70,6 +72,7 @@ const NewGroup = (props: MatchProps) => {
         return;
       }
       if (response.state === State.Done) {
+        if (!response.result) return;
         const { groups } = activeStudy;
         const updated = [...groups];
         updated.push(response.result);

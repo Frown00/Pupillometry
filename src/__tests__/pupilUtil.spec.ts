@@ -264,7 +264,9 @@ describe('Time-window segmentation', () => {
     expect(segments[0].samples.map((sample) => sample.timestamp)).toEqual([
       0, 500,
     ]);
-    expect(segments[1].samples.map((sample) => sample.timestamp)).toEqual([500]);
+    expect(segments[1].samples.map((sample) => sample.timestamp)).toEqual([
+      500,
+    ]);
     expect(samples.map((sample) => sample.timestamp)).toEqual([
       1000, 1500, 2500,
     ]);

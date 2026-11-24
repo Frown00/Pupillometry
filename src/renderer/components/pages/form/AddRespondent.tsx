@@ -1,6 +1,7 @@
 import { useRecoilState } from 'recoil';
 import { useState } from 'react';
 import { RouteComponentProps } from 'react-router';
+import { message } from 'antd';
 import { State } from '../../../../ipc/interfaces';
 import FileSelectItem from '../../molecules/form/FileSelectItem';
 import SelectItem from '../../molecules/form/SelectItem';
@@ -17,9 +18,13 @@ import {
   IStudyResponse,
 } from '../../../../ipc/channels/StudyChannel';
 import IpcService from '../../../IpcService';
-import { message } from 'antd';
 
 interface IInitialValues {
+  config: string;
+}
+
+interface IRespondentFormValues {
+  files: { name: string; originFileObj: File & { path: string } }[];
   config: string;
 }
 
@@ -38,7 +43,7 @@ const AddRespondent = (props: MatchProps) => {
   const [activeGroup] = useRecoilState(activeGroupState);
   const [configs] = useRecoilState(configsState);
 
-  const onFinish = (values: { files: any[]; config: string }) => {
+  const onFinish = (values: IRespondentFormValues) => {
     const files = [];
     for (let i = 0; i < values.files.length; i += 1) {
       const { path, name } = values.files[i].originFileObj;
@@ -58,7 +63,7 @@ const AddRespondent = (props: MatchProps) => {
     };
     const responseChannel = IpcService.send('study', request);
 
-    IpcService.on(responseChannel, (_, response: IStudyResponse) => {
+    IpcService.on(responseChannel, (_, response: IStudyResponse<IGroup>) => {
       if (response.state === State.Loading) {
         const progressPercent = Math.round(response.progress * 100);
         setLoading(true);
@@ -66,12 +71,12 @@ const AddRespondent = (props: MatchProps) => {
         return;
       }
       if (response.state === State.Done) {
+        const { result } = response;
+        if (!result) return;
         setActiveStudy((prevState) => {
           const groups = [...prevState.groups];
-          const index = groups.findIndex(
-            (g) => g.name === response.result.name
-          );
-          groups[index] = response.result;
+          const index = groups.findIndex((g) => g.name === result.name);
+          groups[index] = result;
           return { ...prevState, groups };
         });
         setLoading(false);

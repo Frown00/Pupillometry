@@ -18,6 +18,39 @@ interface IState {
 }
 
 export default class LineGraph extends React.Component<IProps, IState> {
+  private static drawLine<
+    Datum,
+    ParentElement extends d3.BaseType,
+    ParentDatum
+  >(args: {
+    container: d3.Selection<SVGGElement, Datum, ParentElement, ParentDatum>;
+    dataset: IPupilSample[];
+    xScale: d3.ScaleLinear<number, number>;
+    xAccessor: (sample: IPupilSample) => number;
+    yScale: d3.ScaleLinear<number, number>;
+    yAccessor: (sample: IPupilSample) => number;
+    color: string;
+  }) {
+    const { container, dataset, xScale, xAccessor, yScale, yAccessor, color } =
+      args;
+    const curve = d3.curveLinear;
+    container
+      .append('path')
+      .datum(dataset)
+      .attr('fill', 'none')
+      .attr('stroke', color)
+      .attr('stroke-width', 1)
+      .attr(
+        'd',
+        d3
+          .line<IPupilSample>()
+          .x((d) => xScale(xAccessor(d)))
+          .y((d) => yScale(yAccessor(d)))
+          .defined((d) => !Number.isNaN(yAccessor(d)))
+          .curve(curve)
+      );
+  }
+
   ref!: SVGSVGElement;
 
   constructor(props: IProps) {
@@ -25,7 +58,6 @@ export default class LineGraph extends React.Component<IProps, IState> {
     this.state = {
       isLoading: false,
     };
-    this.getCurveFunction = this.getCurveFunction.bind(this);
   }
 
   componentDidMount() {
@@ -51,11 +83,6 @@ export default class LineGraph extends React.Component<IProps, IState> {
 
   componentWillUnmount() {
     d3.select(this.ref).selectAll('g').remove();
-  }
-
-  getCurveFunction(): any {
-    const { config } = this.props;
-    return d3.curveLinear;
   }
 
   getDimensions() {
@@ -207,13 +234,17 @@ export default class LineGraph extends React.Component<IProps, IState> {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  private drawCircles(args: {
-    container: any;
+  private drawCircles<
+    Datum,
+    ParentElement extends d3.BaseType,
+    ParentDatum
+  >(args: {
+    container: d3.Selection<SVGGElement, Datum, ParentElement, ParentDatum>;
     dataset: IPupilSample[];
-    xScale: any;
-    xAccessor: any;
-    yScale: any;
-    yAccessor: any;
+    xScale: d3.ScaleLinear<number, number>;
+    xAccessor: (sample: IPupilSample) => number;
+    yScale: d3.ScaleLinear<number, number>;
+    yAccessor: (sample: IPupilSample) => number;
     className: string;
     markProperty: 'leftMark' | 'rightMark';
     color: string;
@@ -242,9 +273,10 @@ export default class LineGraph extends React.Component<IProps, IState> {
       })
       .attr('cx', (d: IPupilSample) => xScale(xAccessor(d)))
       .attr('cy', (d: IPupilSample) => yScale(yAccessor(d)))
-      .attr('r', (d: any) => {
+      .attr('r', (d: IPupilSample) => {
         const biggerSize = ['invalid', 'outliers'];
-        if (biggerSize.includes(d[markProperty]?.type)) return 1.5;
+        const markType = d[markProperty]?.type;
+        if (markType && biggerSize.includes(markType)) return 1.5;
         return 1;
       })
       .attr('fill', color)
@@ -265,41 +297,13 @@ export default class LineGraph extends React.Component<IProps, IState> {
         }
         return color;
       })
-      .attr('stroke-width', (d: any) => {
+      .attr('stroke-width', (d: IPupilSample) => {
         const biggerSize = ['invalid', 'outliers'];
-        if (biggerSize.includes(d[markProperty]?.type)) return 1.5;
+        const markType = d[markProperty]?.type;
+        if (markType && biggerSize.includes(markType)) return 1.5;
         return 1;
       })
       .attr('data-temp', yAccessor);
-  }
-
-  private drawLine(args: {
-    container: any;
-    dataset: IPupilSample[];
-    xScale: any;
-    xAccessor: any;
-    yScale: any;
-    yAccessor: any;
-    color: string;
-  }) {
-    const { container, dataset, xScale, xAccessor, yScale, yAccessor, color } =
-      args;
-    const curve = this.getCurveFunction();
-    container
-      .append('path')
-      .datum(dataset)
-      .attr('fill', 'none')
-      .attr('stroke', color)
-      .attr('stroke-width', 1)
-      .attr(
-        'd',
-        d3
-          .line()
-          .x((d: any) => xScale(xAccessor(d)))
-          .y((d: any) => yScale(yAccessor(d)))
-          .defined((d: any) => !Number.isNaN(yAccessor(d)))
-          .curve(curve)
-      );
   }
 
   private buildGraph(dataset: IPupilSample[], smoothed: IPupilSample[]) {
@@ -307,8 +311,7 @@ export default class LineGraph extends React.Component<IProps, IState> {
     // eslint-disable-next-line no-param-reassign
     if (dataset.length <= 0 && smoothed.length <= 0) return;
     // #region Accessors
-    const xAccessor = (d: IPupilSample) =>
-      d?.timestamp !== undefined ? d.timestamp : '';
+    const xAccessor = (d: IPupilSample) => d.timestamp;
     const yAccessorLeft = (d: IPupilSample) =>
       d?.leftPupil ? d.leftPupil : NaN;
     const yAccessorRight = (d: IPupilSample) =>
@@ -369,10 +372,11 @@ export default class LineGraph extends React.Component<IProps, IState> {
       .axisBottom(xScale)
       .tickSize(-dimensions.ctrHeight)
       .ticks(10)
-      .tickFormat(
-        (x: any) =>
-          `${Number.isInteger(x / 1000) ? x / 1000 : (x / 1000).toFixed(3)}`
-      );
+      .tickFormat((x) => {
+        const timestamp = x.valueOf();
+        const seconds = timestamp / 1000;
+        return `${Number.isInteger(seconds) ? seconds : seconds.toFixed(3)}`;
+      });
 
     const xAxisGroup = container
       .append('g')
@@ -421,7 +425,7 @@ export default class LineGraph extends React.Component<IProps, IState> {
     // container
     if (config.chart.showMeanPlot || config.chart.showSmoothed) {
       if (config.chart.showMeanPlot && dataset.length > 0) {
-        this.drawLine({
+        LineGraph.drawLine({
           container,
           dataset,
           xScale,
@@ -432,7 +436,7 @@ export default class LineGraph extends React.Component<IProps, IState> {
         });
       }
       if (smoothed.length > 0) {
-        this.drawLine({
+        LineGraph.drawLine({
           container,
           dataset: smoothed,
           xScale,

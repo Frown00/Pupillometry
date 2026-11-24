@@ -8,7 +8,7 @@ function parseNumber(value: string) {
 export default function parser(
   rawSamples: IPupilSampleRaw[]
 ): IPupilSampleParsed[] {
-  const parsed = [];
+  const parsed: IPupilSampleParsed[] = [];
   rawSamples.forEach((rowRaw) => {
     const timestamp = parseNumber(rowRaw.Timestamp);
     if (!Number.isNaN(timestamp)) {
