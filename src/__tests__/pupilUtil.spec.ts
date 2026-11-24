@@ -1,5 +1,6 @@
 import * as util from '../main/pupillary/lib/util';
 import segmentation from '../main/pupillary/lib/segmentation';
+import parser from '../main/pupillary/lib/parser';
 
 describe('Calc mean', () => {
   describe('Both pupil is valid number', () => {
@@ -267,5 +268,29 @@ describe('Time-window segmentation', () => {
     expect(samples.map((sample) => sample.timestamp)).toEqual([
       1000, 1500, 2500,
     ]);
+  });
+});
+
+describe('CSV parser', () => {
+  test('rejects non-numeric timestamps and converts invalid pupils to NaN', () => {
+    const parsed = parser([
+      {
+        Timestamp: 'invalid',
+        LeftPupil: '4.5',
+        RightPupil: '5',
+        SegmentActive: '',
+      } as IPupilSampleRaw,
+      {
+        Timestamp: '100',
+        LeftPupil: '',
+        RightPupil: '5',
+        SegmentActive: 'Scene',
+      } as IPupilSampleRaw,
+    ]);
+
+    expect(parsed).toHaveLength(1);
+    expect(parsed[0].timestamp).toBe(100);
+    expect(Number.isNaN(parsed[0].leftPupil)).toBe(true);
+    expect(parsed[0].rightPupil).toBe(5);
   });
 });

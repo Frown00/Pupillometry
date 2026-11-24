@@ -392,7 +392,9 @@ export default class Segment {
       ((value - meanG) / meanG) * 100 || NaN;
     // event related pupil dilatation (pcpd)
     const erpdFun = (value: number) =>
-      ((value - this.#baseline.value) / this.#baseline.value) * 100 || NaN;
+      this.#baseline.value > 0
+        ? ((value - this.#baseline.value) / this.#baseline.value) * 100 || NaN
+        : NaN;
     for (let i = 0; i < this.#samples.length; i += 1) {
       const sample = this.#samples[i];
       const smoothedSample = this.#smoothedSamples[i] ?? {};

@@ -15,16 +15,32 @@ contextBridge.exposeInMainWorld('api', {
     },
 
     on(channel, func) {
-      ipcRenderer.on(channel, (event, ...args) => func(event, ...args));
+      if (objValidChannels.includes(channel)) {
+        ipcRenderer.on(channel, (event, ...args) => func(event, ...args));
+      } else {
+        throw new Error('Trying to use invalid channel');
+      }
     },
     once(channel, func) {
-      ipcRenderer.once(channel, (event, ...args) => func(event, ...args));
+      if (objValidChannels.includes(channel)) {
+        ipcRenderer.once(channel, (event, ...args) => func(event, ...args));
+      } else {
+        throw new Error('Trying to use invalid channel');
+      }
     },
     removeAllListeners(channel) {
-      ipcRenderer.removeAllListeners(channel);
+      if (objValidChannels.includes(channel) || /_response/.test(channel)) {
+        ipcRenderer.removeAllListeners(channel);
+      } else {
+        throw new Error('Trying to use invalid channel');
+      }
     },
     removeEventListener(channel, listener) {
-      ipcRenderer.removeListener(channel, listener);
+      if (objValidChannels.includes(channel) || /_response/.test(channel)) {
+        ipcRenderer.removeListener(channel, listener);
+      } else {
+        throw new Error('Trying to use invalid channel');
+      }
     },
   },
 });
