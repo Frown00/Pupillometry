@@ -23,4 +23,5 @@ export type Channel = 'study' | 'config' | 'pupillometry' | 'session' | 'shell';
 export enum State {
   Loading = 'loading',
   Done = 'done',
+  Error = 'error',
 }

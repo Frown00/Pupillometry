@@ -50,6 +50,7 @@ export default class StudyChannel implements IpcChannel {
         },
       },
       responseChannel,
+      internal: true,
     };
 
     ipcMain.emit(ChannelNames.PUPILLOMETRY, event, processRequest);
@@ -72,6 +73,11 @@ export default class StudyChannel implements IpcChannel {
       params;
     let doneCounter = 0;
     ipcMain.on(responseChannel, (_, res: IPupillometryResponse) => {
+      if (res.state === State.Error) {
+        event.sender.send(responseChannel, res);
+        ipcMain.removeAllListeners(responseChannel);
+        return;
+      }
       if (res.state === State.Loading) {
         doneCounter += 1;
         const filePath = FileStore.saveFile(res.result[0], dataPath);

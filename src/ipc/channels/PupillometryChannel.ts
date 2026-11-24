@@ -9,12 +9,14 @@ import { ChannelNames, IpcChannel, IpcRequest, State } from '../interfaces';
 export interface IPupillometryRequest extends IpcRequest {
   method: 'test' | 'process' | 'export' | 'export-samples';
   query: IPupillometryQuery;
+  internal?: boolean;
 }
 
 export interface IPupillometryResponse {
   state: State;
   progress: number;
   result: IPupillometryResult[];
+  error?: string;
 }
 
 export default class PupillometryChannel implements IpcChannel {
@@ -44,15 +46,24 @@ export default class PupillometryChannel implements IpcChannel {
     };
     event.sender.send(request.responseChannel, response);
     // Process
-    const { query, method, responseChannel } = request;
+    const { query, method, responseChannel, internal } = request;
     const { files = [], config = null } = query.form ?? {};
     const saveCallback = (res: IPupillometryResponse) => {
-      ipcMain.emit(responseChannel, event, res);
+      if (internal) {
+        ipcMain.emit(responseChannel, event, res);
+      } else {
+        event.sender.send(responseChannel, res);
+      }
     };
 
     if (method === 'test') {
       if (!config) {
-        throw new Error('NO CONFIG');
+        event.sender.send(request.responseChannel, {
+          ...response,
+          state: State.Error,
+          error: 'No configuration selected',
+        });
+        return;
       }
       const result = await dialog
         .showOpenDialog(this.mainWindow, {
@@ -60,6 +71,7 @@ export default class PupillometryChannel implements IpcChannel {
           properties: ['multiSelections', 'createDirectory', 'openFile'],
         })
         .then(async (r: Electron.OpenDialogReturnValue) => {
+          if (r.canceled || r.filePaths.length === 0) return null;
           const path = r.filePaths[0];
           const data = await PupillometryRepository.test(
             [path],
@@ -69,8 +81,14 @@ export default class PupillometryChannel implements IpcChannel {
           return data[0];
         })
         .catch((err) => {
-          throw new Error(`Error while selecting file: ${err.stack}`);
+          event.sender.send(request.responseChannel, {
+            ...response,
+            state: State.Error,
+            error: `Cannot read the selected file: ${err.message ?? err}`,
+          });
+          return null;
         });
+      if (!result) return;
       event.sender.send(request.responseChannel, {
         ...response,
         result: [result],
@@ -81,20 +99,33 @@ export default class PupillometryChannel implements IpcChannel {
 
     if (method === 'process') {
       if (!config) {
-        throw new Error('NO CONFIG');
+        saveCallback({
+          ...response,
+          state: State.Error,
+          error: 'No configuration selected',
+        });
+        return;
       }
       const paths = files?.map((f) => f.path) ?? [];
-      const data = await PupillometryRepository.process(
-        paths,
-        config,
-        saveCallback
-      );
-      saveCallback({
-        ...response,
-        result: data,
-        progress: 1,
-        state: State.Done,
-      });
+      try {
+        const data = await PupillometryRepository.process(
+          paths,
+          config,
+          saveCallback
+        );
+        saveCallback({
+          ...response,
+          result: data,
+          progress: 1,
+          state: State.Done,
+        });
+      } catch (err: any) {
+        saveCallback({
+          ...response,
+          state: State.Error,
+          error: `Cannot process the selected files: ${err.message ?? err}`,
+        });
+      }
     }
 
     if (method === 'export') {
