@@ -7,7 +7,7 @@
     "build:main": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.main.prod.ts",
     "build:renderer": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.renderer.prod.ts",
     "rebuild": "electron-rebuild --parallel --types prod,dev,optional --module-dir",
-    "lint": "cross-env NODE_ENV=development eslint . --cache --ext .js,.jsx,.ts,.tsx",
+    "lint": "tsc --noEmit && cross-env NODE_ENV=development eslint . --cache --ext .js,.jsx,.ts,.tsx",
     "package": "ts-node ./.erb/scripts/clean.js dist && npm run build && electron-builder build -w zip --x64 --publish never",
     "postinstall": "ts-node .erb/scripts/check-native-dep.js && electron-builder install-app-deps && cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.renderer.dev.dll.ts && opencollective-postinstall",
     "start": "ts-node ./.erb/scripts/check-port-in-use.js && npm run start:renderer",
@@ -156,10 +156,10 @@
     "@types/jest": "^27.0.2",
     "@types/mocha": "^9.0.0",
     "@types/node": "16.11.6",
-    "@types/react": "^17.0.33",
-    "@types/react-dom": "^17.0.10",
-    "@types/react-router": "^5.1.17",
-    "@types/react-router-dom": "^5.3.2",
+    "@types/react": "17.0.71",
+    "@types/react-dom": "17.0.25",
+    "@types/react-router": "^5.1.20",
+    "@types/react-router-dom": "^5.3.3",
     "@types/react-test-renderer": "^17.0.1",
     "@types/styled-components": "^5.1.21",
     "@types/terser-webpack-plugin": "^5.0.4",
@@ -243,6 +243,10 @@
     "styled-components": "^5.3.3",
     "yup": "^0.32.11",
     "zipson": "^0.2.12"
+  },
+  "resolutions": {
+    "@types/react": "17.0.71",
+    "@types/react-router": "5.1.20"
   },
   "devEngines": {
     "runtime": {
