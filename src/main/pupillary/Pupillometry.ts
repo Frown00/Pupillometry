@@ -84,25 +84,28 @@ export default class Pupillometry {
     for (let i = 0; i < this.#segments.length; i += 1) {
       const segment = this.#segments[i];
       // skip baseline segment
-      // eslint-disable-next-line no-continue
-      if (
+      const isBaselineSegment =
         baseOnSegment &&
-        segment.name.toLowerCase().trim() === normalizedBaselineName
-      )
-        continue;
-      segment
-        .selectData(measurement.eye)
-        .markOutliers(allMarkers)
-        .omitMarked(toOmit)
-        .calcBeforeReshape(isChartContinous)
-        .resampling(resampling.on, resampling.rate, resampling.acceptableGap)
-        .smoothing(smoothing.on, smoothing.cutoffFrequency)
-        .setBaseline({
-          evaluatedBaseline: baseline,
-          baselineWindowSize: Number(baselineConfig.param),
-        })
-        .calcResultStats(smoothing.on)
-        .validity(validity.missing, validity.correlation, validity.difference);
+        segment.name.toLowerCase().trim() === normalizedBaselineName;
+      if (!isBaselineSegment) {
+        segment
+          .selectData(measurement.eye)
+          .markOutliers(allMarkers)
+          .omitMarked(toOmit)
+          .calcBeforeReshape(isChartContinous)
+          .resampling(resampling.on, resampling.rate, resampling.acceptableGap)
+          .smoothing(smoothing.on, smoothing.cutoffFrequency)
+          .setBaseline({
+            evaluatedBaseline: baseline,
+            baselineWindowSize: Number(baselineConfig.param),
+          })
+          .calcResultStats(smoothing.on)
+          .validity(
+            validity.missing,
+            validity.correlation,
+            validity.difference
+          );
+      }
 
       const { stats, baseline: corrected } = segment.getInfo();
       grandHelperMean.add(stats, corrected);

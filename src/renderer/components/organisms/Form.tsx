@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import { Form as AntdForm, Button, Space } from 'antd';
+import { Form as AntdForm, Button } from 'antd';
 import { useEffect } from 'react';
 import Title from '../atoms/Title';
 
@@ -51,6 +51,10 @@ const Form = (props: IProps) => {
       </AntdForm>
     </>
   );
+};
+
+Form.defaultProps = {
+  isLoading: false,
 };
 
 export default Form;

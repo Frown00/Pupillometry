@@ -9,17 +9,16 @@ export default function parser(
   rawSamples: IPupilSampleRaw[]
 ): IPupilSampleParsed[] {
   const parsed = [];
-  for (let i = 0; i < rawSamples.length; i += 1) {
-    const rowRaw = rawSamples[i];
+  rawSamples.forEach((rowRaw) => {
     const timestamp = parseNumber(rowRaw.Timestamp);
-    if (Number.isNaN(timestamp)) continue;
-    const row: IPupilSampleParsed = {
-      leftPupil: parseNumber(rowRaw.LeftPupil),
-      rightPupil: parseNumber(rowRaw.RightPupil),
-      timestamp,
-      segmentActive: rowRaw.SegmentActive,
-    };
-    parsed.push(row);
-  }
+    if (!Number.isNaN(timestamp)) {
+      parsed.push({
+        leftPupil: parseNumber(rowRaw.LeftPupil),
+        rightPupil: parseNumber(rowRaw.RightPupil),
+        timestamp,
+        segmentActive: rowRaw.SegmentActive,
+      });
+    }
+  });
   return parsed;
 }
