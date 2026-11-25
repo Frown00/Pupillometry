@@ -137,7 +137,8 @@ export default class PupillometryChannel implements IpcChannel {
 
       const dir = await ExportFasade.saveGroupedMetrics(study, taskGroups);
       if (dir) {
-        shell.openPath(dir);
+        const openError = await shell.openPath(dir);
+        if (openError) throw new Error(openError);
       }
     }
 
@@ -146,7 +147,8 @@ export default class PupillometryChannel implements IpcChannel {
       if (!study) throw new Error('No study');
       const dir = await ExportFasade.saveSamples(study);
       if (dir) {
-        shell.openPath(dir);
+        const openError = await shell.openPath(dir);
+        if (openError) throw new Error(openError);
       }
     }
   }
