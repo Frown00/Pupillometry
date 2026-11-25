@@ -1,30 +1,41 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import { Form as AntdForm, Button, Space } from 'antd';
+import { Form as AntdForm, Button } from 'antd';
 import { useEffect } from 'react';
 import Title from '../atoms/Title';
+
+type RecursivePartial<T> = T extends object
+  ? {
+      [P in keyof T]?: T[P] extends (infer U)[]
+        ? RecursivePartial<U>[]
+        : T[P] extends object
+        ? RecursivePartial<T[P]>
+        : T[P];
+    }
+  : T;
 
 const formItemLayout = {
   labelCol: { span: 6 },
   wrapperCol: { span: 14 },
 };
 
-interface IProps {
+interface IProps<T extends object> {
   title: string;
-  onFinish: (values: any) => void;
-  initialValues: any;
+  onFinish: (values: T) => void;
+  initialValues: RecursivePartial<T>;
   items: JSX.Element[];
+  isLoading?: boolean;
 }
 
-const Form = (props: IProps) => {
-  const { onFinish, items, initialValues, title } = props;
-  const [form] = AntdForm.useForm();
+const Form = <T extends object>(props: IProps<T>) => {
+  const { onFinish, items, initialValues, title, isLoading = false } = props;
+  const [form] = AntdForm.useForm<T>();
   useEffect(() => {
     form.setFieldsValue(initialValues);
   }, [form, initialValues]);
 
   return (
     <>
-      <AntdForm
+      <AntdForm<T>
         form={form}
         name="validate_other"
         {...formItemLayout}
@@ -41,6 +52,7 @@ const Form = (props: IProps) => {
           <Button
             type="primary"
             htmlType="submit"
+            loading={isLoading}
             style={{ width: '100%', marginTop: '30px' }}
           >
             Submit
@@ -49,6 +61,10 @@ const Form = (props: IProps) => {
       </AntdForm>
     </>
   );
+};
+
+Form.defaultProps = {
+  isLoading: false,
 };
 
 export default Form;

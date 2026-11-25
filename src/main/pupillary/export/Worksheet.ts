@@ -79,7 +79,7 @@ export default class Worksheet {
         column.width = 16;
       } else if (column.values) {
         column.width = Math.max(
-          ...column.values.map((v) => v!.toString().length)
+          ...column.values.map((value) => value?.toString().length ?? 0)
         );
       } else
         column.width = column.header.length < 16 ? 16 : column.header.length;

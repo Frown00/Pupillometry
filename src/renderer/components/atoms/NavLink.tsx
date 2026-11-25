@@ -2,6 +2,7 @@ import { NavLink as RouterNavLink } from 'react-router-dom';
 import styled from 'styled-components';
 import color from '../../assets/color';
 
+// @ts-expect-error -- Router and styled-components React types are incompatible.
 const StyledNavLink = styled(RouterNavLink)`
   color: ${color.font.light};
   margin: 10px;

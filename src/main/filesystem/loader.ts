@@ -1,5 +1,15 @@
 import fs from 'fs';
 
+interface ILoadDataOptions {
+  encoding?: BufferEncoding;
+  commentChar?: string;
+  dataHeaderKeyword?: string;
+}
+
+function isNodeError(error: Error): error is NodeJS.ErrnoException {
+  return 'code' in error;
+}
+
 /**
  *
  * @param {string}  filePath  - system file path
@@ -9,18 +19,20 @@ import fs from 'fs';
  * @param {string}  options.dataHeaderKeyword - keyword pointing to data headers starts
  * @returns
  */
-export default function loadData(filePath: any, options: any) {
-  let buffer = null;
+export default function loadData(
+  filePath: string,
+  options: ILoadDataOptions
+): string {
+  let buffer: Buffer;
   try {
     buffer = fs.readFileSync(filePath);
-  } catch (err: any) {
-    if (err.code === 'ENOENT') {
+  } catch (err) {
+    if (err instanceof Error && isNodeError(err) && err.code === 'ENOENT') {
       throw new Error('File not found');
-    } else {
-      throw err;
     }
+    throw err;
   }
-  const string = buffer.toString();
+  const string = buffer.toString(options.encoding);
   if (!options.dataHeaderKeyword) return string;
   if (!options.commentChar) return string;
 

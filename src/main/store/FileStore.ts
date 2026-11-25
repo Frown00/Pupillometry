@@ -13,6 +13,13 @@ export default class FileStore {
 
   private static config: IFileStoreConfig;
 
+  static initialize(config: IFileStoreConfig): FileStore {
+    if (!FileStore.instance) {
+      FileStore.instance = new FileStore(config);
+    }
+    return FileStore.instance;
+  }
+
   constructor(config: IFileStoreConfig) {
     if (FileStore.instance) {
       return FileStore.instance;

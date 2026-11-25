@@ -51,9 +51,10 @@ export default abstract class StudyRepository {
     }
   ) {
     const { name, isDependant, config, files } = form;
-    if (!name) throw new Error('Group name is unknown');
-    if (!isDependant) throw new Error('isDependant is unknown');
-    if (!config) throw new Error('Config is unknown');
+    if (!name) throw new Error('Group name is required');
+    if (isDependant === undefined)
+      throw new Error('Group category is required');
+    if (!config) throw new Error('Config is required');
     if (!files) throw new Error('No files');
     const respondents: IPupillometryResult[] = [];
     const newGroup: IGroup = {
@@ -70,7 +71,7 @@ export default abstract class StudyRepository {
     results?: IPupillometryResult[],
     config?: IConfig
   ) {
-    if (!config) throw new Error('Config is unknown');
+    if (!config) throw new Error('Config is required');
     const respondents: IPupillometryResult[] = results ?? [];
     const withoutSamples = respondents.map((r) => {
       // eslint-disable-next-line no-restricted-syntax

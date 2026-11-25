@@ -4,27 +4,18 @@ import resampling from '../lib/resampling';
 import type { IGap } from './DilationSpeedMarker';
 import DilationSpeedMarker from './DilationSpeedMarker';
 
-function getNextValid(samples: IPupilSample[]) {
-  return function* generate() {
-    for (let i = 0; i < samples.length; i += 1) {
-      yield samples[i];
-    }
-  };
-}
-
 function getSameTimePoint(
-  sampleGenerator: Generator<IPupilSample, void, unknown>,
-  timestamp: number
-) {
-  let value = null;
-  while (true) {
-    value = <IPupilSample>sampleGenerator.next().value;
-    if (!value) break;
-    const sample =
-      Math.round(value.timestamp) === Math.round(timestamp) ? value : null;
-    if (sample !== null) return sample;
+  samples: IPupilSample[],
+  timestamp: number,
+  startIndex: number
+): { sample: IPupilSample | null; nextIndex: number } {
+  for (let index = startIndex; index < samples.length; index += 1) {
+    const value = samples[index];
+    if (Math.round(value.timestamp) === Math.round(timestamp)) {
+      return { sample: value, nextIndex: index + 1 };
+    }
   }
-  return value;
+  return { sample: null, nextIndex: samples.length };
 }
 
 export default class TrendlineDeviationMarker implements IMarker {
@@ -57,10 +48,16 @@ export default class TrendlineDeviationMarker implements IMarker {
       });
       const smoothed = lowPassFilter(interpolated, this.cutoff, 1000);
       this.dilatationMarker.run(smoothed);
-      const valid = getNextValid(smoothed)();
+      let sampleIndex = 0;
       for (let s = 0; s < data.length; s += 1) {
         const orignalSample = data[s];
-        const sample = getSameTimePoint(valid, orignalSample.timestamp);
+        const match = getSameTimePoint(
+          smoothed,
+          orignalSample.timestamp,
+          sampleIndex
+        );
+        sampleIndex = match.nextIndex;
+        const { sample } = match;
         this.tryMarkLeft(orignalSample, sample);
         this.tryMarkRight(orignalSample, sample);
       }

@@ -26,7 +26,7 @@ const TextItem = (props: IProps) => {
           message: 'Required more than 2 characters!',
         },
         { max: 200, message: 'Required less than 200 characters!' },
-        ({ getFieldValue }) => ({
+        () => ({
           validator(_, value) {
             const unique = !reservedValues.includes(value?.trim());
             if (unique) {

@@ -1,7 +1,7 @@
 import { Routes } from '../../../routes';
 import Table, { IRecord } from '../../molecules/Table';
 
-export interface IGroupRecord {
+export interface IGroupRecord extends IRecord {
   key: string;
   name: string;
   respondents: number;
@@ -18,13 +18,13 @@ function createRecords(groups: IGroup[]) {
     };
     records.push(r);
   }
-  return records as unknown as IRecord[];
+  return records;
 }
 
 interface IProps {
   studyName: string;
   groups: IGroup[];
-  handleOnDelete: (record: any) => void;
+  handleOnDelete: (record: IGroupRecord) => void;
 }
 
 export default function GroupTable(props: IProps) {

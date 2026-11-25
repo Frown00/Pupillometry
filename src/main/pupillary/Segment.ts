@@ -172,16 +172,16 @@ export default class Segment {
       if (removeEyePupil) {
         delete this.#samples[i].leftMark;
         delete this.#samples[i].rightMark;
-        delete (<any>this.#samples[i]).rightPupil;
-        delete (<any>this.#samples[i]).leftPupil;
-        delete (<any>this.#samples[i]).meanMark;
+        Reflect.deleteProperty(this.#samples[i], 'rightPupil');
+        Reflect.deleteProperty(this.#samples[i], 'leftPupil');
+        Reflect.deleteProperty(this.#samples[i], 'meanMark');
 
         if (!replaceBySmoothed) {
           delete this.#smoothedSamples[i].leftMark;
           delete this.#smoothedSamples[i].rightMark;
-          delete (<any>this.#smoothedSamples[i]).rightPupil;
-          delete (<any>this.#smoothedSamples[i]).leftPupil;
-          delete (<any>this.#samples[i]).meanMark;
+          Reflect.deleteProperty(this.#smoothedSamples[i], 'rightPupil');
+          Reflect.deleteProperty(this.#smoothedSamples[i], 'leftPupil');
+          Reflect.deleteProperty(this.#samples[i], 'meanMark');
         }
       }
     }
@@ -376,28 +376,27 @@ export default class Segment {
     stdGrand: IGrandValue
   ) {
     // Calc z-score
-    const zscore = [];
-    const zscoreSmoothed = [];
-    const zscoreMinus = [];
-    const zscoreMinusSmoothed = [];
-    const zscoreDivide = [];
-    const zscoreDivideSmoothed = [];
-    const relative = [];
-    const relativeSmoothed = [];
-    const erpd = [];
-    const erpdSmoothed = [];
+    const zscore: number[] = [];
+    const zscoreSmoothed: number[] = [];
+    const zscoreMinus: number[] = [];
+    const zscoreMinusSmoothed: number[] = [];
+    const zscoreDivide: number[] = [];
+    const zscoreDivideSmoothed: number[] = [];
+    const relative: number[] = [];
+    const relativeSmoothed: number[] = [];
+    const erpd: number[] = [];
+    const erpdSmoothed: number[] = [];
     const zscoreFun = (value: number, meanG: number, stdG: number) =>
       (value - meanG) / stdG || NaN;
     const relativeFun = (value: number, meanG: number) =>
       ((value - meanG) / meanG) * 100 || NaN;
     // event related pupil dilatation (pcpd)
     const erpdFun = (value: number) =>
-      ((value - this.#baseline.value) / this.#baseline.value) * 100 || NaN;
-    for (let i = 0; i < this.#samples.length; i += 1) {
-      const sample = this.#samples[i];
+      this.#baseline.value > 0
+        ? ((value - this.#baseline.value) / this.#baseline.value) * 100 || NaN
+        : NaN;
+    this.#samples.forEach((sample, i) => {
       const smoothedSample = this.#smoothedSamples[i] ?? {};
-      // eslint-disable-next-line no-continue
-      if (!sample) continue;
       if (!sample.mean || sample.mean <= 0) sample.mean = NaN;
       if (!smoothedSample.mean || smoothedSample.mean <= 0)
         smoothedSample.mean = NaN;
@@ -478,7 +477,7 @@ export default class Segment {
       if (smoothedSample?.erpd && smoothedSample.meanMark !== 'binned') {
         erpdSmoothed.push(smoothedSample.erpd);
       }
-    }
+    });
     this.#zscore.standard.sample = this.#stats.sample;
     this.#zscore.standard.result = this.countResult(zscore);
     this.#zscore.standard.resultSmoothed = this.countResult(zscoreSmoothed);

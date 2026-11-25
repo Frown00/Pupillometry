@@ -17,8 +17,10 @@ function timeWindows(samples: IPupilSampleParsed[], config: IConfig) {
     for (let i = 0; i < samples.length; i += 1) {
       if (samples[i].timestamp >= end) break;
       if (samples[i].timestamp >= start) {
-        samples[i].timestamp -= start;
-        data.push(samples[i]);
+        data.push({
+          ...samples[i],
+          timestamp: samples[i].timestamp - start,
+        });
       }
     }
     segments.push(new Segment(name, data));
@@ -47,8 +49,10 @@ function byScene(samples: IPupilSampleParsed[]) {
       // Push data to segment
       if (currentSegment.name === segmentActive) {
         currentSegment.name = segmentActive;
-        row.timestamp -= startTimestamp;
-        currentSegment.raw.push(row);
+        currentSegment.raw.push({
+          ...row,
+          timestamp: row.timestamp - startTimestamp,
+        });
       } else {
         // Ending segment
         if (currentSegment.raw.length > 0)
@@ -57,12 +61,16 @@ function byScene(samples: IPupilSampleParsed[]) {
         currentSegment = { raw: [], name: '' };
         currentSegment.name = segmentActive;
         startTimestamp = row.timestamp;
-        row.timestamp -= startTimestamp;
-        currentSegment.raw.push(row);
+        currentSegment.raw.push({
+          ...row,
+          timestamp: 0,
+        });
       }
     }
   }
-  segments.push(new Segment(currentSegment.name, currentSegment.raw));
+  if (currentSegment.name && currentSegment.raw.length > 0) {
+    segments.push(new Segment(currentSegment.name, currentSegment.raw));
+  }
   return segments;
 }
 

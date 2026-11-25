@@ -1,12 +1,13 @@
 import fs from 'fs';
 import path from 'path';
+import log from 'electron-log';
 
 export default class FsUtil {
   static createFolder(folderPath: string) {
     try {
       if (!fs.existsSync(folderPath)) {
         fs.mkdirSync(folderPath);
-        console.info('Folder created', path.basename(folderPath));
+        log.info('Folder created', path.basename(folderPath));
       }
     } catch (err) {
       throw new Error(`Unable to create folder located in ${folderPath}`);
@@ -19,7 +20,7 @@ export default class FsUtil {
     }
     try {
       fs.rmdirSync(folderPath, { recursive: true });
-      console.info('Folder removed', path.basename(folderPath));
+      log.info('Folder removed', path.basename(folderPath));
     } catch (err) {
       throw new Error(`Wrong folder path ${folderPath}`);
     }
@@ -30,7 +31,7 @@ export default class FsUtil {
       // const content = JSON.stringify(data);
       fs.writeFile(filePath, data, (err) => {
         if (err) throw new Error(`Cannot save file ${err}`);
-        console.info('File created', path.basename(filePath));
+        log.info('File created', path.basename(filePath));
         return true;
       });
     } catch (err) {
@@ -56,7 +57,7 @@ export default class FsUtil {
       if (err) {
         throw new Error(`Remove file failed ${filePath}`);
       }
-      console.info('File removed', path.basename(filePath));
+      log.info('File removed', path.basename(filePath));
     });
   }
 }

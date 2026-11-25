@@ -1,5 +1,9 @@
 /* eslint-disable import/prefer-default-export */
-export function removeElement(arr: any[], property: string, value: string) {
+export function removeElement<T, K extends keyof T>(
+  arr: T[],
+  property: K,
+  value: T[K]
+) {
   let index = -1;
   for (let i = 0; i < arr.length; i += 1) {
     const el = arr[i];

@@ -1,7 +1,7 @@
 import { Routes } from '../../../routes';
 import Table, { IRecord } from '../../molecules/Table';
 
-export interface IStudyRecord {
+export interface IStudyRecord extends IRecord {
   key: string;
   name: string;
   groups: number;
@@ -24,12 +24,12 @@ function createRecords(studies: IStudy[]) {
     };
     records.push(r);
   }
-  return records as unknown as IRecord[];
+  return records;
 }
 
 interface IProps {
   studies: IStudy[];
-  handleOnDelete: (record: any) => void;
+  handleOnDelete: (record: IStudyRecord) => void;
 }
 
 export default function StudyTable(props: IProps) {

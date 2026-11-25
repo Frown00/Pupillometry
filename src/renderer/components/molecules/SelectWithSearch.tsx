@@ -1,21 +1,21 @@
 import { Select } from 'antd';
+import type { RouteComponentProps } from 'react-router';
 
 const { Option } = Select;
+type History = RouteComponentProps['history'];
 
-function onChange(baseRoute: string, value: string, history: any) {
+function onChange(baseRoute: string, value: string, history: History) {
   if (value) {
     history.push(`${baseRoute}/${value}`);
   }
 }
-
-function onSearch(val: any) {}
 
 interface IProps {
   optionNames: string[];
   placeholder: string;
   baseRoute: string;
   width: number;
-  history: any;
+  history: History;
 }
 
 const SelectWithSearch = (props: IProps) => {
@@ -31,10 +31,13 @@ const SelectWithSearch = (props: IProps) => {
       showSearch
       placeholder={placeholder}
       optionFilterProp="children"
-      onChange={(v: string) => onChange(baseRoute, v, history)}
-      onSearch={onSearch}
-      filterOption={(input, option: any) =>
-        option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+      onChange={(value) => {
+        if (typeof value === 'string') onChange(baseRoute, value, history);
+      }}
+      filterOption={(input, option) =>
+        String(option?.props.children ?? '')
+          .toLowerCase()
+          .includes(input.toLowerCase())
       }
     >
       {options}

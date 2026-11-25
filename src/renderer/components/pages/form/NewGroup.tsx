@@ -1,6 +1,7 @@
 import { useRecoilState } from 'recoil';
 import { useState } from 'react';
 import { RouteComponentProps } from 'react-router';
+import { message } from 'antd';
 import IpcService from '../../../IpcService';
 import {
   IStudyRequest,
@@ -22,6 +23,13 @@ interface IInitialValues {
   isDependant: 'Dependant' | 'Independant';
 }
 
+interface IGroupFormValues {
+  name: string;
+  isDependant: string;
+  files: { name: string; originFileObj: File & { path: string } }[];
+  config: string;
+}
+
 interface MatchParams {
   studyName: string;
   groupName: string;
@@ -36,12 +44,7 @@ const NewGroup = (props: MatchProps) => {
   const [activeStudy, setActiveStudy] = useRecoilState(activeStudyState);
   const [configs] = useRecoilState(configsState);
 
-  const onFinish = (values: {
-    name: string;
-    isDependant: string;
-    files: any[];
-    config: string;
-  }) => {
+  const onFinish = (values: IGroupFormValues) => {
     const files = [];
     for (let i = 0; i < values.files.length; i += 1) {
       const { path, name } = values.files[i].originFileObj;
@@ -61,7 +64,7 @@ const NewGroup = (props: MatchProps) => {
       },
     };
     const responseChannel = IpcService.send('study', request);
-    IpcService.on(responseChannel, (_, response: IStudyResponse) => {
+    IpcService.on(responseChannel, (_, response: IStudyResponse<IGroup>) => {
       if (response.state === State.Loading) {
         const progressPercent = Math.round(response.progress * 100);
         setLoading(true);
@@ -69,6 +72,7 @@ const NewGroup = (props: MatchProps) => {
         return;
       }
       if (response.state === State.Done) {
+        if (!response.result) return;
         const { groups } = activeStudy;
         const updated = [...groups];
         updated.push(response.result);
@@ -82,7 +86,11 @@ const NewGroup = (props: MatchProps) => {
         history.push(Routes.Group(activeStudy.name, values.name));
         return;
       }
-      throw new Error('Something went wrong');
+      if (response.state === State.Error) {
+        setLoading(false);
+        message.error(response.error || 'Cannot create the group');
+        IpcService.removeAllListeners(responseChannel);
+      }
     });
   };
 

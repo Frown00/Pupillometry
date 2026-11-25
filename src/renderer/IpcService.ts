@@ -1,8 +1,12 @@
-import { IpcRenderer } from 'electron';
-import { Channel, IpcRequest } from '../ipc/interfaces';
+import type {
+  Channel,
+  IpcRequest,
+  IpcResponseMessage,
+} from '../ipc/interfaces';
+import type { IIpcRendererApi } from '../ipc/types';
 
 export default class IpcService {
-  private static ipcRenderer?: IpcRenderer;
+  private static ipcRenderer?: IIpcRendererApi;
 
   private constructor() {
     //
@@ -26,7 +30,7 @@ export default class IpcService {
     return request.responseChannel;
   }
 
-  static receive<T>(channel: string): Promise<T> {
+  static receive<T extends IpcResponseMessage>(channel: string): Promise<T> {
     const { ipcRenderer, initializeIpcRenderer } = IpcService;
     if (!ipcRenderer) {
       initializeIpcRenderer();
@@ -35,19 +39,21 @@ export default class IpcService {
       throw new Error('No ipcRenderer connected');
     }
     return new Promise((resolve) => {
-      ipcRenderer.once(channel, (_, response) => resolve(response));
+      ipcRenderer.once(channel, (_, response) => resolve(response as T));
     });
   }
 
-  static on(
+  static on<T extends IpcResponseMessage>(
     channel: string,
-    listener: (event: Electron.IpcRendererEvent, ...args: any[]) => void
+    listener: (event: Electron.IpcRendererEvent, response: T) => void
   ) {
     const { ipcRenderer, initializeIpcRenderer } = IpcService;
     if (!ipcRenderer) {
       initializeIpcRenderer();
     }
-    IpcService.ipcRenderer?.on(channel, listener);
+    IpcService.ipcRenderer?.on(channel, (event, response) => {
+      listener(event, response as T);
+    });
   }
 
   static removeAllListeners(channel: string) {
@@ -59,9 +65,9 @@ export default class IpcService {
   }
 
   private static initializeIpcRenderer() {
-    if (!window) {
+    if (typeof window === 'undefined') {
       throw new Error(`Unable to require renderer process`);
     }
-    IpcService.ipcRenderer = (<any>window).api.ipcRenderer;
+    IpcService.ipcRenderer = window.api.ipcRenderer;
   }
 }

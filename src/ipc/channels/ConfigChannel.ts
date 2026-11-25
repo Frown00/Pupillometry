@@ -1,4 +1,5 @@
 import { IpcMainEvent } from 'electron';
+import type { IpcResponseResult } from '../interfaces';
 import ConfigRepository, {
   IConfigQuery,
 } from '../../main/store/repository/ConfigRepository';
@@ -9,10 +10,12 @@ export interface IConfigRequest extends IpcRequest {
   query: IConfigQuery;
 }
 
-export interface IConfigResponse {
+export interface IConfigResponse<
+  T extends IpcResponseResult = IpcResponseResult
+> {
   state: State;
   progress: number;
-  result: any;
+  result: T | null;
 }
 
 export default class ConfigChannel implements IpcChannel {

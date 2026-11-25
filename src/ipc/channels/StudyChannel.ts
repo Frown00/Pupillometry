@@ -6,6 +6,7 @@ import StudyRepository, {
   IStudyQuery,
 } from '../../main/store/repository/StudyRepository';
 import { ChannelNames, IpcChannel, IpcRequest, State } from '../interfaces';
+import type { IpcResponseResult } from '../interfaces';
 import {
   IPupillometryRequest,
   IPupillometryResponse,
@@ -22,10 +23,13 @@ export interface IStudyRequest extends IpcRequest {
   query: IStudyQuery;
 }
 
-export interface IStudyResponse {
+export interface IStudyResponse<
+  T extends IpcResponseResult = IpcResponseResult
+> {
   state: State;
   progress: number;
-  result: any;
+  result: T | null;
+  error?: string;
 }
 
 export default class StudyChannel implements IpcChannel {
@@ -50,6 +54,7 @@ export default class StudyChannel implements IpcChannel {
         },
       },
       responseChannel,
+      internal: true,
     };
 
     ipcMain.emit(ChannelNames.PUPILLOMETRY, event, processRequest);
@@ -72,6 +77,11 @@ export default class StudyChannel implements IpcChannel {
       params;
     let doneCounter = 0;
     ipcMain.on(responseChannel, (_, res: IPupillometryResponse) => {
+      if (res.state === State.Error) {
+        event.sender.send(responseChannel, res);
+        ipcMain.removeAllListeners(responseChannel);
+        return;
+      }
       if (res.state === State.Loading) {
         doneCounter += 1;
         const filePath = FileStore.saveFile(res.result[0], dataPath);
@@ -102,6 +112,25 @@ export default class StudyChannel implements IpcChannel {
   }
 
   handle(event: IpcMainEvent, request: IStudyRequest): void {
+    try {
+      this.handleRequest(event, request);
+    } catch (err) {
+      if (request.responseChannel) {
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : 'Cannot complete the study operation';
+        event.sender.send(request.responseChannel, {
+          state: State.Error,
+          progress: 0,
+          result: null,
+          error: errorMessage,
+        });
+      }
+    }
+  }
+
+  private handleRequest(event: IpcMainEvent, request: IStudyRequest): void {
     if (!request.responseChannel) {
       request.responseChannel = `${this.getName()}_response`;
     }
@@ -121,7 +150,7 @@ export default class StudyChannel implements IpcChannel {
       };
       if (query.select === 'study') {
         // create study
-        const result = <IStudy>StudyRepository.create(query);
+        StudyRepository.create(query);
       }
       if (query.select === 'group') {
         // create group

@@ -141,7 +141,8 @@ export default function SegmentedLineGraph(props: IProps) {
             const d = document.querySelector(
               '.ant-tabs-content.ant-tabs-content-top'
             );
-            const tabId = (d?.childNodes[0] as any).getAttribute('id');
+            const tabId = d?.firstElementChild?.getAttribute('id');
+            if (!tabId) throw new Error('Cannot find the selected chart tab');
             const temp = tabId.split('-');
             temp.pop();
             temp.push(s.name);
@@ -156,7 +157,9 @@ export default function SegmentedLineGraph(props: IProps) {
                 }
               );
             } catch (err) {
-              throw new Error(`Cannot save file ${err}`);
+              const errorMessage =
+                err instanceof Error ? err.message : 'Unexpected export error';
+              throw new Error(`Cannot save file: ${errorMessage}`);
             }
           }}
         >

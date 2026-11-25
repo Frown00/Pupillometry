@@ -5,6 +5,26 @@ export interface IpcRequest {
   params?: string[];
 }
 
+export type IpcResponseResult =
+  | IStudy
+  | IGroup
+  | IPupillometryResult
+  | IStudy[]
+  | IGroup[]
+  | IPupillometryResult[]
+  | IConfig
+  | IConfigMap
+  | string
+  | boolean
+  | null;
+
+export interface IpcResponseMessage {
+  state: State;
+  progress: number;
+  result: IpcResponseResult;
+  error?: string;
+}
+
 export interface IpcChannel {
   getName(): string;
   handle(event: IpcMainEvent, request: IpcRequest): void;
@@ -23,4 +43,5 @@ export type Channel = 'study' | 'config' | 'pupillometry' | 'session' | 'shell';
 export enum State {
   Loading = 'loading',
   Done = 'done',
+  Error = 'error',
 }

@@ -9,6 +9,10 @@
   "javascript.format.enable": false,
   "typescript.format.enable": false,
 
+  "editor.quickSuggestions": {
+    "comments": "on"
+  },
+
   "search.exclude": {
     ".git": true,
     ".eslintcache": true,

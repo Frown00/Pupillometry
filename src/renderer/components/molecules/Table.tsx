@@ -1,28 +1,32 @@
 /* eslint-disable react/require-default-props */
 import { Table as AntdTable, Button, Space } from 'antd';
-import { ColumnsType } from 'antd/lib/table';
+import { ColumnType, ColumnsType, TableProps } from 'antd/lib/table';
+import type { SorterResult } from 'antd/lib/table/interface';
 import React from 'react';
 import styled from 'styled-components';
 import RouteLink from '../atoms/RouteLink';
 import color from '../../assets/color';
 
-export type IRecord = { [key: string]: number | string };
-
-interface IAction {
+export interface IRecord {
+  [key: string]: number | string;
+  key: string;
   name: string;
-  handler: (record: IRecord) => void;
 }
 
-interface IState {
-  filteredInfo: any;
-  sortedInfo: any;
+interface IAction<T extends IRecord> {
+  name: string;
+  handler: (record: T) => void;
 }
 
-interface IProps {
-  records: IRecord[];
+interface IState<T extends IRecord> {
+  sortedInfo: SorterResult<T> | null;
+}
+
+interface IProps<T extends IRecord> {
+  records: T[];
   baseRoute: string;
   pageSize?: number;
-  handleOnDelete?: (record: IRecord) => void;
+  handleOnDelete?: (record: T) => void;
 }
 
 const TableLink = styled.div`
@@ -33,11 +37,13 @@ const TableLink = styled.div`
   }
 `;
 
-export default class Table extends React.Component<IProps, IState> {
-  constructor(props: IProps) {
+export default class Table<T extends IRecord> extends React.Component<
+  IProps<T>,
+  IState<T>
+> {
+  constructor(props: IProps<T>) {
     super(props);
     this.state = {
-      filteredInfo: null,
       sortedInfo: null,
     };
     this.handleChange = this.handleChange.bind(this);
@@ -45,31 +51,25 @@ export default class Table extends React.Component<IProps, IState> {
     this.buildTableColumns = this.buildTableColumns.bind(this);
   }
 
-  handleChange = (pagination: any, filters: any, sorter: any) => {
-    this.setState({
-      filteredInfo: filters,
-      sortedInfo: sorter,
-    });
+  handleChange: NonNullable<TableProps<T>['onChange']> = (
+    _pagination,
+    _filters,
+    sorter
+  ) => {
+    const sortedInfo = Array.isArray(sorter) ? sorter[0] ?? null : sorter;
+    this.setState({ sortedInfo });
   };
 
   clearAll = () => {
-    this.setState({
-      filteredInfo: null,
-      sortedInfo: null,
-    });
+    this.setState({ sortedInfo: null });
   };
 
-  buildTableColumns(record: IRecord, baseRoute: string, actions: IAction[]) {
-    let { sortedInfo, filteredInfo } = this.state;
-    sortedInfo = sortedInfo || {};
-    filteredInfo = filteredInfo || {};
-    const col: ColumnsType<IRecord> = [];
-    const stringSorter = (a: IRecord, b: IRecord, key: string) => {
-      if (a[key] < b[key]) return -1;
-      if (a[key] > b[key]) return 1;
-      return 0;
-    };
-    const numberSorter = (a: IRecord, b: IRecord, k: string) =>
+  buildTableColumns(record: T, baseRoute: string, actions: IAction<T>[]) {
+    const { sortedInfo } = this.state;
+    const col: ColumnsType<T> = [];
+    const stringSorter = (a: T, b: T, key: string) =>
+      String(a[key]).localeCompare(String(b[key]));
+    const numberSorter = (a: T, b: T, k: string) =>
       parseFloat(a[k]?.toString()) - parseFloat(b[k]?.toString());
 
     Object.keys(record).forEach((key) => {
@@ -78,16 +78,16 @@ export default class Table extends React.Component<IProps, IState> {
       } else {
         const isString = typeof record[key] === 'string';
         const sorter = isString ? stringSorter : numberSorter;
-        const c: any = {
+        const c: ColumnType<T> = {
           title: key.charAt(0).toUpperCase() + key.slice(1),
           dataIndex: key,
           key,
-          sorter: (a: IRecord, b: IRecord) => sorter(a, b, key),
-          sortOrder: sortedInfo.columnKey === key && sortedInfo.order,
+          sorter: (a: T, b: T) => sorter(a, b, key),
+          sortOrder: sortedInfo?.columnKey === key ? sortedInfo.order : null,
           ellipsis: true,
         };
         if (key.toLowerCase() === 'name') {
-          c.render = (text: string) => {
+          c.render = (text) => {
             return (
               <RouteLink
                 to={`${baseRoute}${text}`}
@@ -101,19 +101,18 @@ export default class Table extends React.Component<IProps, IState> {
       }
     });
     if (!actions?.length) return col;
-    const columnActions: any = {
+    const columnActions: ColumnType<T> = {
       title: 'Action',
       dataIndex: 'actions',
       key: 'actions',
     };
-    for (let i = 0; i < actions.length; i += 1) {
-      const action = actions[i];
+    actions.forEach((action) => {
       if (action.name === 'delete') {
-        columnActions.render = (text: string, rec: IRecord) => (
+        columnActions.render = (_text, rec) => (
           <Button onClick={() => action.handler(rec)}>Delete</Button>
         );
       }
-    }
+    });
     col.push(columnActions);
 
     return col;
@@ -121,7 +120,7 @@ export default class Table extends React.Component<IProps, IState> {
 
   render() {
     const { records, pageSize, baseRoute, handleOnDelete } = this.props;
-    const actions = [];
+    const actions: IAction<T>[] = [];
     const record = records?.[0] ?? null;
     if (handleOnDelete)
       actions.push({ name: 'delete', handler: handleOnDelete });

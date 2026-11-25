@@ -40,15 +40,19 @@ export default function Study(props: MatchProps) {
       },
     };
     const responseChannel = IpcService.send('study', request);
-    IpcService.on(responseChannel, (_, response: IStudyResponse) => {
-      if (response.state === State.Loading) {
-        setLoading(true);
-        return;
+    IpcService.on(
+      responseChannel,
+      (_, response: IStudyResponse<IStudy | null>) => {
+        if (response.state === State.Loading) {
+          setLoading(true);
+          return;
+        }
+        setLoading(false);
+        if (!response.result) return;
+        setActiveStudy(response.result);
+        setActiveGroup(response.result.groups?.[0] ?? ({} as IGroup));
       }
-      setLoading(false);
-      setActiveStudy(response.result);
-      setActiveGroup(response.result.groups?.[0] ?? ({} as IGroup));
-    });
+    );
     return () => {
       IpcService.removeAllListeners(responseChannel);
     };

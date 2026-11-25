@@ -44,8 +44,11 @@ export default function Test() {
   };
   const onConfigChange = (values: IConfigFormValues) => {
     const testConfig = unflattenObject(values) as IConfig;
-    if (values['measurement.windows']) {
-      testConfig.measurement.windows = values['measurement.windows'];
+    const windows = values['measurement.windows'];
+    if (windows) {
+      testConfig.measurement.windows = Array.isArray(windows)
+        ? windows
+        : [windows];
     }
     if (values['chart.showRejected']) {
       testConfig.chart.showRejected =

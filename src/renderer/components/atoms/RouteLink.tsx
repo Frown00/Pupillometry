@@ -1,16 +1,21 @@
+import type { ComponentType, ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 
 interface IProps {
   to: string;
   label?: string;
-  Wrapper: JSX.Element | any;
+  Wrapper: ComponentType<{ children?: ReactNode }>;
 }
 
 export default function RouteLink({ to, label, Wrapper }: IProps) {
+  const wrappedLabel = (
+    // @ts-expect-error -- Router and wrapper React types are incompatible.
+    <Wrapper>{label}</Wrapper>
+  );
+
   return (
-    <Link to={to}>
-      <Wrapper>{label}</Wrapper>
-    </Link>
+    // @ts-expect-error -- Router and wrapper React types are incompatible.
+    <Link to={to}>{wrappedLabel}</Link>
   );
 }
 
