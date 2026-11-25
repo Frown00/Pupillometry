@@ -1,11 +1,16 @@
 {
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "noEmit": true
+    "noEmit": true,
+    "types": ["node", "vitest/globals"]
   },
   "include": [
     "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "**/*.test.ts",
+    "**/*.test.tsx",
     "**/__tests__/**/*.ts",
+    "**/__tests__/**/*.tsx",
     "main/types.d.ts",
     "main/filesystem/types.d.ts",
     "main/pupillary/markers/types.d.ts",

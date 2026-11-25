@@ -1,7 +1,6 @@
 import js from '@eslint/js';
 import compat from 'eslint-plugin-compat';
 import importPlugin from 'eslint-plugin-import';
-import jest from 'eslint-plugin-jest';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
 import promise from 'eslint-plugin-promise';
 import react from 'eslint-plugin-react';
@@ -63,7 +62,6 @@ export default [
     plugins: {
       compat,
       import: importPlugin,
-      jest,
       'jsx-a11y': jsxA11y,
       promise,
       react,
@@ -114,10 +112,7 @@ export default [
   {
     files: ['**/*.{spec,test}.{js,jsx,ts,tsx}'],
     languageOptions: {
-      globals: globals.jest,
-    },
-    rules: {
-      ...jest.configs.recommended.rules,
+      globals: globals.vitest,
     },
   },
   eslintConfigPrettier,

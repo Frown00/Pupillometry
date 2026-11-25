@@ -1,38 +1,40 @@
 import { ipcMain } from 'electron';
+import { vi } from 'vitest';
 import FileStore from '../../../main/store/FileStore';
 import ConfigRepository from '../../../main/store/repository/ConfigRepository';
 import StudyRepository from '../../../main/store/repository/StudyRepository';
 import { ChannelNames, State } from '../../interfaces';
 import StudyChannel, { IStudyRequest } from '../StudyChannel';
 
-jest.mock('electron', () => {
-  const { EventEmitter } = jest.requireActual('events');
+vi.mock('electron', async () => {
+  const { EventEmitter } =
+    await vi.importActual<typeof import('events')>('events');
   return {
     ipcMain: new EventEmitter(),
   };
 });
 
-jest.mock('../../../main/store/FileStore', () => ({
+vi.mock('../../../main/store/FileStore', () => ({
   __esModule: true,
   default: {
-    getDataFolder: jest.fn(),
-    saveFile: jest.fn(),
+    getDataFolder: vi.fn(),
+    saveFile: vi.fn(),
   },
 }));
 
-jest.mock('../../../main/store/repository/ConfigRepository', () => ({
+vi.mock('../../../main/store/repository/ConfigRepository', () => ({
   __esModule: true,
   default: {
-    readOne: jest.fn(),
+    readOne: vi.fn(),
   },
 }));
 
-jest.mock('../../../main/store/repository/StudyRepository', () => ({
+vi.mock('../../../main/store/repository/StudyRepository', () => ({
   __esModule: true,
   default: {
-    create: jest.fn(),
-    readAll: jest.fn(),
-    readOne: jest.fn(),
+    create: vi.fn(),
+    readAll: vi.fn(),
+    readOne: vi.fn(),
   },
 }));
 
@@ -49,19 +51,19 @@ const result: IPupillometryResult = {
 };
 const event = {
   sender: {
-    send: jest.fn(),
+    send: vi.fn(),
   },
 } as unknown as Electron.IpcMainEvent;
 const channel = new StudyChannel();
 
 describe('StudyChannel', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     ipcMain.removeAllListeners();
   });
 
   test('sends a successful response for read requests', () => {
-    jest.mocked(StudyRepository.readAll).mockReturnValue([group]);
+    vi.mocked(StudyRepository.readAll).mockReturnValue([group]);
 
     channel.handle(event, {
       method: 'readAll',
@@ -82,7 +84,7 @@ describe('StudyChannel', () => {
   });
 
   test('sends an error response when a repository operation throws', () => {
-    jest.mocked(StudyRepository.readAll).mockImplementation(() => {
+    vi.mocked(StudyRepository.readAll).mockImplementation(() => {
       throw new Error('store unavailable');
     });
 
@@ -114,12 +116,12 @@ describe('StudyChannel', () => {
         },
       },
     };
-    const processListener = jest.fn();
+    const processListener = vi.fn();
     ipcMain.on(ChannelNames.PUPILLOMETRY, processListener);
-    jest.mocked(ConfigRepository.readOne).mockReturnValue(config);
-    jest.mocked(StudyRepository.readOne).mockReturnValue(group);
-    jest.mocked(FileStore.getDataFolder).mockReturnValue('/data/study/control');
-    jest
+    vi.mocked(ConfigRepository.readOne).mockReturnValue(config);
+    vi.mocked(StudyRepository.readOne).mockReturnValue(group);
+    vi.mocked(FileStore.getDataFolder).mockReturnValue('/data/study/control');
+    vi
       .mocked(FileStore.saveFile)
       .mockImplementation((savedResult) => `/data/${savedResult.name}`);
 
@@ -179,9 +181,9 @@ describe('StudyChannel', () => {
   });
 
   test('forwards processing errors and removes its listener', () => {
-    jest.mocked(ConfigRepository.readOne).mockReturnValue(config);
-    jest.mocked(StudyRepository.readOne).mockReturnValue(group);
-    jest.mocked(FileStore.getDataFolder).mockReturnValue('/data/study/control');
+    vi.mocked(ConfigRepository.readOne).mockReturnValue(config);
+    vi.mocked(StudyRepository.readOne).mockReturnValue(group);
+    vi.mocked(FileStore.getDataFolder).mockReturnValue('/data/study/control');
 
     channel.handle(event, {
       method: 'create',

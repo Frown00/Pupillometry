@@ -1,23 +1,73 @@
 import { ipcMain } from 'electron';
 import type { BrowserWindow, IpcMainEvent } from 'electron';
+import { vi } from 'vitest';
 import { ChannelNames, State } from '../interfaces';
 import type { IPupillometryRequest } from '../channels/PupillometryChannel';
 import { registerIpcChannels } from '../index';
 
-jest.mock('electron', () => {
-  const { EventEmitter } = jest.requireActual('events');
+vi.mock('electron', async () => {
+  const { EventEmitter } =
+    await vi.importActual<typeof import('events')>('events');
   return {
-    BrowserWindow: jest.fn(),
+    BrowserWindow: vi.fn(),
     dialog: {
-      showOpenDialog: jest.fn(),
+      showOpenDialog: vi.fn(),
     },
     ipcMain: new EventEmitter(),
     shell: {
-      openExternal: jest.fn(),
-      openPath: jest.fn(),
+      openExternal: vi.fn(),
+      openPath: vi.fn(),
     },
   };
 });
+
+vi.mock('../channels/ConfigChannel', () => ({
+  default: class {
+    getName() {
+      return 'config';
+    }
+
+    handle() {
+      return undefined;
+    }
+  },
+}));
+
+vi.mock('../channels/PupillometryChannel', () => ({
+  default: class {
+    getName() {
+      return 'pupillometry';
+    }
+
+    handle() {
+      return Promise.reject(new Error('No study'));
+    }
+  },
+}));
+
+vi.mock('../channels/ShellChannel', () => ({
+  default: class {
+    getName() {
+      return 'shell';
+    }
+
+    handle() {
+      return undefined;
+    }
+  },
+}));
+
+vi.mock('../channels/StudyChannel', () => ({
+  default: class {
+    getName() {
+      return 'study';
+    }
+
+    handle() {
+      return undefined;
+    }
+  },
+}));
 
 describe('registerIpcChannels', () => {
   beforeEach(() => {
@@ -25,7 +75,7 @@ describe('registerIpcChannels', () => {
   });
 
   test('sends an error response when an async channel handler rejects', async () => {
-    const sender = { send: jest.fn() };
+    const sender = { send: vi.fn() };
     const event = { sender } as unknown as IpcMainEvent;
     const request = {
       responseChannel: 'pupillometry_response',

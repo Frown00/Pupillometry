@@ -1,37 +1,39 @@
 import { dialog, ipcMain } from 'electron';
+import { vi } from 'vitest';
 import PupillometryRepository from '../../../main/store/repository/PupillometryRepository';
 import { State } from '../../interfaces';
 import PupillometryChannel, {
   IPupillometryRequest,
 } from '../PupillometryChannel';
 
-jest.mock('electron', () => {
-  const { EventEmitter } = jest.requireActual('events');
+vi.mock('electron', async () => {
+  const { EventEmitter } =
+    await vi.importActual<typeof import('events')>('events');
   return {
-    BrowserWindow: jest.fn(),
+    BrowserWindow: vi.fn(),
     dialog: {
-      showOpenDialog: jest.fn(),
+      showOpenDialog: vi.fn(),
     },
     ipcMain: new EventEmitter(),
     shell: {
-      openPath: jest.fn(),
+      openPath: vi.fn(),
     },
   };
 });
 
-jest.mock('../../../main/pupillary/export', () => ({
+vi.mock('../../../main/pupillary/export', () => ({
   __esModule: true,
   default: {
-    saveGroupedMetrics: jest.fn(),
-    saveSamples: jest.fn(),
+    saveGroupedMetrics: vi.fn(),
+    saveSamples: vi.fn(),
   },
 }));
 
-jest.mock('../../../main/store/repository/PupillometryRepository', () => ({
+vi.mock('../../../main/store/repository/PupillometryRepository', () => ({
   __esModule: true,
   default: {
-    process: jest.fn(),
-    test: jest.fn(),
+    process: vi.fn(),
+    test: vi.fn(),
   },
 }));
 
@@ -43,7 +45,7 @@ const result: IPupillometryResult = {
 };
 const event = {
   sender: {
-    send: jest.fn(),
+    send: vi.fn(),
   },
 } as unknown as Electron.IpcMainEvent;
 const window = {} as Electron.BrowserWindow;
@@ -52,7 +54,7 @@ describe('PupillometryChannel', () => {
   const channel = new PupillometryChannel(window);
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     ipcMain.removeAllListeners();
   });
 
@@ -62,7 +64,7 @@ describe('PupillometryChannel', () => {
       state: State.Loading,
       progress: 0.5,
     };
-    jest
+    vi
       .mocked(PupillometryRepository.process)
       .mockImplementation(async (_paths, _config, saveCallback) => {
         saveCallback(loadingResponse);
@@ -103,7 +105,7 @@ describe('PupillometryChannel', () => {
   });
 
   test('sends a channel error when processing rejects', async () => {
-    jest
+    vi
       .mocked(PupillometryRepository.process)
       .mockRejectedValue(new Error('invalid file'));
 
@@ -132,9 +134,9 @@ describe('PupillometryChannel', () => {
       state: State.Loading,
       progress: 0.5,
     };
-    const listener = jest.fn();
+    const listener = vi.fn();
     ipcMain.on('study-response', listener);
-    jest
+    vi
       .mocked(PupillometryRepository.process)
       .mockImplementation(async (_paths, _config, saveCallback) => {
         saveCallback(internalResponse);
