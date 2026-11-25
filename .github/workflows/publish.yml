@@ -2,8 +2,9 @@ name: Publish
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - 'v*'
+  workflow_dispatch:
 
 jobs:
   publish:
@@ -19,12 +20,13 @@ jobs:
 
     steps:
       - name: Checkout git repo
-        uses: actions/checkout@v1
+        uses: actions/checkout@v4
 
       - name: Install Node and NPM
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v4
         with:
           node-version: 26
+          cache: npm
 
       - name: Install dependencies
         run: |

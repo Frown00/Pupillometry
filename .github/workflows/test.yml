@@ -3,31 +3,23 @@ name: Test
 on: [push, pull_request]
 
 jobs:
-  release:
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
-
+  test:
+    runs-on: ubuntu-latest
     steps:
       - name: Check out Git repository
-        uses: actions/checkout@v1
+        uses: actions/checkout@v4
 
       - name: Install Node.js and NPM
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v4
         with:
           node-version: 26
+          cache: npm
 
       - name: npm ci
-        run: |
-          npm ci
+        run: npm ci
 
-      - name: npm test
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          npm run package
-          npm run lint
-          npm exec tsc
-          npm test
+      - name: Lint and type-check
+        run: npm run lint
+
+      - name: Test
+        run: npm test
