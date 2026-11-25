@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "checkJs": true
+  },
+  "include": [
+    "preload.js",
+    "../ipc/validChannels.js",
+    "types.d.ts",
+    "filesystem/types.d.ts",
+    "../ipc/interfaces.ts",
+    "../ipc/types.d.ts"
+  ]
+}
