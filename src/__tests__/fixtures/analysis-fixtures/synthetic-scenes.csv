@@ -1,0 +1,12 @@
+#Study name,Synthetic analysis fixture
+#Respondent Name,SYN-001
+#Recording time,2026-01-01T00:00:00Z
+#DATA,,,,
+Row,Timestamp,ET_PupilLeft,ET_PupilRight,Scene active
+1,1000,3.0,3.2,Fixation
+2,1020,,3.4,Fixation
+3,1040,3.4,3.6,Fixation
+4,not-a-timestamp,3.5,3.7,Fixation
+5,1060,3.6,3.8,Target A
+6,1080,3.8,4.0,Target A
+7,1100,4.0,4.2,Target A

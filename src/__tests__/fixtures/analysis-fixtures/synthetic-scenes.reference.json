@@ -1,0 +1,85 @@
+{
+  "fixture": "synthetic-scenes.csv",
+  "config": {
+    "separator": ",",
+    "timestamp": "Timestamp",
+    "leftPupil": "ET_PupilLeft",
+    "rightPupil": "ET_PupilRight",
+    "segmentActive": "Scene active"
+  },
+  "tolerance": {
+    "absolute": 1e-9,
+    "relative": 1e-9
+  },
+  "ingestion": {
+    "rawRows": 7,
+    "parsedRows": 6,
+    "skippedMalformedTimestampRows": 1,
+    "missingValue": null,
+    "parsedSamples": [
+      {
+        "timestamp": 1000,
+        "leftPupil": 3,
+        "rightPupil": 3.2,
+        "segmentActive": "Fixation"
+      },
+      {
+        "timestamp": 1020,
+        "leftPupil": null,
+        "rightPupil": 3.4,
+        "segmentActive": "Fixation"
+      },
+      {
+        "timestamp": 1040,
+        "leftPupil": 3.4,
+        "rightPupil": 3.6,
+        "segmentActive": "Fixation"
+      },
+      {
+        "timestamp": 1060,
+        "leftPupil": 3.6,
+        "rightPupil": 3.8,
+        "segmentActive": "Target A"
+      },
+      {
+        "timestamp": 1080,
+        "leftPupil": 3.8,
+        "rightPupil": 4,
+        "segmentActive": "Target A"
+      },
+      {
+        "timestamp": 1100,
+        "leftPupil": 4,
+        "rightPupil": 4.2,
+        "segmentActive": "Target A"
+      }
+    ]
+  },
+  "sceneSegments": [
+    {
+      "name": "Fixation",
+      "timestamps": [0, 20, 40],
+      "validLeftCount": 2,
+      "leftMean": 3.2,
+      "validRightCount": 3,
+      "rightMean": 3.4,
+      "pairedMean": 3.3
+    },
+    {
+      "name": "Target A",
+      "timestamps": [0, 20, 40],
+      "validLeftCount": 3,
+      "leftMean": 3.8,
+      "validRightCount": 3,
+      "rightMean": 4,
+      "pairedMean": 3.9
+    }
+  ],
+  "summary": {
+    "validLeftCount": 5,
+    "leftMean": 3.56,
+    "validRightCount": 6,
+    "rightMean": 3.7,
+    "pairedMean": 3.66
+  }
+}
