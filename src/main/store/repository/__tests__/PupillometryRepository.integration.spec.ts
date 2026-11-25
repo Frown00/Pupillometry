@@ -79,9 +79,9 @@ describe('PupillometryRepository integration', () => {
       'Scene A',
       'Scene B',
     ]);
-    expect(
-      results[0].segments.map(({ stats }) => stats.sample.raw)
-    ).toEqual([3, 3]);
+    expect(results[0].segments.map(({ stats }) => stats.sample.raw)).toEqual([
+      3, 3,
+    ]);
     expect(
       results[0].segments.every(
         ({ samples, smoothed }) =>

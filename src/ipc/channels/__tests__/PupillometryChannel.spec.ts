@@ -85,11 +85,11 @@ describe('PupillometryChannel', () => {
       config,
       expect.any(Function)
     );
-    expect(event.sender.send).toHaveBeenNthCalledWith(
-      1,
-      'process-response',
-      { progress: 0, state: State.Loading, result: [] }
-    );
+    expect(event.sender.send).toHaveBeenNthCalledWith(1, 'process-response', {
+      progress: 0,
+      state: State.Loading,
+      result: [],
+    });
     expect(event.sender.send).toHaveBeenNthCalledWith(
       2,
       'process-response',

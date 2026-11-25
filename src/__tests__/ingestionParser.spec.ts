@@ -16,25 +16,22 @@ const fixtureConfig = {
 } as IConfig;
 
 describe('ingestion parser', () => {
-  test(
-    'matches the reference, skips malformed timestamps, and preserves missing pupils as NaN',
-    async () => {
-      const { rawData } = await sampleLoader(fixturePath, fixtureConfig);
-      const parsed = parser(rawData);
-      const expected = reference.ingestion.parsedSamples.map((sample) => ({
-        timestamp: sample.timestamp,
-        leftPupil: sample.leftPupil === null ? NaN : sample.leftPupil,
-        rightPupil: sample.rightPupil === null ? NaN : sample.rightPupil,
-        segmentActive: sample.segmentActive,
-      }));
+  test('matches the reference, skips malformed timestamps, and preserves missing pupils as NaN', async () => {
+    const { rawData } = await sampleLoader(fixturePath, fixtureConfig);
+    const parsed = parser(rawData);
+    const expected = reference.ingestion.parsedSamples.map((sample) => ({
+      timestamp: sample.timestamp,
+      leftPupil: sample.leftPupil === null ? NaN : sample.leftPupil,
+      rightPupil: sample.rightPupil === null ? NaN : sample.rightPupil,
+      segmentActive: sample.segmentActive,
+    }));
 
-      expect(rawData.map((sample) => sample.Timestamp)).toContain(
-        'not-a-timestamp'
-      );
-      expect(parsed).toHaveLength(reference.ingestion.parsedRows);
-      expect(parsed).toEqual(expected);
-      expect(Number.isNaN(parsed[1].leftPupil)).toBe(true);
-      expect(parsed[1].rightPupil).toBe(3.4);
-    }
-  );
+    expect(rawData.map((sample) => sample.Timestamp)).toContain(
+      'not-a-timestamp'
+    );
+    expect(parsed).toHaveLength(reference.ingestion.parsedRows);
+    expect(parsed).toEqual(expected);
+    expect(Number.isNaN(parsed[1].leftPupil)).toBe(true);
+    expect(parsed[1].rightPupil).toBe(3.4);
+  });
 });

@@ -139,7 +139,7 @@ export default class StudyChannel implements IpcChannel {
       state: State.Loading,
       result: null,
     };
-    event.sender.send(request.responseChannel, response);
+    event.sender.send(request.responseChannel, { ...response });
     // Process
     const { query, method } = request;
     if (method === 'create') {

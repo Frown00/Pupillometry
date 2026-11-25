@@ -177,11 +177,14 @@ export default class Segment {
         Reflect.deleteProperty(this.#samples[i], 'meanMark');
 
         if (!replaceBySmoothed) {
-          delete this.#smoothedSamples[i].leftMark;
-          delete this.#smoothedSamples[i].rightMark;
-          Reflect.deleteProperty(this.#smoothedSamples[i], 'rightPupil');
-          Reflect.deleteProperty(this.#smoothedSamples[i], 'leftPupil');
-          Reflect.deleteProperty(this.#samples[i], 'meanMark');
+          const smoothedSample = this.#smoothedSamples[i];
+          if (smoothedSample) {
+            delete smoothedSample.leftMark;
+            delete smoothedSample.rightMark;
+            Reflect.deleteProperty(smoothedSample, 'rightPupil');
+            Reflect.deleteProperty(smoothedSample, 'leftPupil');
+            Reflect.deleteProperty(this.#samples[i], 'meanMark');
+          }
         }
       }
     }
