@@ -8,15 +8,9 @@ interface IProps {
 }
 
 export default function RouteLink({ to, label, Wrapper }: IProps) {
-  const wrappedLabel = (
-    // @ts-expect-error -- Router and wrapper React types are incompatible.
-    <Wrapper>{label}</Wrapper>
-  );
+  const wrappedLabel = <Wrapper>{label}</Wrapper>;
 
-  return (
-    // @ts-expect-error -- Router and wrapper React types are incompatible.
-    <Link to={to}>{wrappedLabel}</Link>
-  );
+  return <Link to={to}>{wrappedLabel}</Link>;
 }
 
 RouteLink.defaultProps = {
