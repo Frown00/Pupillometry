@@ -153,10 +153,9 @@ Note: App build was tested only on windows 10. For windows, you may see a warnin
 ### OR run in development mode:
 
 1. git clone [url]
-2. install node.js
-3. npm install --global yarn
-4. yarn install
-5. yarn start
+2. Install Node.js 26
+3. Run `npm ci`
+4. Run `npm start`
 
 ## Tech Stack
 

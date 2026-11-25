@@ -17,11 +17,11 @@ jobs:
       - name: Install Node.js and NPM
         uses: actions/setup-node@v1
         with:
-          node-version: 16
+          node-version: 26
 
-      - name: npm install
+      - name: npm ci
         run: |
-          npm install
+          npm ci
 
       - name: npm test
         env:
