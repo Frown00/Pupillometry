@@ -60,14 +60,14 @@ export default class LineGraph extends React.Component<IProps, IState> {
     };
   }
 
-  componentDidMount() {
+  override componentDidMount() {
     // activate
     const { samples } = this.props;
     d3.select(this.ref).selectAll('g').remove();
     this.buildGraph(samples?.samples ?? [], samples.smoothed ?? []);
   }
 
-  shouldComponentUpdate(nextProps: IProps) {
+  override shouldComponentUpdate(nextProps: IProps) {
     const { samples, name, chartType } = this.props;
     const differentTitle = samples !== nextProps.samples;
     const differentDone = name !== nextProps.name;
@@ -75,13 +75,13 @@ export default class LineGraph extends React.Component<IProps, IState> {
     return differentTitle || differentDone || diffChartType;
   }
 
-  componentDidUpdate() {
+  override componentDidUpdate() {
     const { samples } = this.props;
     d3.select(this.ref).selectAll('g').remove();
     this.buildGraph(samples?.samples ?? [], samples.smoothed ?? []);
   }
 
-  componentWillUnmount() {
+  override componentWillUnmount() {
     d3.select(this.ref).selectAll('g').remove();
   }
 
@@ -477,7 +477,7 @@ export default class LineGraph extends React.Component<IProps, IState> {
     // #endregion
   }
 
-  render() {
+  override render() {
     const { isLoading } = this.state;
     const { samples } = this.props;
     return (

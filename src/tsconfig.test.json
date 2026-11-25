@@ -1,0 +1,15 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": [
+    "**/*.spec.ts",
+    "**/__tests__/**/*.ts",
+    "main/types.d.ts",
+    "main/filesystem/types.d.ts",
+    "main/pupillary/markers/types.d.ts",
+    "ipc/types.d.ts",
+    "../assets/assets.d.ts"
+  ]
+}

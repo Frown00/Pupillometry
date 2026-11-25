@@ -1,0 +1,22 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "../ipc/**/*.ts",
+    "../main/types.d.ts",
+    "../main/filesystem/types.d.ts",
+    "../main/pupillary/markers/types.d.ts",
+    "../util.ts",
+    "../../assets/assets.d.ts"
+  ],
+  "exclude": [
+    "**/*.spec.ts",
+    "**/__tests__/**",
+    "../ipc/**/*.spec.ts",
+    "../ipc/**/__tests__/**"
+  ]
+}

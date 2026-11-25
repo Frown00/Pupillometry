@@ -3,7 +3,8 @@ const validChannels = require('../ipc/validChannels');
 
 const objValidChannels = Object.values(validChannels);
 
-contextBridge.exposeInMainWorld('api', {
+/** @type {{ ipcRenderer: import('../ipc/types').IIpcRendererApi }} */
+const api = {
   ipcRenderer: {
     send(channel, value) {
       if (objValidChannels.includes(channel)) {
@@ -16,14 +17,14 @@ contextBridge.exposeInMainWorld('api', {
 
     on(channel, func) {
       if (objValidChannels.includes(channel)) {
-        ipcRenderer.on(channel, (event, ...args) => func(event, ...args));
+        ipcRenderer.on(channel, (event, ...args) => func(event, args[0]));
       } else {
         throw new Error('Trying to use invalid channel');
       }
     },
     once(channel, func) {
       if (objValidChannels.includes(channel)) {
-        ipcRenderer.once(channel, (event, ...args) => func(event, ...args));
+        ipcRenderer.once(channel, (event, ...args) => func(event, args[0]));
       } else {
         throw new Error('Trying to use invalid channel');
       }
@@ -43,4 +44,6 @@ contextBridge.exposeInMainWorld('api', {
       }
     },
   },
-});
+};
+
+contextBridge.exposeInMainWorld('api', api);

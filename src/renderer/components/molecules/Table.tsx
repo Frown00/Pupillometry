@@ -118,7 +118,7 @@ export default class Table<T extends IRecord> extends React.Component<
     return col;
   }
 
-  render() {
+  override render() {
     const { records, pageSize, baseRoute, handleOnDelete } = this.props;
     const actions: IAction<T>[] = [];
     const record = records?.[0] ?? null;
