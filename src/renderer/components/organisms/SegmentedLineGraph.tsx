@@ -1,6 +1,6 @@
 /* eslint-disable react/require-default-props */
 /* eslint-disable react/no-unused-prop-types */
-import { Segmented, Space, Tabs } from 'antd';
+import { message, Segmented, Space, Tabs } from 'antd';
 import { SegmentedValue } from 'antd/lib/segmented';
 import d3ToPng from 'd3-svg-to-png';
 import { useState } from 'react';
@@ -132,37 +132,35 @@ export default function SegmentedLineGraph(props: IProps) {
     return charts[name](p);
   };
 
+  const exportChart = async (segmentName: string) => {
+    try {
+      const element = document.querySelector(
+        '.ant-tabs-content.ant-tabs-content-top'
+      );
+      const tabId = element?.firstElementChild?.getAttribute('id');
+      if (!tabId) throw new Error('Cannot find the selected chart tab');
+      const tabParts = tabId.split('-');
+      tabParts.pop();
+      tabParts.push(segmentName);
+      await d3ToPng(
+        `div[id="${tabParts.join('-')}"] svg.container`,
+        `${respondentName}-${segmentName}-${chartType}`,
+        {
+          scale: 3,
+          format: 'png',
+        }
+      );
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unexpected export error';
+      message.error(`Cannot save file: ${errorMessage}`);
+    }
+  };
+
   const panes = segments.map((s) => (
     <TabPane tab={`${s.name}`} key={s.name}>
       <Space direction="vertical">
-        <Button
-          onClick={async () => {
-            // React master race developers would hate me for that
-            const d = document.querySelector(
-              '.ant-tabs-content.ant-tabs-content-top'
-            );
-            const tabId = d?.firstElementChild?.getAttribute('id');
-            if (!tabId) throw new Error('Cannot find the selected chart tab');
-            const temp = tabId.split('-');
-            temp.pop();
-            temp.push(s.name);
-            const selelectorId = temp.join('-');
-            try {
-              await d3ToPng(
-                `div[id="${selelectorId}"] svg.container`,
-                `${respondentName}-${s.name}-${chartType}`,
-                {
-                  scale: 3,
-                  format: 'png',
-                }
-              );
-            } catch (err) {
-              const errorMessage =
-                err instanceof Error ? err.message : 'Unexpected export error';
-              throw new Error(`Cannot save file: ${errorMessage}`);
-            }
-          }}
-        >
+        <Button onClick={() => void exportChart(s.name)}>
           Generate PNG
         </Button>
         <Button

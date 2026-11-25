@@ -9,7 +9,7 @@ export default class FsUtil {
         fs.mkdirSync(folderPath);
         log.info('Folder created', path.basename(folderPath));
       }
-    } catch (err) {
+    } catch {
       throw new Error(`Unable to create folder located in ${folderPath}`);
     }
   }
@@ -21,7 +21,7 @@ export default class FsUtil {
     try {
       fs.rmdirSync(folderPath, { recursive: true });
       log.info('Folder removed', path.basename(folderPath));
-    } catch (err) {
+    } catch {
       throw new Error(`Wrong folder path ${folderPath}`);
     }
   }

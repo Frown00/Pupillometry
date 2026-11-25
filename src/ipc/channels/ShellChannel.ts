@@ -15,7 +15,7 @@ export default class ShellChannel implements IpcChannel {
     return this.name;
   }
 
-  handle(_: IpcMainEvent, request: IShellRequest): void {
+  async handle(_: IpcMainEvent, request: IShellRequest): Promise<void> {
     if (!request.responseChannel) {
       request.responseChannel = `${this.getName()}_response`;
     }
@@ -23,7 +23,7 @@ export default class ShellChannel implements IpcChannel {
     const { options, method } = request;
     if (method === 'open') {
       if (!options?.href) return;
-      shell.openExternal(options.href);
+      await shell.openExternal(options.href);
     }
   }
 }

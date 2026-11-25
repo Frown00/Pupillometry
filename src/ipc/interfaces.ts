@@ -27,7 +27,7 @@ export interface IpcResponseMessage {
 
 export interface IpcChannel {
   getName(): string;
-  handle(event: IpcMainEvent, request: IpcRequest): void;
+  handle(event: IpcMainEvent, request: IpcRequest): void | Promise<void>;
 }
 
 export const ChannelNames = {

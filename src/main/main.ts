@@ -23,7 +23,9 @@ export default class AppUpdater {
   constructor() {
     log.transports.file.level = 'info';
     autoUpdater.logger = log;
-    autoUpdater.checkForUpdatesAndNotify();
+    void autoUpdater.checkForUpdatesAndNotify().catch((error: unknown) => {
+      log.error('Failed to check for updates', error);
+    });
   }
 }
 
@@ -83,7 +85,9 @@ const createWindow = async () => {
     },
   });
 
-  mainWindow.loadURL(resolveHtmlPath('index.html'));
+  void mainWindow.loadURL(resolveHtmlPath('index.html')).catch((error: unknown) => {
+    log.error('Failed to load the renderer', error);
+  });
 
   mainWindow.on('ready-to-show', () => {
     if (!mainWindow) {
@@ -105,7 +109,9 @@ const createWindow = async () => {
   menuBuilder.buildMenu();
   // Open urls in the user's browser
   mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url);
+    void shell.openExternal(details.url).catch((error: unknown) => {
+      log.error('Failed to open external URL', error);
+    });
     return { action: 'deny' };
   });
 
@@ -126,16 +132,19 @@ app.on('window-all-closed', () => {
   }
 });
 
+app.on('activate', () => {
+  // On macOS it's common to re-create a window in the app when the
+  // dock icon is clicked and there are no other windows open.
+  if (mainWindow === null) {
+    void createWindow().catch((error: unknown) => {
+      log.error('Failed to create the main window', error);
+    });
+  }
+});
+
 app
   .whenReady()
-  .then(() => {
-    createWindow();
-    app.on('activate', () => {
-      // On macOS it's common to re-create a window in the app when the
-      // dock icon is clicked and there are no other windows open.
-      if (mainWindow === null) {
-        createWindow();
-      }
-    });
-  })
-  .catch(console.log);
+  .then(createWindow)
+  .catch((error: unknown) => {
+    log.error('Failed to initialize the application', error);
+  });

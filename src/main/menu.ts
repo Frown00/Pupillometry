@@ -5,6 +5,13 @@ import {
   BrowserWindow,
   MenuItemConstructorOptions,
 } from 'electron';
+import log from 'electron-log';
+
+const openExternal = (url: string) => {
+  void shell.openExternal(url).catch((error: unknown) => {
+    log.error('Failed to open external URL', error);
+  });
+};
 
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
   selector?: string;
@@ -157,23 +164,19 @@ export default class MenuBuilder {
         {
           label: 'Repository',
           click() {
-            shell.openExternal('https://github.com/Frown00/Pupillometry');
+            openExternal('https://github.com/Frown00/Pupillometry');
           },
         },
         {
           label: 'Releases',
           click() {
-            shell.openExternal(
-              'https://github.com/Frown00/Pupillometry/releases'
-            );
+            openExternal('https://github.com/Frown00/Pupillometry/releases');
           },
         },
         {
           label: 'Search Issues',
           click() {
-            shell.openExternal(
-              'https://github.com/Frown00/Pupillometry/issues'
-            );
+            openExternal('https://github.com/Frown00/Pupillometry/issues');
           },
         },
       ],
@@ -254,23 +257,19 @@ export default class MenuBuilder {
           {
             label: 'Repository',
             click() {
-              shell.openExternal('https://github.com/Frown00/Pupillometry');
+              openExternal('https://github.com/Frown00/Pupillometry');
             },
           },
           {
             label: 'Releases',
             click() {
-              shell.openExternal(
-                'https://github.com/Frown00/Pupillometry/releases'
-              );
+              openExternal('https://github.com/Frown00/Pupillometry/releases');
             },
           },
           {
             label: 'Search Issues',
             click() {
-              shell.openExternal(
-                'https://github.com/Frown00/Pupillometry/issues'
-              );
+              openExternal('https://github.com/Frown00/Pupillometry/issues');
             },
           },
         ],
