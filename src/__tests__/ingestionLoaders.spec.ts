@@ -32,10 +32,7 @@ describe('ingestion loaders', () => {
   });
 
   test('sample loader maps configured CSV headers and retains raw rows', async () => {
-    const { name, rawData } = await sampleLoader(
-      fixturePath,
-      fixtureConfig
-    );
+    const { name, rawData } = await sampleLoader(fixturePath, fixtureConfig);
 
     expect(name).toBe('synthetic-scenes');
     expect(rawData).toHaveLength(reference.ingestion.rawRows);

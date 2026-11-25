@@ -82,11 +82,9 @@ describe('StudyChannel', () => {
   });
 
   test('sends an error response when a repository operation throws', () => {
-    jest
-      .mocked(StudyRepository.readAll)
-      .mockImplementation(() => {
-        throw new Error('store unavailable');
-      });
+    jest.mocked(StudyRepository.readAll).mockImplementation(() => {
+      throw new Error('store unavailable');
+    });
 
     channel.handle(event, {
       method: 'readAll',
@@ -112,10 +110,7 @@ describe('StudyChannel', () => {
         group: group.name,
         form: {
           config,
-          files: [
-            { path: '/data/first.csv' },
-            { path: '/data/second.csv' },
-          ],
+          files: [{ path: '/data/first.csv' }, { path: '/data/second.csv' }],
         },
       },
     };
